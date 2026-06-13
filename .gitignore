@@ -10,9 +10,11 @@ cov.*
 .env*
 __pycache__
 /docs/_build
+/dist-packages
 coverage
 smoke
 build
+*.tsbuildinfo
 
 # Regardless the rules above, never ignore following
 !.vscode/launch.json

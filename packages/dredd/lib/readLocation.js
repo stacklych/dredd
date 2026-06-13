@@ -1,6 +1,6 @@
 import fs from 'fs';
-import defaultRequest from 'request';
 
+import defaultRequest from './httpClient';
 import isURL from './isURL';
 
 function getErrorFromResponse(response, hasBody) {

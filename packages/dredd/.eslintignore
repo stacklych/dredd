@@ -3,6 +3,7 @@
 build
 coverage
 docs
+lib/vendor
 
 # In case Python virtualenv is present in the project directory, this ignores
 # its contents (some Python projects vendor JavaScript files, etc.)

@@ -1,10 +1,10 @@
 import async from 'async';
 import chai from 'chai';
-import gavel from 'gavel';
 import os from 'os';
 import url from 'url';
 
 import addHooks from './addHooks';
+import gavel from './vendor/gavel';
 import logger from './logger';
 import reporterOutputLogger from './reporters/reporterOutputLogger';
 import packageData from '../package.json';
@@ -96,15 +96,48 @@ function formatJSONSchema202012Error(error) {
   }
 }
 
+function createJSONSchemaValidationResult(errors, actualBody) {
+  return {
+    valid: errors.length === 0,
+    kind: 'json',
+    values: { actual: actualBody },
+    errors,
+  };
+}
+
+function createInvalidJSONValidationResult(error, actualBody) {
+  return createJSONSchemaValidationResult([
+    {
+      message: `Expected data to be a valid JSON: ${error.message}`,
+      location: {
+        pointer: '',
+        property: [],
+      },
+    },
+  ], actualBody);
+}
+
 function validateBodySchemaWithAjv(bodySchema, actualBody) {
   const ajv2020ModuleName = 'ajv/dist/2020';
+  const ajvFormatsModuleName = 'ajv-formats';
   // eslint-disable-next-line global-require, import/no-dynamic-require
   const Ajv2020Module = require(ajv2020ModuleName);
+  // eslint-disable-next-line global-require, import/no-dynamic-require
+  const addFormatsModule = require(ajvFormatsModuleName);
   const Ajv2020 = Ajv2020Module.default || Ajv2020Module;
+  const addFormats = addFormatsModule.default || addFormatsModule;
   const schema = normalizeAjvSchemaDialect(getSchemaObject(bodySchema));
-  const actual = parseJSON(actualBody, 'Expected data to be a valid JSON');
   const ajv = new Ajv2020({ allErrors: true, strict: false, verbose: true });
+  addFormats(ajv);
   const validate = ajv.compile(schema);
+
+  let actual;
+  try {
+    actual = JSON.parse(actualBody);
+  } catch (error) {
+    return createInvalidJSONValidationResult(error, actualBody);
+  }
+
   validate(actual);
 
   const errors = (validate.errors || []).map((error) => {
@@ -120,12 +153,7 @@ function validateBodySchemaWithAjv(bodySchema, actualBody) {
     };
   });
 
-  return {
-    valid: errors.length === 0,
-    kind: 'json',
-    values: { actual: actualBody },
-    errors,
-  };
+  return createJSONSchemaValidationResult(errors, actualBody);
 }
 
 function validateFields(fields) {

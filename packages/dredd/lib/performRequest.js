@@ -1,6 +1,6 @@
-import defaultRequest from 'request';
 import caseless from 'caseless';
 
+import defaultRequest from './httpClient';
 import defaultLogger from './logger';
 
 /**
@@ -13,8 +13,8 @@ import defaultLogger from './logger';
  * @param {Object} transactionReq
  * @param {Object} [options]
  * @param {Object} [options.logger] Custom logger
- * @param {Object} [options.request] Custom 'request' library implementation
- * @param {Object} [options.http] Custom default 'request' library options
+ * @param {Object} [options.request] Custom request-compatible HTTP client
+ * @param {Object} [options.http] Custom default HTTP client options
  * @param {Function} callback
  */
 function performRequest(uri, transactionReq, options, callback) {

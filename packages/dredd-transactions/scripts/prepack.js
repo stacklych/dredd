@@ -11,6 +11,7 @@ const rimraf = require('rimraf');
 const PACKAGE_DIR = path.resolve(__dirname, '..');
 const SYMLINKS_LOG = path.join(PACKAGE_DIR, 'prepack-symlinks.log');
 const APIB_PARSER_PATH = path.join(PACKAGE_DIR, 'node_modules', '@apielements', 'apib-parser');
+const OPENAPI2_PARSER_PATH = path.join(PACKAGE_DIR, 'node_modules', '@apielements', 'openapi2-parser');
 
 
 function readPackageJson(packageDir) {
@@ -76,6 +77,12 @@ const apibParserPackageData = readPackageJson(APIB_PARSER_PATH);
 delete apibParserPackageData.dependencies.protagonist;
 delete apibParserPackageData.optionalDependencies.protagonist;
 writePackageJson(APIB_PARSER_PATH, apibParserPackageData);
+
+// alter @apielements/openapi2-parser's package.json so bundled installs use
+// the fixed JSON Schema example generator resolved by this workspace
+const openapi2ParserPackageData = readPackageJson(OPENAPI2_PARSER_PATH);
+openapi2ParserPackageData.dependencies['json-schema-faker'] = '0.5.8';
+writePackageJson(OPENAPI2_PARSER_PATH, openapi2ParserPackageData);
 
 // get rid of protagonist everywhere
 [

@@ -2,7 +2,7 @@ import clone from 'clone';
 import fsStub from 'fs';
 import proxyquire from 'proxyquire';
 import sinon from 'sinon';
-import * as yamlStub from 'js-yaml';
+import yamlStub from 'js-yaml';
 import { assert } from 'chai';
 
 const configUtils = proxyquire('../../lib/configUtils', {

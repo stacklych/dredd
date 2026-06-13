@@ -6,16 +6,35 @@ paths:
   /resource:
     get:
       responses:
-        '200':
-          description: Representation
+        '404':
+          description: Problem details
           content:
             application/json; charset=utf-8:
               schema:
                 type: object
                 required:
-                  - label
+                  - type
+                  - title
+                  - status
+                  - detail
+                  - instance
+                  - error_code
+                  - trace_id
                 properties:
-                  label:
-                    type:
-                      - string
-                      - 'null'
+                  type:
+                    type: string
+                    format: uri
+                  title:
+                    type: string
+                  status:
+                    type: integer
+                    format: int32
+                  detail:
+                    type: string
+                  instance:
+                    type: string
+                  error_code:
+                    type: string
+                  trace_id:
+                    type: string
+                    format: uuid

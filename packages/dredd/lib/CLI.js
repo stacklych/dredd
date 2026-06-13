@@ -1,7 +1,7 @@
 import R from 'ramda';
 import console from 'console'; // Stubbed in tests by proxyquire
 import fs from 'fs';
-import optimist from 'optimist';
+import minimist from 'minimist';
 import os from 'os';
 import spawnArgs from 'spawn-args';
 import { spawn as spawnSync } from 'cross-spawn';
@@ -16,6 +16,111 @@ import { spawn } from './childProcess';
 
 import dreddOptions from '../options.json';
 import packageData from '../package.json';
+
+function getAliases(options) {
+  return Object.keys(options).reduce((aliases, optionName) => {
+    if (options[optionName].alias) {
+      aliases[optionName] = options[optionName].alias;
+    }
+    return aliases;
+  }, {});
+}
+
+function getArrayOptions(options) {
+  return Object.keys(options).filter(optionName =>
+    Array.isArray(options[optionName].default),
+  );
+}
+
+function getBooleanOptions(options) {
+  return Object.keys(options).filter(
+    optionName =>
+      options[optionName].boolean === true ||
+      typeof options[optionName].default === 'boolean',
+  );
+}
+
+function getDefaults(options) {
+  return Object.keys(options).reduce((defaults, optionName) => {
+    if (Object.prototype.hasOwnProperty.call(options[optionName], 'default')) {
+      defaults[optionName] = options[optionName].default;
+    }
+    return defaults;
+  }, {});
+}
+
+function syncAliases(argv, aliases) {
+  Object.keys(aliases).forEach((optionName) => {
+    const alias = aliases[optionName];
+    if (Object.prototype.hasOwnProperty.call(argv, optionName)) {
+      argv[alias] = argv[optionName];
+    } else if (Object.prototype.hasOwnProperty.call(argv, alias)) {
+      argv[optionName] = argv[alias];
+    }
+  });
+}
+
+function normalizeArrayOptions(argv, arrayOptions, aliases) {
+  arrayOptions.forEach((optionName) => {
+    const value = argv[optionName];
+    if (Array.isArray(value)) {
+      argv[optionName] = value;
+    } else if (value === undefined || value === null) {
+      argv[optionName] = [];
+    } else {
+      argv[optionName] = [value];
+    }
+
+    if (aliases[optionName]) {
+      argv[aliases[optionName]] = argv[optionName];
+    }
+  });
+}
+
+function parseArgv(rawArgv, options = {}) {
+  const aliases = getAliases(options);
+  const argv = minimist(rawArgv, {
+    alias: aliases,
+    boolean: getBooleanOptions(options),
+    default: getDefaults(options),
+  });
+  argv.$0 = 'dredd';
+  syncAliases(argv, aliases);
+  normalizeArrayOptions(argv, getArrayOptions(options), aliases);
+  return argv;
+}
+
+function formatHelp(usage, options) {
+  const optionLines = Object.keys(options).map((optionName) => {
+    const option = options[optionName];
+    const aliases = option.alias ? `, -${option.alias}` : '';
+    return `  --${optionName}${aliases}\n    ${option.description || ''}`;
+  });
+  return `${usage}\n\nOptions:\n${optionLines.join('\n')}`;
+}
+
+function createArgumentParser(rawArgv) {
+  return {
+    argv: parseArgv(rawArgv),
+    optionDefinitions: {},
+    usageText: '',
+    usage(text) {
+      this.usageText = text;
+      return this;
+    },
+    options(options) {
+      this.optionDefinitions = options;
+      this.argv = parseArgv(rawArgv, options);
+      return this;
+    },
+    wrap() {
+      return this;
+    },
+    showHelp(printer) {
+      printer(formatHelp(this.usageText, this.optionDefinitions));
+    },
+  };
+}
 
 class CLI {
   constructor(options = {}, cb) {
@@ -35,11 +140,11 @@ class CLI {
     }
   }
 
-  setOptimistArgv() {
-    this.optimist = optimist(this.custom.argv, this.custom.cwd);
-    this.cliArgv = this.optimist.argv;
+  setParsedArgv() {
+    this.argumentParser = createArgumentParser(this.custom.argv);
+    this.cliArgv = this.argumentParser.argv;
 
-    this.optimist
+    this.argumentParser
       .usage(
         `\
 Usage:
@@ -55,7 +160,7 @@ Example:
       .options(dreddOptions)
       .wrap(80);
 
-    this.argv = this.optimist.argv;
+    this.argv = this.argumentParser.argv;
     applyLoggingOptions(this.argv);
   }
 
@@ -147,7 +252,7 @@ Example:
     // Show help if argument is missing
     if (argError) {
       console.error('\n');
-      this.optimist.showHelp(console.error);
+      this.argumentParser.showHelp(console.error);
       this._processExit(1);
     }
   }
@@ -172,7 +277,7 @@ Example:
 
       // Show help
     } else if (this.argv.help === true) {
-      this.optimist.showHelp(console.error);
+      this.argumentParser.showHelp(console.error);
       this._processExit(0);
 
       // Show version
@@ -322,7 +427,7 @@ ${packageData.name} v${packageData.version} \
   run() {
     try {
       for (const task of [
-        this.setOptimistArgv,
+        this.setParsedArgv,
         this.parseCustomConfig,
         this.runExitingActions,
         this.loadDreddFile,
@@ -358,7 +463,7 @@ ${packageData.name} v${packageData.version} \
   lastArgvIsApiEndpoint() {
     // When API description path is a glob, some shells are automatically expanding globs and concating
     // result as arguments so I'm taking last argument as API endpoint server URL and removing it
-    // from optimist's args
+    // from parsed CLI args
     this.server = this.argv._[this.argv._.length - 1];
     this.argv._.splice(this.argv._.length - 1, 1);
     return this;

@@ -123,7 +123,7 @@ describe('CLI class', () => {
       dc.run();
     });
 
-    it('has argv property set to object with properties from optimist', () => {
+    it('has argv property set to object with parsed CLI properties', () => {
       assert.isObject(dc.argv);
       assert.property(dc.argv, '_');
       assert.isArray(dc.argv._);

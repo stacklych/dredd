@@ -8,6 +8,7 @@
     "rootDir": "./lib",
     "outDir": "./build",
     "moduleResolution": "node",
+    "skipLibCheck": true,
     "esModuleInterop": true,
     "allowJs": true,
     "allowSyntheticDefaultImports": true

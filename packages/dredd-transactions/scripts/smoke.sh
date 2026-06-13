@@ -4,6 +4,7 @@
 
 # Aborts as soon as anything returns non-zero exit status
 set -e
+set -o pipefail
 shopt -s dotglob
 
 echo "======================================================================"
@@ -19,6 +20,7 @@ echo "======================================================================"
 echo "Preparing a temporary test directory"
 echo "======================================================================"
 SMOKE_DIR=~/test-temp/dredd-transactions-smoke
+rm -rf "$SMOKE_DIR"
 mkdir -p $SMOKE_DIR
 cp ./*.tgz $SMOKE_DIR
 cd $SMOKE_DIR
