@@ -20,17 +20,20 @@ This fork follows Semantic Versioning. The original upstream changelog remains a
 - `dredd-transactions` tarballs now bundle the API Blueprint parser runtime dependencies required by local `.tgz` installs.
 - Removed Dredd's direct dependency on the deprecated `request` package by adding an internal Node.js HTTP/HTTPS adapter.
 - The internal HTTP/HTTPS adapter retains `http_proxy`/`https_proxy`/`no_proxy` environment variable support (for remote API descriptions and the Apiary reporter) via the maintained `http-proxy-agent` and `https-proxy-agent` packages.
-- Regenerated the HTTPS test fixture certificate with a 2048-bit key and SHA-256 signature so the integration suite runs on OpenSSL 3 / Node.js 18+.
+- Regenerated the HTTPS test fixture certificate with a 2048-bit key and SHA-256 signature so the integration suite runs on OpenSSL 3 / Node.js 20+.
 - Replaced the deprecated `url.parse()` call in the transaction runner with the WHATWG `URL` API.
 - Bumped `chai` to 4.5.0 (resolves the bundled `get-func-name` advisory) and aligned `dredd-transactions` on `js-yaml` 3.14.2.
 - Forced patched transitive dependencies via `resolutions` (`ansi-regex` 5.0.1, `minimatch` 3.1.5, `brace-expansion` 1.1.15), clearing several high-severity ReDoS advisories without changing any direct dependency.
+- Bumped `z-schema` to 4.2.4 (within the range required by the bundled OpenAPI 2 / Swagger parsers), pulling in the patched `validator` 13 line and clearing its advisories.
 - Removed Dredd's external `gavel` package dependency by vendoring its built validator bundle.
 - `dredd-transactions` now bundles the OpenAPI 2 parser with a fixed JSON Schema example generator dependency.
 
 ### Changed
 
 - Refreshed selected direct runtime dependencies to maintained patch/minor releases while preserving the existing CommonJS package surface.
-- Updated `inquirer` to the fixed 8.2.7 line and raised the maintained fork's Node.js engine floor to version 18.
+- Updated `inquirer` to the fixed 8.2.7 line and raised the maintained fork's Node.js engine floor to version 20 (Node.js 18 is end-of-life).
+- Upgraded `glob` to 11.1.0 (using the modern `globSync`/`hasMagic` API), clearing the glob CLI command-injection advisory; this requires Node.js 20 or newer.
+- Updated the GitHub Actions CI matrix to Node.js 20/22 with current `actions/checkout` and `actions/setup-node` versions.
 - Replaced the deprecated `optimist` CLI parser dependency with a maintained `minimist`-based parser wrapper.
 - Updated Dredd's TypeScript test/build toolchain for compatibility with refreshed dependency declarations.
 - Documentation now identifies `dalberola/dredd` as the maintained fork.

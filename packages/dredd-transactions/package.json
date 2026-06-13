@@ -4,7 +4,7 @@
   "description": "Compiles HTTP Transactions (Request-Response pairs) from an API description document",
   "main": "index.js",
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   },
   "scripts": {
     "prepack": "node ./scripts/prepack.js",
@@ -43,7 +43,7 @@
     "swagger-parser": "8.0.2",
     "uri-template": "1.0.1",
     "yaml-js": "^0.2.3",
-    "z-schema": "4.2.1"
+    "z-schema": "4.2.4"
   },
   "bundledDependencies": [
     "@apielements/openapi2-parser",

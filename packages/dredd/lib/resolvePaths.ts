@@ -1,17 +1,17 @@
 import fs from 'fs';
 import path from 'path';
-import glob from 'glob';
+import { globSync, hasMagic } from 'glob';
 
 // Ensure platform-agnostic 'path.basename' function
 const basename =
   process.platform === 'win32' ? path.win32.basename : path.basename;
 
 function resolveGlob(workingDirectory: string, pattern: string): string[] {
-  // 'glob.sync()' does not resolve paths, only glob patterns
-  if (glob.hasMagic(pattern)) {
-    return glob
-      .sync(pattern, { cwd: workingDirectory })
-      .map((matchingPath) => path.resolve(workingDirectory, matchingPath));
+  // 'globSync()' does not resolve paths, only glob patterns
+  if (hasMagic(pattern)) {
+    return globSync(pattern, { cwd: workingDirectory }).map((matchingPath) =>
+      path.resolve(workingDirectory, matchingPath),
+    );
   }
   const resolvedPath = path.resolve(workingDirectory, pattern);
   return fs.existsSync(resolvedPath) ? [resolvedPath] : [];
