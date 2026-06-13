@@ -8,17 +8,12 @@ import { EventEmitter } from 'events'
 import loggerStub from '../../../lib/logger'
 import reporterOutputLoggerStub from '../../../lib/reporters/reporterOutputLogger'
 
-const makeDirStub = (input, options) => makeDirStubImpl(input, options)
-let makeDirStubImpl = () => Promise.resolve()
-const makeDirStubImplBackup = makeDirStubImpl
-
 const proxyquire = noCallThru()
 
 const XUnitReporter = proxyquire('../../../lib/reporters/XUnitReporter', {
   '../logger': loggerStub,
   './reporterOutputLogger': reporterOutputLoggerStub,
-  fs: fsStub,
-  'make-dir': makeDirStub
+  fs: fsStub
 }).default
 
 describe('XUnitReporter', () => {
@@ -78,19 +73,19 @@ describe('XUnitReporter', () => {
     describe('when can create output directory', () => {
       beforeEach(() => {
         sinon.stub(fsStub, 'appendFileSync')
-        makeDirStubImpl = sinon.spy(makeDirStubImpl)
+        sinon.stub(fsStub.promises, 'mkdir').resolves()
       })
 
       afterEach(() => {
         fsStub.appendFileSync.restore()
-        makeDirStubImpl = makeDirStubImplBackup
+        fsStub.promises.mkdir.restore()
       })
 
       it('should write opening to file', (done) => {
         const emitter = new EventEmitter()
         new XUnitReporter(emitter, {}, 'test.xml')
         emitter.emit('start', '', () => {
-          assert.isOk(makeDirStubImpl.called)
+          assert.isOk(fsStub.promises.mkdir.called)
           assert.isOk(fsStub.appendFileSync.called)
           done()
         })
@@ -101,22 +96,20 @@ describe('XUnitReporter', () => {
       beforeEach(() => {
         sinon.stub(fsStub, 'appendFileSync')
         sinon.stub(reporterOutputLoggerStub, 'error')
-        makeDirStubImpl = sinon
-          .stub()
-          .callsFake(() => Promise.reject(new Error()))
+        sinon.stub(fsStub.promises, 'mkdir').rejects(new Error())
       })
 
       after(() => {
         fsStub.appendFileSync.restore()
         reporterOutputLoggerStub.error.restore()
-        makeDirStubImpl = makeDirStubImplBackup
+        fsStub.promises.mkdir.restore()
       })
 
       it('should write to log', (done) => {
         const emitter = new EventEmitter()
         new XUnitReporter(emitter, {}, 'test.xml')
         emitter.emit('start', '', () => {
-          assert.isOk(makeDirStubImpl.called)
+          assert.isOk(fsStub.promises.mkdir.called)
           assert.isOk(fsStub.appendFileSync.notCalled)
           assert.isOk(reporterOutputLoggerStub.error.called)
           done()

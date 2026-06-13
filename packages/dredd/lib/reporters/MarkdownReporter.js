@@ -3,7 +3,6 @@ import fs from 'fs';
 import { inherits } from 'util';
 
 import untildify from 'untildify';
-import makeDir from 'make-dir';
 import pathmodule from 'path';
 
 import logger from '../logger';
@@ -47,7 +46,8 @@ MarkdownReporter.prototype.configureEmitter = function configureEmitter(
   });
 
   emitter.on('end', (callback) => {
-    makeDir(pathmodule.dirname(this.path))
+    fs.promises
+      .mkdir(pathmodule.dirname(this.path), { recursive: true })
       .then(() => {
         fs.writeFile(this.path, this.buf, (error) => {
           if (error) {

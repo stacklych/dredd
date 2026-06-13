@@ -10,15 +10,10 @@ import reporterOutputLoggerStub from '../../../lib/reporters/reporterOutputLogge
 
 const proxyquire = noCallThru()
 
-const makeDirStub = (input, options) => makeDirStubImpl(input, options)
-let makeDirStubImpl = () => Promise.resolve()
-const makeDirStubImplBackup = makeDirStubImpl
-
 const HTMLReporter = proxyquire('../../../lib/reporters/HTMLReporter', {
   '../logger': loggerStub,
   './reporterOutputLogger': reporterOutputLoggerStub,
-  fs: fsStub,
-  'make-dir': makeDirStub
+  fs: fsStub
 }).default
 
 describe('HTMLReporter', () => {
@@ -100,17 +95,17 @@ describe('HTMLReporter', () => {
         sinon
           .stub(fsStub, 'writeFile')
           .callsFake((path, data, callback) => callback())
-        makeDirStubImpl = sinon.spy(makeDirStubImpl)
+        sinon.stub(fsStub.promises, 'mkdir').resolves()
       })
 
       afterEach(() => {
         fsStub.writeFile.restore()
-        makeDirStubImpl = makeDirStubImplBackup
+        fsStub.promises.mkdir.restore()
       })
 
       it('should write the file', (done) =>
         emitter.emit('end', () => {
-          assert.isOk(makeDirStubImpl.called)
+          assert.isOk(fsStub.promises.mkdir.called)
           assert.isOk(fsStub.writeFile.called)
           done()
         }))
@@ -122,20 +117,18 @@ describe('HTMLReporter', () => {
         sinon
           .stub(fsStub, 'writeFile')
           .callsFake((path, data, callback) => callback())
-        makeDirStubImpl = sinon
-          .stub()
-          .callsFake(() => Promise.reject(new Error()))
+        sinon.stub(fsStub.promises, 'mkdir').rejects(new Error())
       })
 
       after(() => {
         reporterOutputLoggerStub.error.restore()
         fsStub.writeFile.restore()
-        makeDirStubImpl = makeDirStubImplBackup
+        fsStub.promises.mkdir.restore()
       })
 
       it('should write to log', (done) =>
         emitter.emit('end', () => {
-          assert.isOk(makeDirStubImpl.called)
+          assert.isOk(fsStub.promises.mkdir.called)
           assert.isOk(fsStub.writeFile.notCalled)
           assert.isOk(reporterOutputLoggerStub.error.called)
           done()

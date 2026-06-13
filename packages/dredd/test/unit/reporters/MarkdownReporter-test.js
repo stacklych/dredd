@@ -8,17 +8,12 @@ import { EventEmitter } from 'events'
 import loggerStub from '../../../lib/logger'
 import reporterOutputLoggerStub from '../../../lib/reporters/reporterOutputLogger'
 
-const makeDirStub = (input, options) => makeDirStubImpl(input, options)
-let makeDirStubImpl = () => Promise.resolve()
-const makeDirStubImplBackup = makeDirStubImpl
-
 const proxyquire = noCallThru()
 
 const MarkdownReporter = proxyquire('../../../lib/reporters/MarkdownReporter', {
   '../logger': loggerStub,
   './reporterOutputLogger': reporterOutputLoggerStub,
-  fs: fsStub,
-  'make-dir': makeDirStub
+  fs: fsStub
 }).default
 
 describe('MarkdownReporter', () => {
@@ -99,18 +94,18 @@ describe('MarkdownReporter', () => {
         sinon
           .stub(fsStub, 'writeFile')
           .callsFake((path, data, callback) => callback())
-        makeDirStubImpl = sinon.spy(makeDirStubImpl)
+        sinon.stub(fsStub.promises, 'mkdir').resolves()
       })
 
       afterEach(() => {
         fsStub.writeFile.restore()
-        makeDirStubImpl = makeDirStubImplBackup
+        fsStub.promises.mkdir.restore()
       })
 
       it('should write buffer to file', (done) =>
         emitter.emit('end', () => {
           emitter.emit('end', () => {})
-          assert.isOk(makeDirStubImpl.called)
+          assert.isOk(fsStub.promises.mkdir.called)
           assert.isOk(fsStub.writeFile.called)
           done()
         }))
@@ -122,20 +117,18 @@ describe('MarkdownReporter', () => {
           .stub(fsStub, 'writeFile')
           .callsFake((path, data, callback) => callback())
         sinon.stub(reporterOutputLoggerStub, 'error')
-        makeDirStubImpl = sinon
-          .stub()
-          .callsFake(() => Promise.reject(new Error()))
+        sinon.stub(fsStub.promises, 'mkdir').rejects(new Error())
       })
 
       after(() => {
         fsStub.writeFile.restore()
         reporterOutputLoggerStub.error.restore()
-        makeDirStubImpl = makeDirStubImplBackup
+        fsStub.promises.mkdir.restore()
       })
 
       it('should write to log', (done) =>
         emitter.emit('end', () => {
-          assert.isOk(makeDirStubImpl.called)
+          assert.isOk(fsStub.promises.mkdir.called)
           assert.isOk(fsStub.writeFile.notCalled)
           assert.isOk(reporterOutputLoggerStub.error.called)
           done()

@@ -1,6 +1,5 @@
 /* eslint no-console: ["error", { allow: ["log"] }] */
 import fs from 'fs';
-import makeDir from 'make-dir';
 import path from 'path';
 import inquirer from 'inquirer';
 import yaml from 'js-yaml';
@@ -259,7 +258,7 @@ export function editYaml(file, update) {
 
   update(contents);
 
-  makeDir.sync(path.dirname(file));
+  fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, yaml.safeDump(contents));
 }
 

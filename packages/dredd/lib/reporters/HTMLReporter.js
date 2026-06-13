@@ -3,7 +3,6 @@ import fs from 'fs';
 import { inherits } from 'util';
 
 import untildify from 'untildify';
-import makeDir from 'make-dir';
 import markdownIt from 'markdown-it';
 import pathmodule from 'path';
 
@@ -59,7 +58,8 @@ HTMLReporter.prototype.configureEmitter = function configureEmitter(emitter) {
     this.buf += `\n\n**Tests took:** ${this.stats.duration}ms.`;
 
     const html = md.render(this.buf);
-    makeDir(pathmodule.dirname(this.path))
+    fs.promises
+      .mkdir(pathmodule.dirname(this.path), { recursive: true })
       .then(() => {
         fs.writeFile(this.path, html, (error) => {
           if (error) {
