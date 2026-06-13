@@ -1,9 +1,6 @@
-import winston from 'winston';
+import createConsoleLogger from '../createConsoleLogger';
 
-const logger = new winston.Logger({
-  transports: [
-    new winston.transports.Console({ colorize: true, level: 'info' }),
-  ],
+const logger = createConsoleLogger({
   levels: {
     info: 10,
     test: 9,
@@ -30,6 +27,7 @@ const logger = new winston.Logger({
     skip: 'yellow',
     error: 'red',
   },
+  level: 'info',
 });
 
 export default logger;

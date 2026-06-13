@@ -1,4 +1,3 @@
-import clone from 'clone';
 import { assert } from 'chai';
 
 import { applyLoggingOptions } from '../../lib/configuration';
@@ -7,14 +6,19 @@ import validateConfig from '../../lib/configuration/validateConfig';
 import logger from '../../lib/logger';
 import reporterOutputLogger from '../../lib/reporters/reporterOutputLogger';
 
-const defaultLoggerConsole = clone(logger.transports.console);
-const defaultReporterOutputLoggerConsole = clone(
-  reporterOutputLogger.transports.console,
-);
-
 function resetLoggerConsoles() {
-  logger.transports.console = defaultLoggerConsole;
-  reporterOutputLogger.transports.console = defaultReporterOutputLoggerConsole;
+  Object.assign(logger.transports.console, {
+    colorize: true,
+    timestamp: false,
+    silent: false,
+    level: 'warn',
+  });
+  Object.assign(reporterOutputLogger.transports.console, {
+    colorize: true,
+    timestamp: false,
+    silent: false,
+    level: 'info',
+  });
 }
 
 describe('applyLoggingOptions()', () => {
