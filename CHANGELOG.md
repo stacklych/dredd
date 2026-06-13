@@ -21,6 +21,8 @@ This fork follows Semantic Versioning. The original upstream changelog remains a
 - Removed Dredd's direct dependency on the deprecated `request` package by adding an internal Node.js HTTP/HTTPS adapter.
 - The internal HTTP/HTTPS adapter retains `http_proxy`/`https_proxy`/`no_proxy` environment variable support (for remote API descriptions and the Apiary reporter) via the maintained `http-proxy-agent` and `https-proxy-agent` packages.
 - Regenerated the HTTPS test fixture certificate with a 2048-bit key and SHA-256 signature so the integration suite runs on OpenSSL 3 / Node.js 18+.
+- Replaced the deprecated `url.parse()` call in the transaction runner with the WHATWG `URL` API.
+- Bumped `chai` to 4.5.0 (resolves the bundled `get-func-name` advisory) and aligned `dredd-transactions` on `js-yaml` 3.14.2.
 - Removed Dredd's external `gavel` package dependency by vendoring its built validator bundle.
 - `dredd-transactions` now bundles the OpenAPI 2 parser with a fixed JSON Schema example generator dependency.
 
