@@ -3,9 +3,9 @@ import { assert } from 'chai';
 import Dredd from '../../lib/Dredd';
 import { runDreddWithServer, createServer } from './helpers';
 
-describe('Given API Blueprint with JSON Schema Draft 7', () => {
+describe('Given an API description with JSON Schema Draft 7', () => {
   describe('given explicit version of JSON Schema', () => {
-    const FIXTURE_PATH = './test/fixtures/json-schema-draft-7.apib';
+    const FIXTURE_PATH = './test/fixtures/json-schema-draft-7.yaml';
 
     describe('given actual data matches the schema', () => {
       let runtimeInfo;
@@ -71,7 +71,7 @@ describe('Given API Blueprint with JSON Schema Draft 7', () => {
   });
 
   describe('given a single Boolean value as a JSON Schema', () => {
-    const FIXTURE_PATH = './test/fixtures/json-schema-draft-7-boolean.apib';
+    const FIXTURE_PATH = './test/fixtures/json-schema-draft-7-boolean.yaml';
 
     describe('given schema equals "true"', () => {
       let runtimeInfo;

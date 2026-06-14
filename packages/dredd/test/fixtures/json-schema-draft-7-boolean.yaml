@@ -1,0 +1,20 @@
+openapi: "3.1.0"
+info:
+  title: Machines API
+  version: "1.0"
+paths:
+  /machines/{id}:
+    get:
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+          example: 2
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json; charset=utf-8":
+              schema: true
