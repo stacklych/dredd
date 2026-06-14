@@ -106,8 +106,25 @@ function colorizeLevel(level, colorName) {
 // Builds a Winston 3.x logger that behaves like the Winston 2.x loggers Dredd
 // relied on: a single Console transport whose `colorize`, `timestamp`, `silent`
 // and `level` flags can be toggled at runtime via `logger.transports.console`.
-export default function createConsoleLogger({ levels, colors, level }) {
-  const consoleTransport = new winston.transports.Console({ level });
+// `stderr` selects which levels are written to stderr instead of stdout
+// (matching Winston 2.x Dredd's routing): pass `true` for all levels, or an
+// array of level names for a subset. Levels not listed go to stdout.
+export default function createConsoleLogger({
+  levels,
+  colors,
+  level,
+  stderr = false,
+}) {
+  let stderrLevels = [];
+  if (stderr === true) {
+    stderrLevels = Object.keys(levels);
+  } else if (Array.isArray(stderr)) {
+    stderrLevels = stderr;
+  }
+  const consoleTransport = new winston.transports.Console({
+    level,
+    stderrLevels,
+  });
   consoleTransport.colorize = true;
   consoleTransport.timestamp = false;
   consoleTransport.format = winston.format.printf((info) => {
@@ -126,8 +143,17 @@ export default function createConsoleLogger({ levels, colors, level }) {
   });
 
   Object.keys(levels).forEach((levelName) => {
-    logger[levelName] = (...args) =>
-      logger.log(levelName, assembleMessage(args));
+    logger[levelName] = (...args) => {
+      const message = assembleMessage(args);
+      // Re-emit Winston 2.x's `logging` event (removed in 3.x) so consumers
+      // that capture output by listening for it keep working. Gate on the
+      // console transport's effective level but ignore its `silent` flag:
+      // callers may silence console output while still capturing via the event.
+      if (levels[levelName] <= levels[consoleTransport.level]) {
+        logger.emit('logging', consoleTransport, levelName, message);
+      }
+      return logger.log(levelName, message);
+    };
   });
 
   // Winston 3.x recomputes `logger.transports` as a fresh array on each access,

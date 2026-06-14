@@ -28,6 +28,8 @@ const logger = createConsoleLogger({
     error: 'red',
   },
   level: 'info',
+  // Reporter output goes to stdout; only errors go to stderr.
+  stderr: ['error'],
 });
 
 export default logger;
