@@ -1,0 +1,34 @@
+openapi: "3.1.0"
+info:
+  title: Top Secret API
+  version: "1.0"
+paths:
+  /resource:
+    put:
+      summary: Update Resource
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+          example: "5229c6e8e4b0bd7dbb07e29c"
+      requestBody:
+        content:
+          application/json:
+            example:
+              name: Alice
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json; charset=utf-8":
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                required:
+                  - name
+              example:
+                name: Alice

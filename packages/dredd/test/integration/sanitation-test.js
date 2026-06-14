@@ -55,7 +55,7 @@ describe('Sanitation of Reported Data', () => {
     return new Dredd({
       emitter: createEventEmitter(events),
       options: {
-        path: `./test/fixtures/sanitation/${fixtureName}.apib`,
+        path: `./test/fixtures/sanitation/${fixtureName}.yaml`,
         hookfiles: `./test/fixtures/sanitation/${fixtureName}.js`,
       },
     });

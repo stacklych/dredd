@@ -1,11 +1,11 @@
 const hooks = require('hooks');
 
-hooks.before('Resource > Update Resource', (transaction, done) => {
+hooks.before('/resource > Update Resource > 200 > application/json; charset=utf-8', (transaction, done) => {
   transaction.skip = true;
   done();
 });
 
-hooks.after('Resource > Update Resource', (transaction, done) => {
+hooks.after('/resource > Update Resource > 200 > application/json; charset=utf-8', (transaction, done) => {
   if (transaction.test && transaction.test.request) {
     transaction.test.request.body = '';
   }

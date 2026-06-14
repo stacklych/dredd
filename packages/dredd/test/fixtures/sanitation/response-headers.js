@@ -1,7 +1,7 @@
 const caseless = require('caseless');
 const hooks = require('hooks');
 
-hooks.after('Resource > Update Resource', (transaction, done) => {
+hooks.after('/resource > Update Resource > 200 > application/json; charset=utf-8', (transaction, done) => {
   const deleteSensitiveHeader = (headerName, headers) => {
     const name = caseless(headers).has(headerName);
     delete headers[name];
