@@ -27,13 +27,19 @@ function createDredd(configuration) {
 describe('Loading API descriptions', () => {
   describe('when the API description is specified by configuration', () => {
     let dredd;
-    const content = `
-FORMAT: 1A
-
-# Machines API
-# GET /machines
-+ Response 200 (text/plain)
-    `;
+    const content = `openapi: "3.0.0"
+info:
+  title: Machines API
+  version: "1.0"
+paths:
+  /machines:
+    get:
+      responses:
+        "200":
+          description: OK
+          content:
+            "text/plain": {}
+`;
 
     before((done) => {
       dredd = createDredd({ apiDescriptions: [content] });
@@ -67,21 +73,21 @@ FORMAT: 1A
       assert.propertyVal(
         dredd.configuration.apiDescriptions[0],
         'mediaType',
-        'text/vnd.apiblueprint',
+        'application/vnd.oai.openapi',
       );
     });
     it('the transactions are set', () => {
       assert.lengthOf(dredd.configuration.apiDescriptions[0].transactions, 1);
       assert.equal(
         dredd.configuration.apiDescriptions[0].transactions[0].name,
-        'Machines API > /machines > GET',
+        'Machines API > /machines > GET > 200 > text/plain',
       );
     });
     it('the transaction runner is called with the transactions', () => {
       assert.lengthOf(dredd.transactionRunner.run.firstCall.args[0], 1);
       assert.equal(
         dredd.transactionRunner.run.firstCall.args[0][0].name,
-        'Machines API > /machines > GET',
+        'Machines API > /machines > GET > 200 > text/plain',
       );
     });
   });
@@ -91,7 +97,7 @@ FORMAT: 1A
 
     before((done) => {
       dredd = createDredd({
-        options: { path: './test/fixtures/single-get.apib' },
+        options: { path: './test/fixtures/single-get.yaml' },
       });
       dredd.run(done);
     });
@@ -108,7 +114,7 @@ FORMAT: 1A
     it('the location is set to the path', () => {
       assert.match(
         dredd.configuration.apiDescriptions[0].location,
-        /single-get\.apib$/,
+        /single-get\.yaml$/,
       );
       assert.isTrue(
         path.isAbsolute(dredd.configuration.apiDescriptions[0].location),
@@ -117,28 +123,28 @@ FORMAT: 1A
     it('the content is set', () => {
       assert.include(
         dredd.configuration.apiDescriptions[0].content,
-        '# Machines collection [/machines]',
+        'Get Machines',
       );
     });
     it('the media type is set', () => {
       assert.propertyVal(
         dredd.configuration.apiDescriptions[0],
         'mediaType',
-        'text/vnd.apiblueprint',
+        'application/vnd.oai.openapi',
       );
     });
     it('the transactions are set', () => {
       assert.lengthOf(dredd.configuration.apiDescriptions[0].transactions, 1);
       assert.equal(
         dredd.configuration.apiDescriptions[0].transactions[0].name,
-        'Machines API > Machines > Machines collection > Get Machines',
+        'Machines API > /machines > Get Machines > 200 > application/json; charset=utf-8',
       );
     });
     it('the transaction runner is called with the transactions', () => {
       assert.lengthOf(dredd.transactionRunner.run.firstCall.args[0], 1);
       assert.equal(
         dredd.transactionRunner.run.firstCall.args[0][0].name,
-        'Machines API > Machines > Machines collection > Get Machines',
+        'Machines API > /machines > Get Machines > 200 > application/json; charset=utf-8',
       );
     });
   });
@@ -148,7 +154,7 @@ FORMAT: 1A
     let dredd;
 
     before((done) => {
-      dredd = createDredd({ options: { path: '__non-existing__.apib' } });
+      dredd = createDredd({ options: { path: '__non-existing__.yaml' } });
       dredd.run((err) => {
         error = err;
         done();
@@ -161,7 +167,7 @@ FORMAT: 1A
     it('the error is descriptive', () => {
       assert.equal(
         error.message,
-        "Could not find any files on path: '__non-existing__.apib'",
+        "Could not find any files on path: '__non-existing__.yaml'",
       );
     });
     it('aborts Dredd', () => {
@@ -174,7 +180,7 @@ FORMAT: 1A
 
     before((done) => {
       dredd = createDredd({
-        options: { path: './test/fixtures/multifile/*.apib' },
+        options: { path: './test/fixtures/multifile/*.yaml' },
       });
       dredd.run(done);
     });
@@ -199,15 +205,15 @@ FORMAT: 1A
     it('the locations are set to the absolute paths', () => {
       assert.match(
         dredd.configuration.apiDescriptions[0].location,
-        /greeting\.apib$/,
+        /greeting\.yaml$/,
       );
       assert.match(
         dredd.configuration.apiDescriptions[1].location,
-        /message\.apib$/,
+        /message\.yaml$/,
       );
       assert.match(
         dredd.configuration.apiDescriptions[2].location,
-        /name\.apib$/,
+        /name\.yaml$/,
       );
       assert.isTrue(
         path.isAbsolute(dredd.configuration.apiDescriptions[0].location),
@@ -222,32 +228,32 @@ FORMAT: 1A
     it('the contents are set', () => {
       assert.include(
         dredd.configuration.apiDescriptions[0].content,
-        '# Greeting API',
+        'Greeting API',
       );
       assert.include(
         dredd.configuration.apiDescriptions[1].content,
-        '# Message API',
+        'Message API',
       );
       assert.include(
         dredd.configuration.apiDescriptions[2].content,
-        '# Name API',
+        'Name API',
       );
     });
     it('the media types are set', () => {
       assert.propertyVal(
         dredd.configuration.apiDescriptions[0],
         'mediaType',
-        'text/vnd.apiblueprint',
+        'application/vnd.oai.openapi',
       );
       assert.propertyVal(
         dredd.configuration.apiDescriptions[1],
         'mediaType',
-        'text/vnd.apiblueprint',
+        'application/vnd.oai.openapi',
       );
       assert.propertyVal(
         dredd.configuration.apiDescriptions[2],
         'mediaType',
-        'text/vnd.apiblueprint',
+        'application/vnd.oai.openapi',
       );
     });
     it('the transactions are set', () => {
@@ -256,23 +262,32 @@ FORMAT: 1A
       assert.lengthOf(dredd.configuration.apiDescriptions[2].transactions, 1);
       assert.equal(
         dredd.configuration.apiDescriptions[0].transactions[0].name,
-        'Greeting API > /greeting > GET',
+        'Greeting API > /greeting > GET > 200 > text/plain; charset=utf-8',
       );
       assert.equal(
         dredd.configuration.apiDescriptions[1].transactions[0].name,
-        'Message API > /message > GET',
+        'Message API > /message > GET > 200 > text/plain; charset=utf-8',
       );
       assert.equal(
         dredd.configuration.apiDescriptions[2].transactions[0].name,
-        'Name API > /name > GET',
+        'Name API > /name > GET > 200 > text/plain; charset=utf-8',
       );
     });
     it('the transaction runner is called with the transactions', () => {
       const transactions = dredd.transactionRunner.run.firstCall.args[0];
       assert.lengthOf(transactions, 3);
-      assert.equal(transactions[0].name, 'Greeting API > /greeting > GET');
-      assert.equal(transactions[1].name, 'Message API > /message > GET');
-      assert.equal(transactions[2].name, 'Name API > /name > GET');
+      assert.equal(
+        transactions[0].name,
+        'Greeting API > /greeting > GET > 200 > text/plain; charset=utf-8',
+      );
+      assert.equal(
+        transactions[1].name,
+        'Message API > /message > GET > 200 > text/plain; charset=utf-8',
+      );
+      assert.equal(
+        transactions[2].name,
+        'Name API > /name > GET > 200 > text/plain; charset=utf-8',
+      );
     });
   });
 
@@ -282,7 +297,7 @@ FORMAT: 1A
 
     before((done) => {
       dredd = createDredd({
-        options: { path: '__non-existing-*-glob__.apib' },
+        options: { path: '__non-existing-*-glob__.yaml' },
       });
       dredd.run((err) => {
         error = err;
@@ -296,7 +311,7 @@ FORMAT: 1A
     it('the error is descriptive', () => {
       assert.equal(
         error.message,
-        "Could not find any files on path: '__non-existing-*-glob__.apib'",
+        "Could not find any files on path: '__non-existing-*-glob__.yaml'",
       );
     });
     it('aborts Dredd', () => {
@@ -306,18 +321,24 @@ FORMAT: 1A
 
   describe('when the API description is specified by URL', () => {
     let dredd;
-    const content = `
-FORMAT: 1A
-
-# Machines API
-# GET /machines
-+ Response 200 (text/plain)
-    `;
+    const content = `openapi: "3.0.0"
+info:
+  title: Machines API
+  version: "1.0"
+paths:
+  /machines:
+    get:
+      responses:
+        "200":
+          description: OK
+          content:
+            "text/plain": {}
+`;
 
     before((done) => {
       const app = express();
-      app.get('/file.apib', (req, res) => {
-        res.type('text/vnd.apiblueprint').send(content);
+      app.get('/file.yaml', (req, res) => {
+        res.type('application/vnd.oai.openapi').send(content);
       });
 
       const server = app.listen(DEFAULT_SERVER_PORT, (listenErr) => {
@@ -327,7 +348,7 @@ FORMAT: 1A
         }
         dredd = createDredd({
           options: {
-            path: `http://127.0.0.1:${DEFAULT_SERVER_PORT}/file.apib`,
+            path: `http://127.0.0.1:${DEFAULT_SERVER_PORT}/file.yaml`,
           },
         });
         dredd.run((dreddErr) => {
@@ -350,7 +371,7 @@ FORMAT: 1A
     it('the location is set to the URL', () => {
       assert.equal(
         dredd.configuration.apiDescriptions[0].location,
-        `http://127.0.0.1:${DEFAULT_SERVER_PORT}/file.apib`,
+        `http://127.0.0.1:${DEFAULT_SERVER_PORT}/file.yaml`,
       );
     });
     it('the content is set', () => {
@@ -360,21 +381,21 @@ FORMAT: 1A
       assert.propertyVal(
         dredd.configuration.apiDescriptions[0],
         'mediaType',
-        'text/vnd.apiblueprint',
+        'application/vnd.oai.openapi',
       );
     });
     it('the transactions are set', () => {
       assert.lengthOf(dredd.configuration.apiDescriptions[0].transactions, 1);
       assert.equal(
         dredd.configuration.apiDescriptions[0].transactions[0].name,
-        'Machines API > /machines > GET',
+        'Machines API > /machines > GET > 200 > text/plain',
       );
     });
     it('the transaction runner is called with the transactions', () => {
       assert.lengthOf(dredd.transactionRunner.run.firstCall.args[0], 1);
       assert.equal(
         dredd.transactionRunner.run.firstCall.args[0][0].name,
-        'Machines API > /machines > GET',
+        'Machines API > /machines > GET > 200 > text/plain',
       );
     });
   });
@@ -385,7 +406,7 @@ FORMAT: 1A
 
     before((done) => {
       dredd = createDredd({
-        options: { path: 'http://example.example:1234/file.apib' },
+        options: { path: 'http://example.example:1234/file.yaml' },
       });
       dredd.run((err) => {
         error = err;
@@ -399,7 +420,7 @@ FORMAT: 1A
     it('the error is descriptive', () => {
       assert.include(
         error.message,
-        "Unable to load API description document from 'http://example.example:1234/file.apib': ",
+        "Unable to load API description document from 'http://example.example:1234/file.yaml': ",
       );
       assert.include(error.message, 'ENOTFOUND');
     });
@@ -421,7 +442,7 @@ FORMAT: 1A
         }
         dredd = createDredd({
           options: {
-            path: `http://127.0.0.1:${DEFAULT_SERVER_PORT}/file.apib`,
+            path: `http://127.0.0.1:${DEFAULT_SERVER_PORT}/file.yaml`,
           },
         });
         dredd.run((dreddErr) => {
@@ -437,7 +458,7 @@ FORMAT: 1A
     it('the error is descriptive', () => {
       assert.include(
         error.message,
-        `Unable to load API description document from 'http://127.0.0.1:${DEFAULT_SERVER_PORT}/file.apib': `,
+        `Unable to load API description document from 'http://127.0.0.1:${DEFAULT_SERVER_PORT}/file.yaml': `,
       );
       assert.include(error.message, 'Dredd got HTTP 404 response');
     });
@@ -448,27 +469,44 @@ FORMAT: 1A
 
   describe('when there are multiple API descriptions', () => {
     let dredd;
-    const content1 = `
-FORMAT: 1A
-
-# Beehive API v1
-# GET /honey
-+ Response 200 (text/plain)
-    `;
-    const content2 = `
-FORMAT: 1A
-
-# Beehive API v2
-# GET /honey
-+ Response 200 (text/plain)
-# GET /bees
-+ Response 200 (text/plain)
-    `;
+    const content1 = `openapi: "3.0.0"
+info:
+  title: Beehive API v1
+  version: "1.0"
+paths:
+  /honey:
+    get:
+      responses:
+        "200":
+          description: OK
+          content:
+            "text/plain": {}
+`;
+    const content2 = `openapi: "3.0.0"
+info:
+  title: Beehive API v2
+  version: "1.0"
+paths:
+  /honey:
+    get:
+      responses:
+        "200":
+          description: OK
+          content:
+            "text/plain": {}
+  /bees:
+    get:
+      responses:
+        "200":
+          description: OK
+          content:
+            "text/plain": {}
+`;
 
     before((done) => {
       dredd = createDredd({
         apiDescriptions: [content1, content2],
-        options: { path: './test/fixtures/single-get.apib' },
+        options: { path: './test/fixtures/single-get.yaml' },
       });
       dredd.run(done);
     });
@@ -480,7 +518,7 @@ FORMAT: 1A
       assert.propertyVal(
         dredd.configuration.apiDescriptions[0],
         'mediaType',
-        'text/vnd.apiblueprint',
+        'application/vnd.oai.openapi',
       );
     });
     it('the transactions are set', () => {
@@ -495,10 +533,10 @@ FORMAT: 1A
       assert.deepEqual(
         transactions.map(({ name }) => name),
         [
-          'Beehive API v1 > /honey > GET',
-          'Beehive API v2 > /honey > GET',
-          'Beehive API v2 > /bees > GET',
-          'Machines API > Machines > Machines collection > Get Machines',
+          'Beehive API v1 > /honey > GET > 200 > text/plain',
+          'Beehive API v2 > /honey > GET > 200 > text/plain',
+          'Beehive API v2 > /bees > GET > 200 > text/plain',
+          'Machines API > /machines > Get Machines > 200 > application/json; charset=utf-8',
         ],
       );
     });
