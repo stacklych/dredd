@@ -15,20 +15,23 @@ function createAnnotation(type, message) {
 }
 
 function parse(apiDescription, callback) {
+  let document;
   try {
-    const document = yaml.load(apiDescription);
-    const version = document && document.openapi;
-    if (typeof version === 'string' && /^3\.1\.\d+$/.test(version)) {
-      const apiElements = new ParseResult([]);
-      apiElements.openapi31 = { document, source: apiDescription };
-      callback(null, {
-        mediaType: 'application/vnd.oai.openapi',
-        apiElements,
-      });
-      return;
-    }
+    document = yaml.load(apiDescription);
   } catch (e) {
     // Let the OpenAPI 3 parser produce the public parse annotations.
+    document = undefined;
+  }
+
+  const version = document && document.openapi;
+  if (typeof version === 'string' && /^3\.1\.\d+$/.test(version)) {
+    const apiElements = new ParseResult([]);
+    apiElements.openapi31 = { document, source: apiDescription };
+    callback(null, {
+      mediaType: 'application/vnd.oai.openapi',
+      apiElements,
+    });
+    return;
   }
 
   const adapters = fury.detect(apiDescription);
@@ -64,6 +67,13 @@ function parse(apiDescription, callback) {
           `Could not parse API description: ${err.message}`
         )
       ));
+    }
+
+    // The API Elements adapter does not expose OpenAPI 3.0 response body
+    // schemas to the compiler. Keep the source document around so the compiler
+    // can attach them for data-type validation.
+    if (typeof version === 'string' && /^3\.0\.\d+$/.test(version)) {
+      apiElements.openapi3Document = { document, source: apiDescription };
     }
 
     callback(null, { mediaType, apiElements });

@@ -1,0 +1,26 @@
+openapi: 3.0.3
+info:
+  title: OpenAPI 3.0 JSON Schema fixture
+  version: "1.0"
+paths:
+  /resource:
+    get:
+      summary: Get resource
+      responses:
+        "404":
+          description: Not found
+          content:
+            application/json; charset=utf-8:
+              schema:
+                type: object
+                required:
+                  - title
+                  - status
+                properties:
+                  title:
+                    type: string
+                  status:
+                    type: integer
+                  detail:
+                    type: string
+                    nullable: true

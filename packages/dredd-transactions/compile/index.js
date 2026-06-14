@@ -3,6 +3,7 @@ const compileUri = require('./compileURI');
 const compileTransactionName = require('./compileTransactionName');
 const compileAnnotation = require('./compileAnnotation');
 const compileOpenAPI31 = require('./openapi31');
+const augmentWithOpenAPI30Schemas = require('./openapi30Schema');
 
 function findRelevantTransactions(mediaType, apiElements) {
   const relevantTransactions = [];
@@ -186,6 +187,10 @@ function compile(mediaType, apiElements, filename) {
       if (result.transaction) { transactions.push(result.transaction); }
       annotations = annotations.concat(result.annotations);
     });
+
+  if (apiElements.openapi3Document) {
+    augmentWithOpenAPI30Schemas(transactions, apiElements.openapi3Document.document);
+  }
 
   return { mediaType, transactions, annotations };
 }
