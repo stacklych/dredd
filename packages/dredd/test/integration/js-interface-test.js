@@ -169,7 +169,7 @@ describe('Running Dredd from JavaScript', () => {
     let dreddRuntimeInfo;
 
     before((done) => {
-      const dredd = new Dredd({ options: { path: '__non-existing__.apib' } });
+      const dredd = new Dredd({ options: { path: '__non-existing__.yaml' } });
       runDredd(dredd, (err, info) => {
         dreddRuntimeInfo = info;
         done(err);

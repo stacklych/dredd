@@ -17,12 +17,22 @@ describe('Parser and compiler annotations', () => {
 
     before((done) => {
       compileTransactions(
-        `
-FORMAT: 1A
-# Dummy API
-## Index [GET /]
-+ Response
-      `,
+        `openapi: "3.0.0"
+info:
+  title: Dummy API
+  version: "1"
+paths:
+  /:
+    get:
+      parameters:
+        - name: Authorization
+          in: header
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+`,
         logger,
         (compileError) => {
           error = compileError;
@@ -37,10 +47,10 @@ FORMAT: 1A
     it('logs warnings', () => {
       assert.equal(logger.log.getCall(0).args[0], 'warn');
     });
-    it('logs the warnings with line numbers', () => {
+    it('logs the parser warning', () => {
       assert.match(
         logger.log.getCall(0).args[1],
-        /parser warning in configuration\.apiDescriptions\[0\]:5 \(from line 5 column 3 to column 11\)/i,
+        /API description parser warning in configuration\.apiDescriptions\[0\].*should not be 'Accept', 'Content-Type' or 'Authorization'/i,
       );
     });
   });
@@ -51,13 +61,16 @@ FORMAT: 1A
 
     before((done) => {
       compileTransactions(
-        `
-FORMAT: 1A
-# Dummy API
-## Index [GET /]
-+ Response
-\t+ Body
-      `,
+        `openapi: "3.0.0"
+info:
+  title: Dummy API
+paths:
+  /:
+    get:
+      responses:
+        "200":
+          description: OK
+`,
         logger,
         (compileError) => {
           error = compileError;
@@ -72,10 +85,10 @@ FORMAT: 1A
     it('logs errors', () => {
       assert.equal(logger.log.getCall(0).args[0], 'error');
     });
-    it('logs the errors with line numbers', () => {
+    it('logs the parser error', () => {
       assert.match(
         logger.log.getCall(0).args[1],
-        /parser error in configuration\.apiDescriptions\[0\]:6 \(line 6 column 1\)/i,
+        /API description parser error in configuration\.apiDescriptions\[0\].*missing required property 'version'/i,
       );
     });
   });
@@ -86,12 +99,17 @@ FORMAT: 1A
 
     before((done) => {
       compileTransactions(
-        `
-FORMAT: 1A
-# Dummy API
-## Index [GET /{foo}]
-+ Response 200
-      `,
+        `openapi: "3.0.0"
+info:
+  title: Dummy API
+  version: "1"
+paths:
+  /{foo}:
+    get:
+      responses:
+        "200":
+          description: OK
+`,
         logger,
         (compileError) => {
           error = compileError;
@@ -106,10 +124,10 @@ FORMAT: 1A
     it('logs warnings', () => {
       assert.equal(logger.log.getCall(0).args[0], 'warn');
     });
-    it('logs the warnings with a transaction path', () => {
+    it('logs the URI template expansion warning', () => {
       assert.match(
         logger.log.getCall(0).args[1],
-        /uri template expansion warning in configuration\.apiDescriptions\[0\] \(Dummy API > Index > Index\)/i,
+        /API description URI template expansion warning in configuration\.apiDescriptions\[0\].*Ambiguous URI parameter in template: \/\{foo\}/i,
       );
     });
   });
@@ -120,14 +138,23 @@ FORMAT: 1A
 
     before((done) => {
       compileTransactions(
-        `
-FORMAT: 1A
-# Dummy API
-## Index [DELETE /{?param}]
-+ Parameters
-    + param (required)
-+ Response 204
-      `,
+        `openapi: "3.0.0"
+info:
+  title: Dummy API
+  version: "1"
+paths:
+  /:
+    delete:
+      parameters:
+        - name: param
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: No Content
+`,
         logger,
         (compileError) => {
           error = compileError;
@@ -142,10 +169,10 @@ FORMAT: 1A
     it('logs errors', () => {
       assert.equal(logger.log.getCall(0).args[0], 'error');
     });
-    it('logs the errors with a transaction path', () => {
+    it('logs the URI parameters validation error', () => {
       assert.match(
         logger.log.getCall(0).args[1],
-        /uri parameters validation error in configuration\.apiDescriptions\[0\] \(Dummy API > Index > Index\)/i,
+        /API description URI parameters validation error in configuration\.apiDescriptions\[0\].*Required URI parameter 'param' has no example or default value/i,
       );
     });
   });

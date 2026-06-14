@@ -151,7 +151,7 @@ describe('CLI class', () => {
       dc = new CLIStub({
         exit() {},
         custom: {
-          argv: ['./file.apib', 'http://127.0.0.1:3000'],
+          argv: ['./file.yaml', 'http://127.0.0.1:3000'],
           env: { NO_KEY: 'NO_VAL' },
         },
       });

@@ -9,7 +9,7 @@ describe('resolveConfig()', () => {
   describe('when flattening config', () => {
     const { config } = resolveConfig({
       options: {
-        path: './foo.apib',
+        path: './foo.yaml',
         custom: {
           apiaryApiKey: 'the-key',
           apiaryApiName: 'the-api-name',
@@ -31,7 +31,7 @@ describe('resolveConfig()', () => {
     const { config } = resolveConfig({
       server: 'http://127.0.0.1',
       options: {
-        path: './foo.apib',
+        path: './foo.yaml',
         custom: {
           apiaryApiKey: 'the-key',
           apiaryApiName: 'the-api-name',
@@ -44,7 +44,7 @@ describe('resolveConfig()', () => {
     });
 
     it('overrides default options with custom ones', () => {
-      assert.deepEqual(config.path, ['./foo.apib']);
+      assert.deepEqual(config.path, ['./foo.yaml']);
     });
 
     describe('deep merges "custom" properties', () => {

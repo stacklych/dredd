@@ -6,37 +6,12 @@ import {
   DEFAULT_SERVER_PORT,
 } from '../helpers';
 
-describe('CLI - API Blueprint Document', () => {
+describe('CLI - API Description Document annotations', () => {
   describe('when loaded from file', () => {
-    describe('when successfully loaded', () => {
+    describe('when the API description is loaded with errors', () => {
       let runtimeInfo;
       const args = [
-        './test/fixtures/single-get.apib',
-        `http://127.0.0.1:${DEFAULT_SERVER_PORT}`,
-      ];
-
-      before((done) => {
-        const app = createServer();
-        app.get('/machines', (req, res) =>
-          res.json([{ type: 'bulldozer', name: 'willy' }]),
-        );
-
-        runCLIWithServer(args, app, (err, info) => {
-          runtimeInfo = info;
-          done(err);
-        });
-      });
-
-      it('should request /machines', () =>
-        assert.deepEqual(runtimeInfo.server.requestCounts, { '/machines': 1 }));
-      it('should exit with status 0', () =>
-        assert.equal(runtimeInfo.dredd.exitStatus, 0));
-    });
-
-    describe('when API Blueprint is loaded with errors', () => {
-      let runtimeInfo;
-      const args = [
-        './test/fixtures/error-blueprint.apib',
+        './test/fixtures/error-openapi.yaml',
         `http://127.0.0.1:${DEFAULT_SERVER_PORT}`,
       ];
 
@@ -57,16 +32,19 @@ describe('CLI - API Blueprint Document', () => {
         ));
     });
 
-    describe('when API Blueprint is loaded with warnings', () => {
+    describe('when the API description is loaded with warnings', () => {
       let runtimeInfo;
       const args = [
-        './test/fixtures/warning-blueprint.apib',
+        './test/fixtures/warning-openapi.yaml',
         `http://127.0.0.1:${DEFAULT_SERVER_PORT}`,
         '--no-color',
       ];
 
       before((done) => {
         const app = createServer();
+        app.get('/machines', (req, res) =>
+          res.json([{ type: 'bulldozer', name: 'willy' }]),
+        );
         runCLIWithServer(args, app, (err, info) => {
           runtimeInfo = info;
           done(err);
@@ -75,10 +53,10 @@ describe('CLI - API Blueprint Document', () => {
 
       it('should exit with status 0', () =>
         assert.equal(runtimeInfo.dredd.exitStatus, 0));
-      it('should print warning to stdout', () =>
+      it('should print warning to output', () =>
         assert.include(
-          runtimeInfo.dredd.stdout,
-          'API description URI template expansion warning',
+          runtimeInfo.dredd.output,
+          "in location 'header' should not be",
         ));
     });
   });
