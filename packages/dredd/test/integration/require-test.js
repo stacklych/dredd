@@ -12,7 +12,7 @@ describe('Requiring user-provided modules (e.g. language compilers)', () => {
 
       const dredd = new Dredd({
         options: {
-          path: './test/fixtures/single-get.apib',
+          path: './test/fixtures/single-get.yaml',
           require: './test/fixtures/requiredModule',
         },
       });
@@ -36,7 +36,7 @@ describe('Requiring user-provided modules (e.g. language compilers)', () => {
     before((done) => {
       const dredd = new Dredd({
         options: {
-          path: './test/fixtures/single-get.apib',
+          path: './test/fixtures/single-get.yaml',
           hookfiles: './test/fixtures/hooks-log.coffee',
           require: 'coffeescript/register',
         },
@@ -61,7 +61,7 @@ describe('Requiring user-provided modules (e.g. language compilers)', () => {
     before((done) => {
       const dredd = new Dredd({
         options: {
-          path: './test/fixtures/single-get.apib',
+          path: './test/fixtures/single-get.yaml',
           require: 'no-such-module',
         },
       });

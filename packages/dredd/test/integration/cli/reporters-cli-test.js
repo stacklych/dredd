@@ -26,7 +26,7 @@ describe('CLI - Reporters', () => {
   describe('when -r/--reporter is provided to use additional reporters', () => {
     let cliInfo;
     const args = [
-      './test/fixtures/single-get.apib',
+      './test/fixtures/single-get.yaml',
       `http://127.0.0.1:${DEFAULT_SERVER_PORT}`,
       '--reporter=nyan',
     ];
@@ -76,7 +76,7 @@ describe('CLI - Reporters', () => {
       let cliInfo;
       let stepRequest;
       const args = [
-        './test/fixtures/single-get.apib',
+        './test/fixtures/single-get.yaml',
         `http://127.0.0.1:${DEFAULT_SERVER_PORT}`,
         '--reporter=apiary',
       ];
@@ -134,7 +134,7 @@ describe('CLI - Reporters', () => {
       let updateRequest;
       let stepRequest;
       const args = [
-        './test/fixtures/single-get.apib',
+        './test/fixtures/single-get.yaml',
         `http://127.0.0.1:${DEFAULT_SERVER_PORT}`,
         '--reporter=apiary',
         '--require=coffeescript/register',
@@ -257,7 +257,7 @@ describe('CLI - Reporters', () => {
 
   describe('when -o/--output is used to specify output file', () => {
     const args = [
-      './test/fixtures/single-get.apib',
+      './test/fixtures/single-get.yaml',
       `http://127.0.0.1:${DEFAULT_SERVER_PORT}`,
       '--reporter=xunit',
       '--output=__test_file_output__.xml',
@@ -277,7 +277,7 @@ describe('CLI - Reporters', () => {
 
   describe('when -o/--output is used multiple times to specify output files', () => {
     const args = [
-      './test/fixtures/single-get.apib',
+      './test/fixtures/single-get.yaml',
       `http://127.0.0.1:${DEFAULT_SERVER_PORT}`,
       '--reporter=xunit',
       '--output=__test_file_output1__.xml',
@@ -304,7 +304,7 @@ describe('CLI - Reporters', () => {
 
   describe('when -o/--output is used to specify output file but directory is not existent', () => {
     const args = [
-      './test/fixtures/single-get.apib',
+      './test/fixtures/single-get.yaml',
       `http://127.0.0.1:${DEFAULT_SERVER_PORT}`,
       '--reporter=xunit',
       '--output=./__test_directory/__test_file_output__.xml',
@@ -343,7 +343,7 @@ describe('CLI - Reporters', () => {
     let apiaryApiUrl;
     let cliInfo;
     const args = [
-      './test/fixtures/single-get.apib',
+      './test/fixtures/single-get.yaml',
       `http://127.0.0.1:${DEFAULT_SERVER_PORT}`,
       '--reporter=apiary',
     ];

@@ -1,8 +1,8 @@
 {before, after, log} = require 'hooks'
 
-before "Machines > Machines collection > Get Machines", (transaction) ->
+before "/machines > Get Machines > 200 > application/json; charset=utf-8", (transaction) ->
   log {err: 'Error object!'}
   log true
 
-after "Machines > Machines collection > Get Machines", (transaction) ->
+after "/machines > Get Machines > 200 > application/json; charset=utf-8", (transaction) ->
   log "using hooks.log to debug"

@@ -26,7 +26,7 @@ describe('Running Dredd from JavaScript', () => {
       );
 
       const dredd = new Dredd({
-        options: { path: './test/fixtures/single-get.apib' },
+        options: { path: './test/fixtures/single-get.yaml' },
       });
       runDreddWithServer(dredd, app, (err, info) => {
         runtimeInfo = info;
@@ -77,7 +77,7 @@ describe('Running Dredd from JavaScript', () => {
       app.get('/machines', (req, res) => res.json([{ foo: 'bar' }]));
 
       const dredd = new Dredd({
-        options: { path: './test/fixtures/single-get.apib' },
+        options: { path: './test/fixtures/single-get.yaml' },
       });
       runDreddWithServer(dredd, app, (err, info) => {
         runtimeInfo = info;
@@ -125,7 +125,7 @@ describe('Running Dredd from JavaScript', () => {
 
     before((done) => {
       const dredd = new Dredd({
-        options: { path: './test/fixtures/single-get.apib' },
+        options: { path: './test/fixtures/single-get.yaml' },
       });
       runDredd(dredd, (err, info) => {
         dreddRuntimeInfo = info;
@@ -214,7 +214,7 @@ describe('Running Dredd from JavaScript', () => {
 
     before((done) => {
       const dredd = new Dredd({
-        options: { path: './test/fixtures/single-get.apib' },
+        options: { path: './test/fixtures/single-get.yaml' },
       });
       sinon.stub(dredd.transactionRunner, 'run').callsArgWithAsync(1, error);
 
