@@ -15,7 +15,7 @@ describe('CLI - API Description Document', () => {
     describe('when loaded by glob pattern', () => {
       let runtimeInfo;
       const args = [
-        './test/fixtures/single-g*t.apib',
+        './test/fixtures/single-g*t.yaml',
         `http://127.0.0.1:${DEFAULT_SERVER_PORT}`,
       ];
 
@@ -40,7 +40,7 @@ describe('CLI - API Description Document', () => {
     describe('when file not found', () => {
       let runtimeInfo;
       const args = [
-        './test/fixtures/__non-existent__.apib',
+        './test/fixtures/__non-existent__.yaml',
         `http://127.0.0.1:${DEFAULT_SERVER_PORT}`,
       ];
 
@@ -87,15 +87,15 @@ describe('CLI - API Description Document', () => {
     describe('when successfully loaded from URL', () => {
       let runtimeInfo;
       const args = [
-        `http://127.0.0.1:${DEFAULT_SERVER_PORT}/single-get.apib`,
+        `http://127.0.0.1:${DEFAULT_SERVER_PORT}/single-get.yaml`,
         `http://127.0.0.1:${DEFAULT_SERVER_PORT}`,
       ];
 
       before((done) => {
         const app = createServer();
-        app.get('/single-get.apib', (req, res) => {
-          res.type('text/vnd.apiblueprint');
-          fs.createReadStream('./test/fixtures/single-get.apib').pipe(res);
+        app.get('/single-get.yaml', (req, res) => {
+          res.type('application/yaml');
+          fs.createReadStream('./test/fixtures/single-get.yaml').pipe(res);
         });
         app.get('/machines', (req, res) =>
           res.json([{ type: 'bulldozer', name: 'willy' }]),
@@ -108,11 +108,11 @@ describe('CLI - API Description Document', () => {
       });
 
       it('should download API Description Document from server', () =>
-        assert.equal(runtimeInfo.server.requestCounts['/single-get.apib'], 1));
+        assert.equal(runtimeInfo.server.requestCounts['/single-get.yaml'], 1));
       it('should request /machines', () =>
         assert.deepEqual(runtimeInfo.server.requestCounts, {
           '/machines': 1,
-          '/single-get.apib': 1,
+          '/single-get.yaml': 1,
         }));
       it('should exit with status 0', () =>
         assert.equal(runtimeInfo.dredd.exitStatus, 0));
@@ -121,7 +121,7 @@ describe('CLI - API Description Document', () => {
     describe('when URL points to non-existent server', () => {
       let runtimeInfo;
       const args = [
-        `http://127.0.0.1:${NON_EXISTENT_PORT}/single-get.apib`,
+        `http://127.0.0.1:${NON_EXISTENT_PORT}/single-get.yaml`,
         `http://127.0.0.1:${DEFAULT_SERVER_PORT}`,
       ];
 
@@ -144,7 +144,7 @@ describe('CLI - API Description Document', () => {
         );
         assert.include(
           runtimeInfo.dredd.stderr,
-          `http://127.0.0.1:${NON_EXISTENT_PORT}/single-get.apib`,
+          `http://127.0.0.1:${NON_EXISTENT_PORT}/single-get.yaml`,
         );
       });
     });
@@ -152,13 +152,13 @@ describe('CLI - API Description Document', () => {
     describe('when URL points to non-existent resource', () => {
       let runtimeInfo;
       const args = [
-        `http://127.0.0.1:${DEFAULT_SERVER_PORT}/__non-existent__.apib`,
+        `http://127.0.0.1:${DEFAULT_SERVER_PORT}/__non-existent__.yaml`,
         `http://127.0.0.1:${DEFAULT_SERVER_PORT}`,
       ];
 
       before((done) => {
         const app = createServer();
-        app.get('/__non-existent__.apib', (req, res) => res.sendStatus(404));
+        app.get('/__non-existent__.yaml', (req, res) => res.sendStatus(404));
 
         runCLIWithServer(args, app, (err, info) => {
           runtimeInfo = info;
@@ -181,7 +181,7 @@ describe('CLI - API Description Document', () => {
         );
         assert.include(
           runtimeInfo.dredd.stderr,
-          `http://127.0.0.1:${DEFAULT_SERVER_PORT}/__non-existent__.apib`,
+          `http://127.0.0.1:${DEFAULT_SERVER_PORT}/__non-existent__.yaml`,
         );
       });
     });
@@ -191,9 +191,9 @@ describe('CLI - API Description Document', () => {
     describe('when loaded from file', () => {
       let runtimeInfo;
       const args = [
-        './test/fixtures/single-get.apib',
+        './test/fixtures/single-get.yaml',
         `http://127.0.0.1:${DEFAULT_SERVER_PORT}`,
-        '--path=./test/fixtures/single-get-uri-template.apib',
+        '--path=./test/fixtures/single-get-uri-template.yaml',
       ];
 
       before((done) => {
@@ -223,7 +223,7 @@ describe('CLI - API Description Document', () => {
     describe('when loaded from URL', () => {
       let runtimeInfo;
       const args = [
-        './test/fixtures/single-get-uri-template.apib',
+        './test/fixtures/single-get-uri-template.yaml',
         `http://127.0.0.1:${DEFAULT_SERVER_PORT}`,
         `--path=http://127.0.0.1:${DEFAULT_SERVER_PORT}/single-get.yaml`,
       ];
@@ -262,10 +262,10 @@ describe('CLI - API Description Document', () => {
     describe('when used multiple times', () => {
       let runtimeInfo;
       const args = [
-        './test/fixtures/single-get.apib',
+        './test/fixtures/single-get.yaml',
         `http://127.0.0.1:${DEFAULT_SERVER_PORT}`,
-        '--path=./test/fixtures/single-get-uri-template.apib',
-        '--path=./test/fixtures/single-get-path.apib',
+        '--path=./test/fixtures/single-get-uri-template.yaml',
+        '--path=./test/fixtures/single-get-path.yaml',
       ];
 
       before((done) => {
@@ -299,9 +299,9 @@ describe('CLI - API Description Document', () => {
     describe('when loaded by glob pattern', () => {
       let runtimeInfo;
       const args = [
-        './test/fixtures/single-get.apib',
+        './test/fixtures/single-get.yaml',
         `http://127.0.0.1:${DEFAULT_SERVER_PORT}`,
-        '--path=./test/fixtures/single-get-uri-temp*.apib',
+        '--path=./test/fixtures/single-get-uri-temp*.yaml',
       ];
 
       before((done) => {
@@ -331,9 +331,9 @@ describe('CLI - API Description Document', () => {
     describe('when additional file not found', () => {
       let runtimeInfo;
       const args = [
-        './test/fixtures/single-get.apib',
+        './test/fixtures/single-get.yaml',
         `http://127.0.0.1:${DEFAULT_SERVER_PORT}`,
-        '--path=./test/fixtures/__non-existent__.apib',
+        '--path=./test/fixtures/__non-existent__.yaml',
       ];
 
       before((done) => {

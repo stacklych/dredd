@@ -1,0 +1,22 @@
+openapi: "3.0.0"
+info:
+  title: Machines API
+  version: "1.0"
+paths:
+  /machines/{name}:
+    get:
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+          example: willy
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json; charset=utf-8":
+              example:
+                type: bulldozer
+                name: willy
