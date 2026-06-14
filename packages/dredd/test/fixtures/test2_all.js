@@ -6,7 +6,7 @@ hooks.beforeAll((done) => {
 });
 
 hooks.before(
-  'Machines > Machines collection > Get Machines',
+  '/machines > Get Machines > 200 > application/json; charset=utf-8',
   (transaction, done) => {
     console.log('*** before');
     done();

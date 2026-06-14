@@ -1,0 +1,27 @@
+openapi: "3.1.0"
+info:
+  title: API
+  version: "1.0"
+paths:
+  /:
+    get:
+      responses:
+        "200":
+          description: OK
+          content:
+            "application/json; charset=utf-8":
+              schema:
+                type: object
+                required:
+                  - data
+                properties:
+                  data:
+                    type: object
+                    required:
+                      - expires
+                      - token
+                    properties:
+                      expires:
+                        type: number
+                      token:
+                        type: string

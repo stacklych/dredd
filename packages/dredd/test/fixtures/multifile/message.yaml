@@ -1,0 +1,13 @@
+openapi: "3.0.0"
+info:
+  title: Message API
+  version: "1.0"
+paths:
+  /message:
+    get:
+      responses:
+        "200":
+          description: OK
+          content:
+            "text/plain; charset=utf-8":
+              example: "Hello World!\n"
