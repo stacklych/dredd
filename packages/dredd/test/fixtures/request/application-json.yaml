@@ -1,14 +1,15 @@
 openapi: "3.1.0"
 info:
-  title: Testing 'application/x-www-form-urlencoded' Request API
+  title: Testing 'application/json' Request API
   version: "1.0"
 paths:
   /data:
     post:
       requestBody:
         content:
-          application/x-www-form-urlencoded:
-            example: "test=42"
+          application/json:
+            example:
+              test: 42
       responses:
         "200":
           description: Test OK

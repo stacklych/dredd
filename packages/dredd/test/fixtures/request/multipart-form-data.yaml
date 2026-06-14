@@ -1,28 +1,14 @@
-swagger: '2.0'
+openapi: "3.1.0"
 info:
-  title: "Testing 'multipart/form-data' Request API"
-  version: '1.0'
-consumes:
-  - multipart/form-data; boundary=CUSTOM-BOUNDARY
-produces:
-  - application/json; charset=utf-8
+  title: Testing 'multipart/form-data' Request API
+  version: "1.0"
 paths:
-  '/data':
+  /data:
     post:
-      parameters:
-        - name: text
-          in: formData
-          type: string
-          required: true
-          x-example: "test equals to 42"
-        - name: json
-          in: formData
-          type: string
-          required: true
-          x-example: '{"test": 42}'
+      requestBody:
+        content:
+          "multipart/form-data; boundary=CUSTOM-BOUNDARY":
+            example: "--CUSTOM-BOUNDARY\r\nContent-Disposition: form-data; name=\"text\"\r\n\r\ntest equals to 42\r\n--CUSTOM-BOUNDARY\r\nContent-Disposition: form-data; name=\"json\"\r\n\r\n{\"test\": 42}\r\n\r\n--CUSTOM-BOUNDARY--\r\n"
       responses:
-        200:
-          description: 'Test OK'
-          examples:
-            application/json; charset=utf-8:
-              test: 'OK'
+        "200":
+          description: Test OK

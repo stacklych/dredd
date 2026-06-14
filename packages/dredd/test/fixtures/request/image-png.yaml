@@ -1,26 +1,13 @@
-swagger: "2.0"
+openapi: "3.0.0"
 info:
+  title: Testing 'image/png' Request API
   version: "1.0"
-  title: Images API
-schemes:
-  - http
-consumes:
-  - image/png
-produces:
-  - application/json
 paths:
   /image.png:
     put:
-      parameters:
-        - name: binary
-          in: body
-          required: true
-          schema:
-            type: string
-            format: binary
+      requestBody:
+        content:
+          image/png: {}
       responses:
-        200:
-          description: 'Test OK'
-          examples:
-            application/json; charset=utf-8:
-              test: 'OK'
+        "200":
+          description: Test OK
