@@ -77,7 +77,7 @@ describe('Apiary reporter', () => {
       try {
         const cmd = {
           options: {
-            path: ['./test/fixtures/single-get.apib'],
+            path: ['./test/fixtures/single-get.yaml'],
             reporter: ['apiary'],
             loglevel: 'debug',
           },
@@ -192,7 +192,7 @@ describe('Apiary reporter', () => {
       before((done) => {
         const cmd = {
           options: {
-            path: ['./test/fixtures/single-get.apib'],
+            path: ['./test/fixtures/single-get.yaml'],
             reporter: ['apiary'],
             loglevel: 'debug',
           },
@@ -254,7 +254,7 @@ describe('Apiary reporter', () => {
       before((done) => {
         const cmd = {
           options: {
-            path: ['./test/fixtures/single-get.apib'],
+            path: ['./test/fixtures/single-get.yaml'],
             reporter: ['apiary'],
             loglevel: 'debug',
           },
@@ -344,19 +344,19 @@ describe('Apiary reporter', () => {
     const errorCmd = {
       server: `http://127.0.0.1:${PORT + 1}`,
       options: {
-        path: [`http://127.0.0.1:${PORT + 1}/connection-error.apib`],
+        path: [`http://127.0.0.1:${PORT + 1}/connection-error.yaml`],
       },
     };
 
     const wrongCmd = {
       options: {
-        path: [`http://127.0.0.1:${PORT}/not-found.apib`],
+        path: [`http://127.0.0.1:${PORT}/not-found.yaml`],
       },
     };
 
     const goodCmd = {
       options: {
-        path: [`http://127.0.0.1:${PORT}/file.apib`],
+        path: [`http://127.0.0.1:${PORT}/file.yaml`],
       },
     };
 
@@ -374,17 +374,17 @@ describe('Apiary reporter', () => {
 
       app.get('/', (req, res) => res.sendStatus(404));
 
-      app.get('/file.apib', (req, res) => {
+      app.get('/file.yaml', (req, res) => {
         fileFound = true;
         res.type('text');
-        fs.createReadStream('./test/fixtures/single-get.apib').pipe(res);
+        fs.createReadStream('./test/fixtures/single-get.yaml').pipe(res);
       });
 
       app.get('/machines', (req, res) =>
         res.json([{ type: 'bulldozer', name: 'willy' }]),
       );
 
-      app.get('/not-found.apib', (req, res) => {
+      app.get('/not-found.yaml', (req, res) => {
         notFound = true;
         res.status(404).end();
       });
@@ -414,7 +414,7 @@ describe('Apiary reporter', () => {
 
       it('should print error message to the output', () => {
         assert.include(output, 'Unable to load API description document from');
-        assert.include(output, 'connection-error.apib');
+        assert.include(output, 'connection-error.yaml');
       });
     });
 
@@ -436,7 +436,7 @@ describe('Apiary reporter', () => {
       it('should print error message to the output', () => {
         assert.include(output, 'Unable to load API description document from');
         assert.include(output, 'Dredd got HTTP 404 response without body');
-        assert.include(output, 'not-found.apib');
+        assert.include(output, 'not-found.yaml');
       });
     });
 
