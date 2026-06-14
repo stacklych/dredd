@@ -135,14 +135,14 @@ describe('TransactionRunner', () => {
           actionName: 'Delete Message',
           exampleName: 'Bogus example name',
         },
-        apiDescriptionMediaType: 'text/vnd.apiblueprint',
+        apiDescriptionMediaType: 'application/vnd.oai.openapi',
       };
 
       runner = new Runner(configuration);
     });
 
     describe('when server address', () => {
-      const filename = 'api-description.apib';
+      const filename = 'api-description.yaml';
       let configuredTransaction;
 
       [
@@ -291,7 +291,7 @@ describe('TransactionRunner', () => {
               transaction.request.uri = input.requestPath;
               transaction.origin.filename = filename;
               transaction.apiDescription = {
-                mediaType: 'text/vnd.apiblueprint',
+                mediaType: 'application/vnd.oai.openapi',
               };
               configuredTransaction = runner.configureTransaction(transaction);
             });

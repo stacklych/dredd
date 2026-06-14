@@ -16,14 +16,14 @@ describe('resolveLocations()', () => {
   describe('when given paths', () => {
     it('resolves them into absolute paths', () => {
       const locations = resolveLocations(workingDirectory, [
-        './multifile/*.apib',
-        './apiary.apib',
+        './multifile/*.yaml',
+        './apiary.yaml',
       ]);
       assert.deepEqual(locations, [
-        path.join(workingDirectory, '/multifile/greeting.apib'),
-        path.join(workingDirectory, '/multifile/message.apib'),
-        path.join(workingDirectory, '/multifile/name.apib'),
-        path.join(workingDirectory, 'apiary.apib'),
+        path.join(workingDirectory, '/multifile/greeting.yaml'),
+        path.join(workingDirectory, '/multifile/message.yaml'),
+        path.join(workingDirectory, '/multifile/name.yaml'),
+        path.join(workingDirectory, 'apiary.yaml'),
       ]);
     });
   });
@@ -31,8 +31,8 @@ describe('resolveLocations()', () => {
   describe('when given non-existing paths', () => {
     it('throws an error', () => {
       assert.throws(() => {
-        resolveLocations(workingDirectory, ['./foo/bar/moo/boo/*.apib']);
-      }, './foo/bar/moo/boo/*.apib');
+        resolveLocations(workingDirectory, ['./foo/bar/moo/boo/*.yaml']);
+      }, './foo/bar/moo/boo/*.yaml');
     });
   });
 
@@ -40,11 +40,11 @@ describe('resolveLocations()', () => {
     it('recognizes they are URLs', () => {
       const locations = resolveLocations(workingDirectory, [
         'http://example.com/foo.yaml',
-        './apiary.apib',
+        './apiary.yaml',
       ]);
       assert.deepEqual(locations, [
         'http://example.com/foo.yaml',
-        path.join(workingDirectory, 'apiary.apib'),
+        path.join(workingDirectory, 'apiary.yaml'),
       ]);
     });
   });
@@ -53,11 +53,11 @@ describe('resolveLocations()', () => {
     it('recognizes they are URLs', () => {
       const locations = resolveLocations(workingDirectory, [
         'https://example.com/foo.yaml',
-        './apiary.apib',
+        './apiary.yaml',
       ]);
       assert.deepEqual(locations, [
         'https://example.com/foo.yaml',
-        path.join(workingDirectory, 'apiary.apib'),
+        path.join(workingDirectory, 'apiary.yaml'),
       ]);
     });
   });
@@ -65,13 +65,13 @@ describe('resolveLocations()', () => {
   describe('when given duplicate locations', () => {
     it('returns only the distinct ones', () => {
       const locations = resolveLocations(workingDirectory, [
-        './apiary.apib',
+        './apiary.yaml',
         'http://example.com/foo.yaml',
         'http://example.com/foo.yaml',
-        './apiar*.apib',
+        './apiar*.yaml',
       ]);
       assert.deepEqual(locations, [
-        path.join(workingDirectory, 'apiary.apib'),
+        path.join(workingDirectory, 'apiary.yaml'),
         'http://example.com/foo.yaml',
       ]);
     });
@@ -80,17 +80,17 @@ describe('resolveLocations()', () => {
   describe('when given various locations', () => {
     it('keeps their original order', () => {
       const locations = resolveLocations(workingDirectory, [
-        './apiar*.apib',
+        './apiar*.yaml',
         'https://example.com/foo.yaml',
-        './multifile/*.apib',
+        './multifile/*.yaml',
         'http://example.com/bar.yaml',
       ]);
       assert.deepEqual(locations, [
-        path.join(workingDirectory, 'apiary.apib'),
+        path.join(workingDirectory, 'apiary.yaml'),
         'https://example.com/foo.yaml',
-        path.join(workingDirectory, '/multifile/greeting.apib'),
-        path.join(workingDirectory, '/multifile/message.apib'),
-        path.join(workingDirectory, '/multifile/name.apib'),
+        path.join(workingDirectory, '/multifile/greeting.yaml'),
+        path.join(workingDirectory, '/multifile/message.yaml'),
+        path.join(workingDirectory, '/multifile/name.yaml'),
         'http://example.com/bar.yaml',
       ]);
     });

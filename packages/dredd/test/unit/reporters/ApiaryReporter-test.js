@@ -53,7 +53,7 @@ describe('ApiaryReporter', () => {
         startedAt: 1234567890 * 1000, // JavaScript Date.now() timestamp (UNIX-like timestamp * 1000 precision)
 
         origin: {
-          filename: './test/fixtures/multifile/greeting.apib',
+          filename: './test/fixtures/multifile/greeting.yaml',
           apiName: 'Greeting API',
           resourceGroupName: '',
           resourceName: '/greeting',
@@ -386,13 +386,13 @@ describe('ApiaryReporter', () => {
             assert.propertyVal(
               blueprint,
               'raw',
-              'FORMAT: 1A\n\n# Machines API\n\n# Group Machines\n\n# Machines collection [/machines/{id}]\n  + Parameters\n    - id (number, `1`)\n\n## Get Machines [GET]\n\n- Request (application/json)\n  + Parameters\n    - id (number, `2`)\n\n- Response 200 (application/json; charset=utf-8)\n\n    [\n      {\n        "type": "bulldozer",\n        "name": "willy"\n      }\n    ]\n\n- Request (application/json)\n  + Parameters\n    - id (number, `3`)\n\n- Response 200 (application/json; charset=utf-8)\n\n    [\n      {\n        "type": "bulldozer",\n        "name": "willy"\n      }\n    ]\n',
+              apiDescriptions[0].content,
             );
             assert.property(blueprint, 'filename');
             assert.propertyVal(
               blueprint,
               'filename',
-              './test/fixtures/multiple-examples.apib',
+              apiDescriptions[0].location,
             );
             assert.property(blueprint, 'annotations');
             assert.isArray(blueprint.annotations);

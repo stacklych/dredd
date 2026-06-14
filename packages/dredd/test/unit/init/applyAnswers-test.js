@@ -19,10 +19,10 @@ describe('init._applyAnswers()', () => {
 
   it('applies the API description and the API host as positional CLI arguments', () => {
     const config = applyAnswers(createConfig(), {
-      apiDescription: 'apiary.apib',
+      apiDescription: 'apiary.yaml',
       apiHost: 'http://127.0.0.1:5000',
     });
-    assert.deepEqual(config._, ['apiary.apib', 'http://127.0.0.1:5000']);
+    assert.deepEqual(config._, ['apiary.yaml', 'http://127.0.0.1:5000']);
   });
   it('sets the server', () => {
     const config = applyAnswers(createConfig(), { server: 'npm start' });

@@ -18,7 +18,7 @@ describe('normalizeConfig()', () => {
         silent: true,
         t: true,
         timestamp: true,
-        blueprintPath: './foo.apib',
+        blueprintPath: './foo.yaml',
         b: true,
         sandbox: true,
       });
@@ -214,7 +214,7 @@ describe('normalizeConfig()', () => {
         it('when given { filename: apiDescription } format', () => {
           const result = coerceDeprecatedDataOption({
             data: {
-              'filename.api': 'FORMAT: 1A\n# Sample API\n',
+              'filename.api': 'openapi: 3.0.0\n# Sample API\n',
             },
           });
 
@@ -222,7 +222,7 @@ describe('normalizeConfig()', () => {
             apiDescriptions: [
               {
                 location: 'filename.api',
-                content: 'FORMAT: 1A\n# Sample API\n',
+                content: 'openapi: 3.0.0\n# Sample API\n',
               },
             ],
           });
@@ -232,7 +232,7 @@ describe('normalizeConfig()', () => {
           const result = coerceDeprecatedDataOption({
             data: {
               'filename.api': {
-                raw: 'FORMAT: 1A\n# Sample API\n',
+                raw: 'openapi: 3.0.0\n# Sample API\n',
                 filename: 'filename.api',
               },
             },
@@ -242,7 +242,7 @@ describe('normalizeConfig()', () => {
             apiDescriptions: [
               {
                 location: 'filename.api',
-                content: 'FORMAT: 1A\n# Sample API\n',
+                content: 'openapi: 3.0.0\n# Sample API\n',
               },
             ],
           });
@@ -250,11 +250,11 @@ describe('normalizeConfig()', () => {
 
         it('with both "data" and "apiDescriptions"', () => {
           const result = coerceDeprecatedDataOption({
-            data: { 'filename.api': 'FORMAT: 1A\n# Sample API v2\n' },
+            data: { 'filename.api': 'openapi: 3.0.0\n# Sample API v2\n' },
             apiDescriptions: [
               {
                 location: 'configuration.apiDescriptions[0]',
-                content: 'FORMAT: 1A\n# Sample API v1\n',
+                content: 'openapi: 3.0.0\n# Sample API v1\n',
               },
             ],
           });
@@ -263,11 +263,11 @@ describe('normalizeConfig()', () => {
             apiDescriptions: [
               {
                 location: 'configuration.apiDescriptions[0]',
-                content: 'FORMAT: 1A\n# Sample API v1\n',
+                content: 'openapi: 3.0.0\n# Sample API v1\n',
               },
               {
                 location: 'filename.api',
-                content: 'FORMAT: 1A\n# Sample API v2\n',
+                content: 'openapi: 3.0.0\n# Sample API v2\n',
               },
             ],
           });

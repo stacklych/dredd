@@ -26,14 +26,14 @@ const COMPILE_ANNOTATION_FIXTURE = {
 describe('annotationToLoggerInfo()', () => {
   describe('annotation.type', () => {
     it('chooses error logging level for error annotation type', () => {
-      const loggerInfo = annotationToLoggerInfo('apiary.apib', {
+      const loggerInfo = annotationToLoggerInfo('apiary.yaml', {
         ...PARSE_ANNOTATION_FIXTURE,
         type: 'error',
       });
       assert.equal(loggerInfo.level, 'error');
     });
     it('chooses warn logging level for warning annotation type', () => {
-      const loggerInfo = annotationToLoggerInfo('apiary.apib', {
+      const loggerInfo = annotationToLoggerInfo('apiary.yaml', {
         ...PARSE_ANNOTATION_FIXTURE,
         type: 'warning',
       });
@@ -42,7 +42,7 @@ describe('annotationToLoggerInfo()', () => {
     it('throws for invalid annotation type', () => {
       assert.throws(
         () =>
-          annotationToLoggerInfo('apiary.apib', {
+          annotationToLoggerInfo('apiary.yaml', {
             ...PARSE_ANNOTATION_FIXTURE,
             type: 'gargamel',
           }),
@@ -50,14 +50,14 @@ describe('annotationToLoggerInfo()', () => {
       );
     });
     it('propagates the type to the message for parse annotation', () => {
-      const loggerInfo = annotationToLoggerInfo('apiary.apib', {
+      const loggerInfo = annotationToLoggerInfo('apiary.yaml', {
         ...PARSE_ANNOTATION_FIXTURE,
         type: 'warning',
       });
       assert.match(loggerInfo.message, /^API description [\s\S]+ warning in/);
     });
     it('propagates the type to the message for compile annotation', () => {
-      const loggerInfo = annotationToLoggerInfo('apiary.apib', {
+      const loggerInfo = annotationToLoggerInfo('apiary.yaml', {
         ...COMPILE_ANNOTATION_FIXTURE,
         type: 'warning',
       });
@@ -67,14 +67,14 @@ describe('annotationToLoggerInfo()', () => {
 
   describe('annotation.component', () => {
     it('formats apiDescriptionParser', () => {
-      const loggerInfo = annotationToLoggerInfo('apiary.apib', {
+      const loggerInfo = annotationToLoggerInfo('apiary.yaml', {
         ...PARSE_ANNOTATION_FIXTURE,
         component: 'apiDescriptionParser',
       });
       assert.match(loggerInfo.message, /^API description parser error/);
     });
     it('formats parametersValidation', () => {
-      const loggerInfo = annotationToLoggerInfo('apiary.apib', {
+      const loggerInfo = annotationToLoggerInfo('apiary.yaml', {
         ...COMPILE_ANNOTATION_FIXTURE,
         component: 'parametersValidation',
       });
@@ -84,7 +84,7 @@ describe('annotationToLoggerInfo()', () => {
       );
     });
     it('formats uriTemplateExpansion', () => {
-      const loggerInfo = annotationToLoggerInfo('apiary.apib', {
+      const loggerInfo = annotationToLoggerInfo('apiary.yaml', {
         ...COMPILE_ANNOTATION_FIXTURE,
         component: 'uriTemplateExpansion',
       });
@@ -94,7 +94,7 @@ describe('annotationToLoggerInfo()', () => {
       );
     });
     it('formats unexpected component with a generic name', () => {
-      const loggerInfo = annotationToLoggerInfo('apiary.apib', {
+      const loggerInfo = annotationToLoggerInfo('apiary.yaml', {
         ...COMPILE_ANNOTATION_FIXTURE,
         component: 'gargamel',
       });
@@ -104,20 +104,20 @@ describe('annotationToLoggerInfo()', () => {
 
   describe('annotation.origin', () => {
     it('uses transaction name as a location hint for compile annotations', () => {
-      const loggerInfo = annotationToLoggerInfo('apiary.apib', {
+      const loggerInfo = annotationToLoggerInfo('apiary.yaml', {
         ...COMPILE_ANNOTATION_FIXTURE,
         component: 'parametersValidation',
       });
       assert.include(
         loggerInfo.message,
-        'error in apiary.apib (Broken API > Things > Retrieve Things): Ouch!',
+        'error in apiary.yaml (Broken API > Things > Retrieve Things): Ouch!',
       );
     });
   });
 
   describe('annotation.location', () => {
     it('formats location for parse annotations', () => {
-      const loggerInfo = annotationToLoggerInfo('apiary.apib', {
+      const loggerInfo = annotationToLoggerInfo('apiary.yaml', {
         ...PARSE_ANNOTATION_FIXTURE,
         location: [
           [1, 2],
@@ -126,11 +126,11 @@ describe('annotationToLoggerInfo()', () => {
       });
       assert.include(
         loggerInfo.message,
-        'error in apiary.apib:1 (from line 1 column 2 to line 3 column 4): Ouch!',
+        'error in apiary.yaml:1 (from line 1 column 2 to line 3 column 4): Ouch!',
       );
     });
     it('formats location without end line if it is the same as the start line', () => {
-      const loggerInfo = annotationToLoggerInfo('apiary.apib', {
+      const loggerInfo = annotationToLoggerInfo('apiary.yaml', {
         ...PARSE_ANNOTATION_FIXTURE,
         location: [
           [1, 2],
@@ -139,11 +139,11 @@ describe('annotationToLoggerInfo()', () => {
       });
       assert.include(
         loggerInfo.message,
-        'error in apiary.apib:1 (from line 1 column 2 to column 4): Ouch!',
+        'error in apiary.yaml:1 (from line 1 column 2 to column 4): Ouch!',
       );
     });
     it('formats location without range if the start and the end are the same', () => {
-      const loggerInfo = annotationToLoggerInfo('apiary.apib', {
+      const loggerInfo = annotationToLoggerInfo('apiary.yaml', {
         ...PARSE_ANNOTATION_FIXTURE,
         location: [
           [1, 2],
@@ -152,15 +152,15 @@ describe('annotationToLoggerInfo()', () => {
       });
       assert.include(
         loggerInfo.message,
-        'error in apiary.apib:1 (line 1 column 2): Ouch!',
+        'error in apiary.yaml:1 (line 1 column 2): Ouch!',
       );
     });
     it('formats missing location', () => {
-      const loggerInfo = annotationToLoggerInfo('apiary.apib', {
+      const loggerInfo = annotationToLoggerInfo('apiary.yaml', {
         ...PARSE_ANNOTATION_FIXTURE,
         location: null,
       });
-      assert.include(loggerInfo.message, 'error in apiary.apib: Ouch!');
+      assert.include(loggerInfo.message, 'error in apiary.yaml: Ouch!');
     });
   });
 });

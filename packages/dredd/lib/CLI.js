@@ -154,7 +154,7 @@ Or:
   $ dredd <path or URL to API description document> <URL of tested server> [OPTIONS]
 
 Example:
-  $ dredd ./api-description.apib http://127.0.0.1:3000 --dry-run\
+  $ dredd ./api-description.yaml http://127.0.0.1:3000 --dry-run\
 `,
       )
       .options(dreddOptions)

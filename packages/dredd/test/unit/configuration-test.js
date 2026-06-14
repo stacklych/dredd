@@ -424,7 +424,7 @@ describe('configuration', () => {
   });
 
   describe('with data set to { filename: apiDescription }', () => {
-    const config = { data: { 'filename.api': 'FORMAT: 1A\n# Sample API\n' } };
+    const config = { data: { 'filename.api': 'openapi: 3.0.0\n# Sample API\n' } };
     const { warnings, errors } = validateConfig(config);
 
     it('produces one warning', () => {
@@ -439,7 +439,7 @@ describe('configuration', () => {
     const config = {
       data: {
         'filename.api': {
-          raw: 'FORMAT: 1A\n# Sample API\n',
+          raw: 'openapi: 3.0.0\n# Sample API\n',
           filename: 'filename.api',
         },
       },
@@ -456,11 +456,11 @@ describe('configuration', () => {
 
   describe('with both data and apiDescriptions set', () => {
     const config = {
-      data: { 'filename.api': 'FORMAT: 1A\n# Sample API v1\n' },
+      data: { 'filename.api': 'openapi: 3.0.0\n# Sample API v1\n' },
       apiDescriptions: [
         {
           location: 'configuration.apiDescriptions[0]',
-          content: 'FORMAT: 1A\n# Sample API v2\n',
+          content: 'openapi: 3.0.0\n# Sample API v2\n',
         },
       ],
     };
