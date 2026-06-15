@@ -11,7 +11,7 @@
 
 ## Maintained Fork
 
-This repository is a maintained fork of [Apiary Dredd](https://github.com/apiaryio/dredd), which was archived upstream on November 8, 2024. The original project remains licensed under MIT; this fork keeps the original license notice and continues development independently at [dalberola/dredd](https://github.com/dalberola/dredd).
+This repository is owned and maintained by **Stackly**. It is a maintained fork of [Apiary Dredd](https://github.com/apiaryio/dredd), which was archived upstream on November 8, 2024. The original project remains licensed under MIT; this fork keeps the original license notice and continues development independently at [dalberola/dredd](https://github.com/dalberola/dredd).
 
 The npm package names are currently kept as `dredd` and `dredd-transactions` in source metadata for compatibility with the existing workspace and import paths. New npm publishing should use a distinct scoped package plan before release.
 
@@ -21,10 +21,16 @@ documentation.
 
 ### Supported API Description Formats
 
-- [API Blueprint][]
-- [OpenAPI 2][] (formerly known as Swagger)
-- [OpenAPI 3][] 3.0 (experimental)
-- [OpenAPI 3.1][] response testing with JSON Schema 2020-12/OAS dialect validation
+Dredd supports **OpenAPI 3.0 and OpenAPI 3.1 only**. API Blueprint and OpenAPI 2
+(Swagger) are no longer supported — convert older descriptions to OpenAPI 3
+before using Dredd.
+
+- [OpenAPI 3][] (3.0)
+- [OpenAPI 3.1][]
+
+Both versions validate response status, structure, and **data types** against
+the described schemas (including `$ref`, `allOf`, arrays, `nullable`, and string
+formats).
 
 ### Supported Hooks Languages
 
@@ -53,9 +59,7 @@ $ npm install -g dredd
 
 ## Quick Start
 
-1.  Create an [API Blueprint][] file called `api-description.apib`.
-    Follow [tutorial at API Blueprint website][api blueprint tutorial]
-    or just take one of the [ready-made examples][api blueprint examples].
+1.  Create an [OpenAPI 3][] description file called `api-description.yaml`.
 2.  Run interactive configuration:
 
     ```shell

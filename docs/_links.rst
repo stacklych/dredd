@@ -1,3 +1,7 @@
+.. DEPRECATED (follow-up): the Apiary and Dredd (dredd.org) targets below
+.. point to the former owner's sites. They have no verified Stackly
+.. replacement yet and are tracked in docs/deprecated-links.rst. Update once
+.. Stackly URLs exist.
 .. _Apiary: https://apiary.io
 .. _Dredd: https://dredd.org
 .. _Gavel: https://github.com/apiaryio/gavel.js

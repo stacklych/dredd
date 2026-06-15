@@ -4,7 +4,7 @@
 Quickstart
 ==========
 
-In following tutorial you can quickly learn how to test a simple HTTP API application with Dredd. The tested application will be very simple backend written in `Express.js <http://expressjs.com/starter/hello-world.html>`__.
+In following tutorial you can quickly learn how to test a simple HTTP API application with Dredd. The tested application will be very simple backend written in `Express.js <https://expressjs.com/en/starter/hello-world.html>`__.
 
 Install Dredd
 -------------
@@ -18,92 +18,41 @@ If you’re not familiar with the Node.js ecosystem or you bump into any issues,
 Document Your API
 -----------------
 
-First, let’s design the API we are about to build and test. That means you will need to create an API description file, which will document how your API should look like. Dredd supports the following API description document formats:
+First, let’s design the API we are about to build and test. That means you will need to create an API description file, which will document how your API should look like. Dredd supports **OpenAPI 3.0 and OpenAPI 3.1** (API Blueprint and OpenAPI 2 are no longer supported).
 
--  `API Blueprint`_
--  `OpenAPI 2`_ (formerly known as Swagger)
--  `OpenAPI 3`_ 3.0 (experimental)
--  `OpenAPI 3.1`_ response testing with JSON Schema 2020-12/OAS dialect validation
+Create a file called ``api-description.yaml`` with the following content:
 
-.. tabs::
+.. code-block:: openapi3
 
-   .. group-tab:: API Blueprint
+   openapi: 3.1.0
+   info:
+     version: '1.0'
+     title: Example API
+     license:
+       name: MIT
+   paths:
+     /:
+       get:
+         responses:
+           '200':
+             description: ''
+             content:
+               application/json; charset=utf-8:
+                 schema:
+                   type: object
+                   properties:
+                     message:
+                       type: string
+                   required:
+                     - message
 
-      If you choose API Blueprint, create a file called ``api-description.apib`` in the root of your project and save it with following content:
-
-      .. code-block:: apiblueprint
-
-         FORMAT: 1A
-
-         # GET /
-         + Response 200 (application/json; charset=utf-8)
-
-               {"message": "Hello World!"}
-
-   .. group-tab:: OpenAPI 2
-
-      If you choose OpenAPI 2, create a file called ``api-description.yml``:
-
-      .. code-block:: openapi2
-
-         swagger: '2.0'
-         info:
-           version: '1.0'
-           title: Example API
-           license:
-             name: MIT
-         host: www.example.com
-         basePath: /
-         schemes:
-           - http
-         paths:
-           /:
-             get:
-               produces:
-                 - application/json; charset=utf-8
-               responses:
-                 '200':
-                   description: ''
-                   schema:
-                     type: object
-                     properties:
-                       message:
-                         type: string
-                     required:
-                       - message
-
-   .. group-tab:: OpenAPI 3.1
-
-      If you choose OpenAPI 3.1, create a file called ``api-description.yml``:
-
-      .. code-block:: openapi3
-
-         openapi: 3.1.0
-         info:
-           version: '1.0'
-           title: Example API
-           license:
-             name: MIT
-         paths:
-           /:
-             get:
-               responses:
-                 '200':
-                   description: ''
-                   content:
-                     application/json; charset=utf-8:
-                       schema:
-                         type: object
-                         properties:
-                           message:
-                             type: string
-                         required:
-                           - message
+.. note::
+   The same description works as OpenAPI 3.0 — set ``openapi: 3.0.3`` instead. Dredd validates response data types for both versions.
 
 Implement Your API
 ------------------
 
-As we mentioned in the beginning, we’ll use `Express.js <http://expressjs.com/starter/hello-world.html>`__ to implement the API. Install the framework by ``npm``:
+As we mentioned in the beginning, we’ll use `Express.js <https://expressjs.com/en/starter/hello-world.html>`__ to implement the API. Install the framework by ``npm``:
 
 .. code-block:: shell
 
@@ -133,25 +82,9 @@ At this moment, the implementation is ready to be tested. Let’s run the server
 
 Finally, let Dredd validate whether your freshly implemented API complies with the description you have:
 
-.. tabs::
+.. code-block:: shell
 
-   .. group-tab:: API Blueprint
-
-      .. code-block:: shell
-
-         $ dredd api-description.apib http://127.0.0.1:3000
-
-   .. group-tab:: OpenAPI 2
-
-      .. code-block:: shell
-
-         $ dredd api-description.yml http://127.0.0.1:3000
-
-   .. group-tab:: OpenAPI 3.1
-
-      .. code-block:: shell
-
-         $ dredd api-description.yml http://127.0.0.1:3000
+   $ dredd api-description.yaml http://127.0.0.1:3000
 
 
 Configure Dredd
@@ -162,7 +95,7 @@ Dredd can be configured by :ref:`many CLI options <usage-cli>`. It’s recommend
 ::
 
    $ dredd init
-   ? Location of the API description document: api-description.apib
+   ? Location of the API description document: api-description.yaml
    ? Command to start API backend server e.g. (bundle exec rails server)
    ? URL of tested API endpoint: http://127.0.0.1:3000
    ? Programming language of hooks:

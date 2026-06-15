@@ -43,9 +43,10 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
+# Dredd is the product name; the project is now owned and maintained by Stackly.
 project = 'Dredd'
-copyright = 'Apiary Czech Republic, s.r.o.'
-author = 'Apiary'
+copyright = 'Stackly'
+author = 'Stackly'
 
 # The project version (2.6) and release (2.6.0rc1) numbers. Figuring this
 # out for Dredd is tricky (because of Semantic Release), so it's hardcoded.
@@ -118,6 +119,29 @@ linkcheck_ignore = [
     # Exclude Dredd repository links, because they are checked
     # by "_extensions/ghlink_check.py".
     r'https?://github\.com/apiaryio/dredd/.+',
+    # DEPRECATED (follow-up): links to the former owner's sites and assets.
+    # These point at Apiary-era resources and have no verified Stackly
+    # replacement yet. They are tracked in docs/deprecated-links.rst and
+    # ignored here so linkcheck does not fail on them. Replace once Stackly
+    # equivalents exist. See docs/deprecated-links.rst.
+    r'https?://apiary\.io.*',
+    r'https?://help\.apiary\.io.*',
+    r'https?://dredd\.org.*',
+    r'https?://hub\.docker\.com/r/apiaryio/.*',
+    # travis-ci.org is defunct (migrated to travis-ci.com); ignore the dead
+    # CI badges/links for Dredd and the third-party hook libraries.
+    r'https?://(api\.)?travis-ci\.org.*',
+    r'https?://relishapp\.com/apiary/.*',
+    # Pre-existing rotted or rate-limited third-party links (follow-up).
+    # These are unrelated to the ownership change; they are dead/moved
+    # upstream or block automated link checks. The OpenAPI 2 spec links come
+    # from leftover OpenAPI-2 prose that the docs no longer need (slated for
+    # removal in the deeper content cleanup).
+    r'https?://docs\.docker\.com/docker-for-mac/.*',
+    r'https?://github\.com/OAI/OpenAPI-Specification/blob/master/versions/2\.0\.md.*',
+    r'https?://json-schema\.org/understanding-json-schema/.*',
+    # npmjs.com returns 403/429 to automated link checks (anti-bot).
+    r'https?://(www\.)?npmjs\.com.*',
 ]
 
 sphinx_tabs_valid_builders = ['linkcheck']

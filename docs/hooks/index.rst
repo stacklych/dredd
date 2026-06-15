@@ -24,17 +24,8 @@ Getting started
 
 Let's have a description of a blog API, which allows to list all articles, and to publish a new one.
 
-.. tabs::
-
-   .. group-tab:: API Blueprint
-
-      .. literalinclude:: ../../packages/dredd/test/fixtures/blog/apidesc.apib
-         :language: apiblueprint
-
-   .. group-tab:: OpenAPI 2
-
-      .. literalinclude:: ../../packages/dredd/test/fixtures/blog/apidesc.openapi2.yaml
-         :language: openapi2
+.. literalinclude:: ../../packages/dredd/test/fixtures/blog/apidesc.openapi3.yaml
+   :language: openapi3
 
 Now let's say the real instance of the API has the POST request protected so it is not possible for everyone to publish new articles. We do not want to hardcode secret tokens in our API description, but we want to get Dredd to pass the auth. This is where the hooks can help.
 
@@ -46,25 +37,12 @@ Hooks are functions, which are registered to be ran for a specific test step (HT
 
 Dredd supports :ref:`writing hooks in multiple programming languages <supported-languages>`, but we'll go with JavaScript hooks in this tutorial as they're available out of the box.
 
-.. tabs::
+Let's create a file called ``hooks.js`` with the following content:
 
-   .. group-tab:: API Blueprint
+.. literalinclude:: ../../packages/dredd/test/fixtures/blog/hooks.openapi3.js
+   :language: javascript
 
-      Let's create a file called ``hooks.js`` with the following content:
-
-      .. literalinclude:: ../../packages/dredd/test/fixtures/blog/hooks.apib.js
-         :language: javascript
-
-      As you can see, we're registering the hook function to be executed **before** the HTTP transaction ``Articles > Publish an article``. This path-like identifier is a :ref:`transaction name <transaction-names>`.
-
-   .. group-tab:: OpenAPI 2
-
-      Let's create a file called ``hooks.js`` with the following content:
-
-      .. literalinclude:: ../../packages/dredd/test/fixtures/blog/hooks.openapi2.js
-         :language: javascript
-
-      As you can see, we're registering the hook function to be executed **before** the HTTP transaction ``Articles > Publish an article > 201 > application/json``. This path-like identifier is a :ref:`transaction name <transaction-names>`.
+As you can see, we're registering the hook function to be executed **before** the HTTP transaction ``/articles > Publish an article > 201 > application/json; charset=utf-8``. This path-like identifier is a :ref:`transaction name <transaction-names>`.
 
 
 Running Dredd with hooks
@@ -72,19 +50,9 @@ Running Dredd with hooks
 
 With the API instance running locally at ``http://127.0.0.1:3000``, you can now run Dredd with hooks using the :option:`--hookfiles` option:
 
-.. tabs::
+.. code-block:: text
 
-   .. group-tab:: API Blueprint
-
-      .. code-block:: text
-
-         dredd ./blog.apib http://127.0.0.1:3000 --hookfiles=./hooks.js
-
-   .. group-tab:: OpenAPI 2
-
-      .. code-block:: text
-
-         dredd ./blog.yaml http://127.0.0.1:3000 --hookfiles=./hooks.js
+   dredd ./blog.yaml http://127.0.0.1:3000 --hookfiles=./hooks.js
 
 Now the tests should pass even if publishing new article requires auth.
 
@@ -129,43 +97,21 @@ Transaction names are path-like strings, which allow hook functions to address s
 
 You can get a list of all transaction names available in your API description document by calling Dredd with the :option:`--names` option:
 
-.. tabs::
+.. code-block:: text
+   :emphasize-lines: 3, 5
 
-   .. group-tab:: API Blueprint
+   $ dredd ./blog.yaml http://127.0.0.1:3000 --names
+   info: /articles > List articles > 200 > application/json; charset=utf-8
+   skip: GET (200) /articles
+   info: /articles > Publish an article > 201 > application/json; charset=utf-8
+   skip: POST (201) /articles
+   complete: 0 passing, 0 failing, 0 errors, 2 skipped, 2 total
+   complete: Tests took 9ms
 
-      .. code-block:: text
-         :emphasize-lines: 3, 5
+As you can see, the document ``./blog.yaml`` contains two transactions, which you can address in hooks as:
 
-         $ dredd ./blog.apib http://127.0.0.1:3000 --names
-         info: Articles > List articles
-         skip: GET (200) /articles
-         info: Articles > Publish an article
-         skip: POST (201) /articles
-         complete: 0 passing, 0 failing, 0 errors, 2 skipped, 2 total
-         complete: Tests took 9ms
-
-      As you can see, the document ``./blog.apib`` contains two transactions, which you can address in hooks as:
-
-      - ``Articles > List articles``
-      - ``Articles > Publish an article``
-
-   .. group-tab:: OpenAPI 2
-
-      .. code-block:: text
-         :emphasize-lines: 3, 5
-
-         $ dredd ./blog.yaml http://127.0.0.1:3000 --names
-         info: Articles > List articles > 200 > application/json; charset=utf-8
-         skip: GET (200) /articles
-         info: Articles > Publish an article > 201 > application/json; charset=utf-8
-         skip: POST (201) /articles
-         complete: 0 passing, 0 failing, 0 errors, 2 skipped, 2 total
-         complete: Tests took 9ms
-
-      As you can see, the document ``./blog.yaml`` contains two transactions, which you can address in hooks as:
-
-      - ``Articles > List articles > 200 > application/json; charset=utf-8``
-      - ``Articles > Publish an article > 201 > application/json; charset=utf-8``
+- ``/articles > List articles > 200 > application/json; charset=utf-8``
+- ``/articles > Publish an article > 201 > application/json; charset=utf-8``
 
 .. note::
    The transaction names and the :option:`--names` workflow mostly do their job, but with `many documented flaws <https://github.com/apiaryio/dredd/labels/Epic%3A%20Transaction%20Names>`__. A successor to transaction names is being designed in :ghissue:`#227`

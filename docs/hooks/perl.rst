@@ -21,7 +21,7 @@ Usage
 
 ::
 
-   $ dredd apiary.apib http://127.0.0.1:3000 --language=dredd-hooks-perl --hookfiles=./hooks*.pl
+   $ dredd api-description.yaml http://127.0.0.1:3000 --language=dredd-hooks-perl --hookfiles=./hooks*.pl
 
 
 .. note::

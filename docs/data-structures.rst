@@ -14,15 +14,15 @@ Transaction (object)
 Transaction object is passed as a first argument to :ref:`hook functions <hooks>` and is one of the main public interfaces in Dredd.
 
 -  id: ``GET (200) /greetings`` - identifier for this transaction
--  name: ``./api-description.apib > My API > Greetings > Hello, world! > Retrieve Message > Example 2`` (string) - reference to the transaction definition in the original API description document (see also `Dredd Transactions <https://github.com/apiaryio/dredd-transactions#user-content-data-structures>`__)
+-  name: ``My API > /greetings > Retrieve Message > 200 > application/json`` (string) - reference to the transaction definition in the original API description document (see also `Dredd Transactions <https://github.com/apiaryio/dredd-transactions#user-content-data-structures>`__)
 -  origin (object) - reference to the transaction definition in the original API description document (see also `Dredd Transactions <https://github.com/apiaryio/dredd-transactions#user-content-data-structures>`__)
 
-   -  filename: ``./api-description.apib`` (string)
-   -  apiName: ``My Api`` (string)
-   -  resourceGroupName: ``Greetings`` (string)
-   -  resourceName: ``Hello, world!`` (string)
-   -  actionName: ``Retrieve Message`` (string)
-   -  exampleName: ``Example 2`` (string)
+   -  filename: ``api-description.yaml`` (string)
+   -  apiName: ``My API`` (string)
+   -  resourceGroupName: ``''`` (string) - empty for OpenAPI 3, which has no resource groups
+   -  resourceName: ``/greetings`` (string) - the path of the operation
+   -  actionName: ``Retrieve Message`` (string) - the operation ``summary`` (or the HTTP method when there is none)
+   -  exampleName: ``200 > application/json`` (string) - the response status code and media type
 
 -  host: ``127.0.0.1`` (string) - server hostname without port number
 -  port: ``3000`` (number) - server port number

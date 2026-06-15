@@ -1,11 +1,12 @@
 # Maintainers
 
-This repository is the maintained fork of Apiary Dredd at `dalberola/dredd`.
+This repository is the Stackly-maintained fork of Dredd at `dalberola/dredd`. The project is owned and maintained by **Stackly**.
 
 The original upstream repository, `apiaryio/dredd`, was archived on November 8, 2024 and is read-only. Keep the MIT license notice intact and avoid implying that Apiary or Oracle maintains this fork.
 
 ## Current Maintainer
 
+- **Stackly** - project ownership and direction
 - `@dalberola` - fork maintenance, issue triage, release decisions
 
 ## Maintenance Rules
@@ -25,7 +26,7 @@ The original upstream repository, `apiaryio/dredd`, was archived on November 8, 
 4. Run `yarn lint`.
 5. Run `yarn test`.
 6. Run `PATH="$PWD/.venv-docs/bin:$PATH" yarn docs:build`.
-7. Smoke-test the `dredd` CLI against API Blueprint, OpenAPI 2, and OpenAPI 3.1 fixtures.
+7. Smoke-test the `dredd` CLI against OpenAPI 3.0 and OpenAPI 3.1 fixtures.
 8. Update `CHANGELOG.md`.
 9. Tag the release.
 10. Publish packages only after the fork package naming plan is complete.
