@@ -16,7 +16,7 @@ Dredd reads your API description and step by step validates whether your API imp
 Maintained fork
 ---------------
 
-This documentation belongs to the maintained fork at `dalberola/dredd <https://github.com/dalberola/dredd>`__. The original `Apiary Dredd <https://github.com/apiaryio/dredd>`__ repository was archived upstream on November 8, 2024 and is now read-only. This fork keeps the original MIT license notice and continues development independently.
+This documentation belongs to the **Stackly**-maintained fork at `dalberola/dredd <https://github.com/dalberola/dredd>`__. The original `Apiary Dredd <https://github.com/apiaryio/dredd>`__ repository was archived upstream on November 8, 2024 and is now read-only. This fork keeps the original MIT license notice and continues development independently.
 
 Features
 --------
@@ -24,10 +24,16 @@ Features
 Supported API Description Formats
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--  `API Blueprint`_
--  `OpenAPI 2`_ (formerly known as Swagger)
--  `OpenAPI 3`_ 3.0 (experimental)
--  `OpenAPI 3.1`_ response testing with JSON Schema 2020-12/OAS dialect validation
+.. note::
+
+   Dredd supports **OpenAPI 3.0 and OpenAPI 3.1 only**. API Blueprint and
+   OpenAPI 2 (Swagger) are no longer supported. Convert older descriptions to
+   OpenAPI 3 before using Dredd.
+
+-  `OpenAPI 3`_ (3.0)
+-  `OpenAPI 3.1`_
+
+Both versions validate response status, structure, and **data types** against the described schemas — including ``$ref``, ``allOf``, arrays, ``nullable``, and string formats.
 
 Supported Hooks Languages
 ~~~~~~~~~~~~~~~~~~~~~~~~~

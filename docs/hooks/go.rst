@@ -23,7 +23,7 @@ Using Dredd with Go is slightly different to other languages, as a binary needs 
 
 ::
 
-   $ dredd apiary.apib http://127.0.0.1:3000 --server=./go-lang-web-server-to-test --language=go --hookfiles=./hook-file-binary
+   $ dredd api-description.yaml http://127.0.0.1:3000 --server=./go-lang-web-server-to-test --language=go --hookfiles=./hook-file-binary
 
 .. note::
    If you're running :ref:`Dredd inside Docker <docker>`, read about :ref:`specifics of getting it working together with non-JavaScript hooks <hooks-docker>`.

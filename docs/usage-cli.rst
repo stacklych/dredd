@@ -14,7 +14,7 @@ Example:
 
 ::
 
-   $ dredd ./apiary.md http://127.0.0.1:3000
+   $ dredd ./api-description.yaml http://127.0.0.1:3000
 
 Arguments
 ---------
@@ -23,8 +23,8 @@ Arguments
 
 .. option:: api-description-document
 
-   URL or path to the API description document (API Blueprint, OpenAPI 2, OpenAPI 3.0, OpenAPI 3.1).
-   **Sample values:** ``./api-blueprint.apib``, ``./openapi2.yml``, ``./openapi31.yml``, ``./openapi2.json``, ``http://example.com/api-blueprint.apib``
+   URL or path to the API description document (OpenAPI 3.0, OpenAPI 3.1).
+   **Sample values:** ``./openapi30.yml``, ``./openapi31.yml``, ``./openapi30.json``, ``http://example.com/openapi31.yml``
 
 .. _api-location-string:
 
@@ -50,7 +50,7 @@ Dredd offers interactive wizard to setup your ``dredd.yml`` file:
 
 See below how sample configuration file could look like. The structure is the same as of the :ref:`Dredd Class configuration object <configuration-object-for-dredd-class>`.
 
-.. code-block:: openapi2
+.. code-block:: yaml
 
    reporter: apiary
    custom:
@@ -72,7 +72,7 @@ See below how sample configuration file could look like. The structure is the sa
    method: []
    loglevel: warning
    path: []
-   blueprint: api-description.apib
+   blueprint: api-description.yaml
    endpoint: "http://127.0.0.1:3000"
 
 .. note::

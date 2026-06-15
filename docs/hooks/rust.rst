@@ -23,7 +23,7 @@ Using Dredd with Rust is slightly different to other languages, as a binary need
 
 ::
 
-   $ dredd apiary.apib http://127.0.0.1:3000 --server=./rust-web-server-to-test --language=rust --hookfiles=./hook-file-binary
+   $ dredd api-description.yaml http://127.0.0.1:3000 --server=./rust-web-server-to-test --language=rust --hookfiles=./hook-file-binary
 
 .. note::
    If you're running :ref:`Dredd inside Docker <docker>`, read about :ref:`specifics of getting it working together with non-JavaScript hooks <hooks-docker>`.

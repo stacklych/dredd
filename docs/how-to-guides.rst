@@ -9,7 +9,7 @@ In the following guides you can find tips and best practices how to cope with so
 Isolation of HTTP Transactions
 ------------------------------
 
-Requests in the API description usually aren’t sorted in order to comply with logical workflow of the tested application. To get the best results from testing with Dredd, you should ensure each resource action (`API Blueprint`_) or operation (`OpenAPI 2`_) is executed in isolated context. This can be easily achieved using :ref:`hooks <hooks>`, where you can provide your own setup and teardown code for each HTTP transaction.
+Requests in the API description usually aren’t sorted in order to comply with logical workflow of the tested application. To get the best results from testing with Dredd, you should ensure each operation is executed in isolated context. This can be easily achieved using :ref:`hooks <hooks>`, where you can provide your own setup and teardown code for each HTTP transaction.
 
 You should understand that testing with Dredd is an analogy to **unit tests** of your application code. In unit tests, each unit should be testable without any dependency on other units or previous tests.
 
@@ -20,124 +20,62 @@ Common case is to solve a situation where we want to test deleting of a resource
 
 To solve the situation, it’s recommended to isolate the deletion test by :ref:`hooks <hooks>`. Providing ``before`` hook, we can ensure the database fixture will be present every time Dredd will try to send the request to delete a category item.
 
-API Blueprint
-^^^^^^^^^^^^^
+.. code-block:: openapi3
 
-.. code-block:: apiblueprint
-
-   FORMAT: 1A
-
-   # Categories API
-
-   ## Categories [/categories]
-
-   ### Create a Category [POST]
-   + Response 201
-
-   ## Category [/category/{id}]
-   + Parameters
-       + id: 42 (required)
-
-   ### Delete a Category [DELETE]
-   + Response 204
-
-   ## Category Items [/category/{id}/items]
-   + Parameters
-       + id: 42 (required)
-
-   ## Create an Item [POST]
-   + Response 201
-
-To have an idea where we can hook our arbitrary code, we should first ask Dredd to list all available transaction names:
-
-::
-
-   $ dredd api-description.apib http://127.0.0.1:3000 --names
-   info: Categories > Create a category
-   info: Category > Delete a category
-   info: Category Items > Create an item
-
-Now we can create a ``hooks.js`` file. The file will contain setup and teardown of the database fixture:
-
-.. code-block:: javascript
-
-   hooks = require('hooks');
-   db = require('./lib/db');
-
-   beforeAll(function() {
-     db.cleanUp();
-   });
-
-   afterEach(function(transaction) {
-     db.cleanUp();
-   });
-
-   before('Category > Delete a Category', function() {
-     db.createCategory({id: 42});
-   });
-
-   before('Category Items > Create an Item', function() {
-     db.createCategory({id: 42});
-   });
-
-OpenAPI 2
-^^^^^^^^^
-
-.. code-block:: openapi2
-
-   swagger: "2.0"
+   openapi: "3.0.3"
    info:
-     version: "0.0.0"
      title: Categories API
-     license:
-       name: MIT
-   host: www.example.com
-   basePath: /
-   schemes:
-     - http
-   consumes:
-     - application/json
-   produces:
-     - application/json
+     version: "1.0"
    paths:
      /categories:
        post:
+         summary: Create a category
          responses:
-           200:
-             description: ""
+           "201":
+             description: Created
+             content:
+               application/json:
+                 example:
+                   id: "42"
      /category/{id}:
        delete:
+         summary: Delete a category
          parameters:
            - name: id
              in: path
              required: true
-             type: string
-             enum:
-               - "42"
+             schema:
+               type: string
+             example: "42"
          responses:
-           200:
-             description: ""
+           "204":
+             description: No Content
      /category/{id}/items:
        post:
+         summary: Create an item
          parameters:
            - name: id
              in: path
              required: true
-             type: string
-             enum:
-               - "42"
+             schema:
+               type: string
+             example: "42"
          responses:
-           200:
-             description: ""
+           "201":
+             description: Created
+             content:
+               application/json:
+                 example:
+                   id: "1"
 
 To have an idea where we can hook our arbitrary code, we should first ask Dredd to list all available transaction names:
 
 ::
 
-   $ dredd api-description.yml http://127.0.0.1:3000 --names
-   info: /categories > POST > 200 > application/json
-   info: /category/{id} > DELETE > 200 > application/json
-   info: /category/{id}/items > POST > 200 > application/json
+   $ dredd api-description.yaml http://127.0.0.1:3000 --names
+   info: /categories > Create a category > 201 > application/json
+   info: /category/{id} > Delete a category > 204
+   info: /category/{id}/items > Create an item > 201 > application/json
 
 Now we can create a ``hooks.js`` file. The file will contain setup and teardown of the database fixture:
 
@@ -154,11 +92,11 @@ Now we can create a ``hooks.js`` file. The file will contain setup and teardown 
      db.cleanUp();
    });
 
-   before('/category/{id}', function() {
+   before('/category/{id} > Delete a category > 204', function() {
      db.createCategory({id: 42});
    });
 
-   before('/category/{id}/items', function() {
+   before('/category/{id}/items > Create an item > 201 > application/json', function() {
      db.createCategory({id: 42});
    });
 
@@ -167,183 +105,105 @@ Testing API Workflows
 
 Often you want to test a sequence of steps, a scenario, rather than just one request-response pair in isolation. Since the API description formats are quite limited in their support of documenting scenarios, Dredd probably isn’t the best tool to provide you with this kind of testing. There are some tricks though, which can help you to work around some of the limitations.
 
-.. note::
-   `API Blueprint`_ prepares direct support for testing and scenarios. Interested? Check out :ghissue:`api-blueprint#21`!
-
 To test various scenarios, you will want to write each of them into a separate API description document. To load them during a single test run, use the :option:`--path` option.
 
 For workflows to work properly, you’ll also need to keep **shared context** between individual HTTP transactions. You can use :ref:`hooks <hooks>` in order to achieve that. See tips on how to :ref:`pass data between transactions <sharing-data-between-steps-in-request-stash>`.
 
-API Blueprint Example
-~~~~~~~~~~~~~~~~~~~~~
+Example
+~~~~~~~
 
 Imagine we have a simple workflow described:
 
-.. code-block:: apiblueprint
+.. code-block:: openapi3
 
-   FORMAT: 1A
-
-   # My Scenario
-
-   ## POST /login
-
-   + Request (application/json)
-
-           {"username": "john", "password": "d0e"}
-
-
-   + Response 200 (application/json)
-
-           {"token": "s3cr3t"}
-
-   ## GET /cars
-
-   + Response 200 (application/json)
-
-           [
-               {"id": "42", "color": "red"}
-           ]
-
-   ## PATCH /cars/{id}
-   + Parameters
-       + id: 42 (string, required)
-
-   + Request (application/json)
-
-           {"color": "yellow"}
-
-   + Response 200 (application/json)
-
-           {"id": 42, "color": "yellow"}
-
-Writing Hooks
-^^^^^^^^^^^^^
-
-To have an idea where we can hook our arbitrary code, we should first ask Dredd to list all available transaction names:
-
-::
-
-   $ dredd api-description.apib http://127.0.0.1:3000 --names
-   info: /login > POST
-   info: /cars > GET
-   info: /cars/{id} > PATCH
-
-Now we can create a ``hooks.js`` file. The code of the file will use global ``stash`` variable to share data between requests:
-
-.. code-block:: javascript
-
-   hooks = require('hooks');
-   db = require('./lib/db');
-
-   stash = {}
-
-   // Stash the token we've got
-   after('/login > POST', function (transaction) {
-     stash.token = JSON.parse(transaction.real.body).token;
-   });
-
-   // Add the token to all HTTP transactions
-   beforeEach(function (transaction) {
-     if (stash.token) {
-       transaction.request.headers['X-Api-Key'] = stash.token
-     };
-   });
-
-   // Stash the car ID we've got
-   after('/cars > GET', function (transaction) {
-     stash.carId = JSON.parse(transaction.real.body).id;
-   });
-
-   // Replace car ID in request with the one we've stashed
-   before('/cars/{id} > PATCH', function (transaction) {
-     transaction.fullPath = transaction.fullPath.replace('42', stash.carId)
-     transaction.request.uri = transaction.fullPath
-   })
-
-OpenAPI 2 Example
-~~~~~~~~~~~~~~~~~
-
-Imagine we have a simple workflow described:
-
-.. code-block:: openapi2
-
-   swagger: "2.0"
+   openapi: "3.0.3"
    info:
-     version: "0.0.0"
-     title: Categories API
-     license:
-       name: MIT
-   host: www.example.com
-   basePath: /
-   schemes:
-     - http
-   consumes:
-     - application/json
-   produces:
-     - application/json
+     title: My Scenario
+     version: "1.0"
    paths:
      /login:
        post:
-         parameters:
-           - name: body
-             in: body
-             required: true
-             schema:
-               type: object
-               properties:
-                 username:
-                   type: string
-                 password:
-                   type: string
-         responses:
-           200:
-             description: ""
-             schema:
-               type: object
-               properties:
-                 token:
-                   type: string
-     /cars:
-       get:
-         responses:
-           200:
-             description: ""
-             schema:
-               type: array
-               items:
+         summary: Log in
+         requestBody:
+           content:
+             application/json:
+               schema:
                  type: object
                  properties:
-                   id:
+                   username:
                      type: string
-                   color:
+                   password:
                      type: string
+               example:
+                 username: john
+                 password: d0e
+         responses:
+           "200":
+             description: OK
+             content:
+               application/json:
+                 schema:
+                   type: object
+                   properties:
+                     token:
+                       type: string
+                 example:
+                   token: s3cr3t
+     /cars:
+       get:
+         summary: List cars
+         responses:
+           "200":
+             description: OK
+             content:
+               application/json:
+                 schema:
+                   type: array
+                   items:
+                     type: object
+                     properties:
+                       id:
+                         type: string
+                       color:
+                         type: string
+                 example:
+                   - id: "42"
+                     color: red
      /cars/{id}:
        patch:
+         summary: Update a car
          parameters:
            - name: id
              in: path
              required: true
-             type: string
-             enum:
-               - "42"
-           - name: body
-             in: body
-             required: true
              schema:
-               type: object
-               properties:
-                 color:
-                   type: string
+               type: string
+             example: "42"
+         requestBody:
+           content:
+             application/json:
+               schema:
+                 type: object
+                 properties:
+                   color:
+                     type: string
+               example:
+                 color: yellow
          responses:
-           200:
-             description: ""
-             schema:
-               type: object
-               properties:
-                 id:
-                   type: string
-                 color:
-                   type: string
+           "200":
+             description: OK
+             content:
+               application/json:
+                 schema:
+                   type: object
+                   properties:
+                     id:
+                       type: string
+                     color:
+                       type: string
+                 example:
+                   id: "42"
+                   color: yellow
 
 Writing Hooks
 ^^^^^^^^^^^^^
@@ -352,10 +212,10 @@ To have an idea where we can hook our arbitrary code, we should first ask Dredd 
 
 ::
 
-   $ dredd api-description.yml http://127.0.0.1:3000 --names
-   info: /login > POST > 200 > application/json
-   info: /cars > GET > 200 > application/json
-   info: /cars/{id} > PATCH > 200 > application/json
+   $ dredd api-description.yaml http://127.0.0.1:3000 --names
+   info: /login > Log in > 200 > application/json
+   info: /cars > List cars > 200 > application/json
+   info: /cars/{id} > Update a car > 200 > application/json
 
 Now we can create a ``hooks.js`` file. The code of the file will use global ``stash`` variable to share data between requests:
 
@@ -367,7 +227,7 @@ Now we can create a ``hooks.js`` file. The code of the file will use global ``st
    stash = {}
 
    // Stash the token we've got
-   after('/login > POST > 200 > application/json', function (transaction) {
+   after('/login > Log in > 200 > application/json', function (transaction) {
      stash.token = JSON.parse(transaction.real.body).token;
    });
 
@@ -379,12 +239,12 @@ Now we can create a ``hooks.js`` file. The code of the file will use global ``st
    });
 
    // Stash the car ID we've got
-   after('/cars > GET > 200 > application/json', function (transaction) {
+   after('/cars > List cars > 200 > application/json', function (transaction) {
      stash.carId = JSON.parse(transaction.real.body).id;
    });
 
    // Replace car ID in request with the one we've stashed
-   before('/cars/{id} > PATCH > 200 > application/json', function (transaction) {
+   before('/cars/{id} > Update a car > 200 > application/json', function (transaction) {
      transaction.fullPath = transaction.fullPath.replace('42', stash.carId)
      transaction.request.uri = transaction.fullPath
    })
@@ -392,9 +252,7 @@ Now we can create a ``hooks.js`` file. The code of the file will use global ``st
 Making Dredd Validation Stricter
 --------------------------------
 
-API Blueprint or OpenAPI 2 files are usually created primarily with *documentation* in mind. But what’s enough for documentation doesn’t need to be enough for *testing*.
-
-That applies to both `MSON`_ (a language powering API Blueprint’s :apib:`Attributes <def-attributes-section>` sections) and `JSON Schema`_ (a language powering the OpenAPI 2 format and API Blueprint’s :apib:`Schema <def-schema-section>` sections).
+OpenAPI 3 documents are usually created primarily with *documentation* in mind. But what’s enough for documentation doesn’t need to be enough for *testing*. Dredd validates JSON response bodies against the `JSON Schema`_ derived from your ``schema`` objects, so the stricter the schema, the stricter the test.
 
 In following sections you can learn about how to deal with common scenarios.
 
@@ -407,10 +265,7 @@ If you describe a JSON body which has attributes ``name`` and ``size``, the foll
 
    {"name": "Sparta", "size": 300, "luck": false}
 
-It’s because in both `MSON`_ and `JSON Schema`_ additional properties are not forbidden by default.
-
--  In API Blueprint’s :apib:`Attributes <def-attributes-section>` sections you can mark your object with ``fixed-type`` (:mson:`353-type-attribute`), which doesn’t allow additional properties.
--  In API Blueprint’s :apib:`Schema <def-schema-section>` sections and in OpenAPI 2 you can use ``additionalProperties: false`` (`spec <https://json-schema.org/understanding-json-schema/reference/object.html#properties>`__) on the objects.
+It’s because in `JSON Schema`_ additional properties are not forbidden by default. Set ``additionalProperties: false`` on the object schema to reject unknown properties.
 
 Requiring Properties
 ~~~~~~~~~~~~~~~~~~~~
@@ -421,10 +276,7 @@ If you describe a JSON body which has attributes ``name`` and ``size``, the foll
 
    {"name": "Sparta"}
 
-It’s because properties are optional by default in both `MSON`_ and `JSON Schema`_ and you need to explicitly specify them as required.
-
--  In API Blueprint’s :apib:`Attributes <def-attributes-section>` section, you can use ``required`` (:mson:`353-type-attribute`).
--  In API Blueprint’s :apib:`Schema <def-schema-section>` sections and in OpenAPI 2 you can use ``required`` (`spec <https://json-schema.org/understanding-json-schema/reference/object.html#required-properties>`__), where you list the required properties. (Note this is true only for the `Draft v4 <https://tools.ietf.org/html/draft-zyp-json-schema-04>`__ JSON Schema, in older versions the ``required`` functionality was done differently.)
+It’s because properties are optional by default and you need to explicitly specify them as required. List the mandatory properties under the schema’s ``required`` array.
 
 Validating Structure of Array Items
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -435,10 +287,7 @@ If you describe an array of items, where each of the items should have a ``name`
 
    [{"name": "Sparta"}, {"title": "Athens"}, "Thebes"]
 
-That’s because in `MSON`_, the default behavior is that you are specifying what *may* appear in the array.
-
--  In API Blueprint’s :apib:`Attributes <def-attributes-section>` sections you can mark your array with ``fixed-type`` (:mson:`353-type-attribute`), which doesn’t allow array items of a different structure then specified.
--  In API Blueprint’s :apib:`Schema <def-schema-section>` sections and in OpenAPI 2 make sure to learn about how `validation of arrays <https://json-schema.org/understanding-json-schema/reference/array.html>`__ exactly works.
+That’s because an unconstrained array accepts items of any structure. Constrain the array with an ``items`` schema and make that item schema strict (for example ``additionalProperties: false`` plus a ``required`` list) so every element must match the described structure.
 
 Validating Specific Values
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -449,10 +298,7 @@ If you describe a JSON body which has attributes ``name`` and ``size``, the foll
 
    {"name": "Sparta", "size": 42}
 
-If the size should be always equal to 300, you need to specify the fact in your API description.
-
--  In API Blueprint’s :apib:`Attributes <def-attributes-section>` sections you can mark your property with ``fixed`` (:mson:`353-type-attribute`), which turns the sample value into a required value. You can also use ``enum`` (:mson:`212-structure-types`) to provide a set of possible values.
--  In API Blueprint’s :apib:`Schema <def-schema-section>` sections and in OpenAPI 2 you can use ``enum`` (`spec <https://json-schema.org/understanding-json-schema/reference/generic.html#enumerated-values>`__) with one or more possible values.
+If the size should be always equal to 300, you need to specify the fact in your API description. Use ``enum`` with one or more allowed values, or ``const`` for a single fixed value.
 
 Integrating Dredd with Your Test Suite
 --------------------------------------
@@ -493,7 +339,7 @@ If you prefer to add Dredd yourself or you look for inspiration on how to add Dr
        steps:
          - checkout
          - run: npm install dredd@x.x.x --global
-         - run: dredd apiary.apib http://127.0.0.1:3000
+         - run: dredd api-description.yaml http://127.0.0.1:3000
 
 .. _travisyml-configuration-file-for-travis-ci:
 
@@ -505,7 +351,7 @@ If you prefer to add Dredd yourself or you look for inspiration on how to add Dr
    before_install:
      - npm install dredd@x.x.x --global
    before_script:
-     - dredd apiary.apib http://127.0.0.1:3000
+     - dredd api-description.yaml http://127.0.0.1:3000
 
 Authenticated APIs
 ------------------
@@ -533,20 +379,59 @@ Most of the authentication schemes use HTTP header for carrying the authenticati
 Sending Multipart Requests
 --------------------------
 
-.. literalinclude:: ../packages/dredd/test/fixtures/request/multipart-form-data.apib
-  :language: apiblueprint
+Describe the request body using the ``multipart/form-data`` media type:
 
-.. literalinclude:: ../packages/dredd/test/fixtures/request/multipart-form-data.yaml
-  :language: openapi2
+.. code-block:: openapi3
+
+   openapi: "3.0.3"
+   info:
+     title: Multipart example
+     version: "1.0"
+   paths:
+     /data:
+       post:
+         requestBody:
+           content:
+             multipart/form-data:
+               schema:
+                 type: object
+                 properties:
+                   text:
+                     type: string
+                   file:
+                     type: string
+                     format: binary
+         responses:
+           "200":
+             description: OK
 
 Sending Form Data
 -----------------
 
-.. literalinclude:: ../packages/dredd/test/fixtures/request/application-x-www-form-urlencoded.apib
-  :language: apiblueprint
+Describe the request body using the ``application/x-www-form-urlencoded`` media type:
 
-.. literalinclude:: ../packages/dredd/test/fixtures/request/application-x-www-form-urlencoded.yaml
-  :language: openapi2
+.. code-block:: openapi3
+
+   openapi: "3.0.3"
+   info:
+     title: Form data example
+     version: "1.0"
+   paths:
+     /data:
+       post:
+         requestBody:
+           content:
+             application/x-www-form-urlencoded:
+               schema:
+                 type: object
+                 properties:
+                   name:
+                     type: string
+                   email:
+                     type: string
+         responses:
+           "200":
+             description: OK
 
 Working with Images and other Binary Bodies
 -------------------------------------------
@@ -556,17 +441,26 @@ The API description formats generally do not provide a way to describe binary co
 Binary Request Body
 ~~~~~~~~~~~~~~~~~~~
 
-API Blueprint
-^^^^^^^^^^^^^
+Describe only the media type and use a ``binary`` string schema:
 
-.. literalinclude:: ../packages/dredd/test/fixtures/request/image-png.apib
-  :language: apiblueprint
+.. code-block:: openapi3
 
-OpenAPI 2
-^^^^^^^^^
-
-.. literalinclude:: ../packages/dredd/test/fixtures/request/image-png.yaml
-  :language: openapi2
+   openapi: "3.0.3"
+   info:
+     title: Binary request example
+     version: "1.0"
+   paths:
+     /images:
+       post:
+         requestBody:
+           content:
+             image/png:
+               schema:
+                 type: string
+                 format: binary
+         responses:
+           "200":
+             description: OK
 
 Hooks
 ^^^^^
@@ -579,17 +473,28 @@ In hooks, you can populate the request body with real binary data. The data must
 Binary Response Body
 ~~~~~~~~~~~~~~~~~~~~
 
-API Blueprint
-^^^^^^^^^^^^^
+Describe only the media type and :ref:`leave out the body <empty-response-body>`, then handle the binary data in :ref:`hooks`:
 
-.. literalinclude:: ../packages/dredd/test/fixtures/response/binary.apib
-  :language: apiblueprint
+.. code-block:: openapi3
 
-OpenAPI 2
-^^^^^^^^^
-
-.. literalinclude:: ../packages/dredd/test/fixtures/response/binary.yaml
-  :language: openapi2
+   openapi: "3.0.3"
+   info:
+     title: Binary response example
+     version: "1.0"
+   paths:
+     /images/{id}:
+       get:
+         parameters:
+           - name: id
+             in: path
+             required: true
+             schema:
+               type: string
+         responses:
+           "200":
+             description: OK
+             content:
+               image/png: {}
 
 .. note::
    Do not use the explicit ``binary`` or ``bytes`` formats with response bodies, as Dredd is not able to properly work with those (:ghissue:`api-elements.js#269`).
@@ -615,65 +520,67 @@ Multiple Requests and Responses
 .. note::
    For details on this topic see also :ref:`How Dredd Works With HTTP Transactions <choosing-http-transactions>`.
 
-API Blueprint
-~~~~~~~~~~~~~
+In OpenAPI 3, each response of an operation is compiled into its own HTTP transaction:
 
-To test multiple requests and responses within one action in Dredd, you need to cluster them into pairs:
+.. code-block:: openapi3
 
-.. code-block:: apiblueprint
+   openapi: "3.0.3"
+   info:
+     title: My API
+     version: "1.0"
+   paths:
+     /resource/{id}:
+       patch:
+         summary: Update Resource
+         parameters:
+           - name: id
+             in: path
+             required: true
+             schema:
+               type: string
+             example: "42"
+         requestBody:
+           content:
+             application/json:
+               schema:
+                 type: object
+               example:
+                 color: yellow
+         responses:
+           "200":
+             description: OK
+             content:
+               application/json:
+                 example:
+                   color: yellow
+                   id: 1
+           "400":
+             description: Bad Request
+             content:
+               application/json:
+                 example:
+                   message: Validation failed
 
-   FORMAT: 1A
-
-   # My API
-
-   ## Resource [/resource/{id}]
-
-   + Parameters
-       + id: 42 (required)
-
-   ###  Update Resource [PATCH]
-
-   + Request (application/json)
-
-           {"color": "yellow"}
-
-
-   + Response 200 (application/json)
-
-           {"color": "yellow", "id": 1}
-
-
-   + Request Edge Case (application/json)
-
-           {"weight": 1}
-
-   + Response 400 (application/vnd.error+json)
-
-           {"message": "Validation failed"}
-
-Dredd will detect two HTTP transaction examples and will compile following transaction names:
+Dredd compiles one transaction per response and tests all of them, with these names:
 
 ::
 
-   $ dredd api-description.apib http://127.0.0.1 --names
-   info: Resource > Update Resource > Example 1
-   info: Resource > Update Resource > Example 2
+   $ dredd api-description.yaml http://127.0.0.1 --names
+   info: /resource/{id} > Update Resource > 200 > application/json
+   info: /resource/{id} > Update Resource > 400 > application/json
 
-In case you need to perform particular request with different URI parameters and standard inheritance of URI parameters isn’t working for you, try :ref:`modifying transaction before its execution <modifying-transaction-request-body-prior-to-execution>` in hooks.
-
-OpenAPI 2
-~~~~~~~~~
-
-When using `OpenAPI 2`_ format, by default Dredd tests only responses with ``2xx`` status codes. Responses with other codes are marked as *skipped* and can be activated in :ref:`hooks <hooks>`:
+If you don’t want to test a particular response, you can skip it in a :ref:`hook <hooks>`:
 
 .. code-block:: javascript
 
    var hooks = require('hooks');
 
-   hooks.before('/resource > GET > 500 > application/json', function (transaction, done) {
-     transaction.skip = false;
+   hooks.before('/resource/{id} > Update Resource > 400 > application/json', function (transaction, done) {
+     transaction.skip = true;
      done();
    });
+
+In case you need to perform particular request with different URI parameters and standard inheritance of URI parameters isn’t working for you, try :ref:`modifying transaction before its execution <modifying-transaction-request-body-prior-to-execution>` in hooks.
 
 .. _using-apiary-reporter-and-apiary-tests:
 
@@ -684,7 +591,7 @@ Command-line output of complex HTTP responses and expectations can be hard to re
 
 ::
 
-   $ dredd apiary.apib http://127.0.0.1 --reporter=apiary
+   $ dredd api-description.yaml http://127.0.0.1 --reporter=apiary
    warn: Apiary API Key or API Project Name were not provided. Configure Dredd to be able to save test reports alongside your Apiary API project: https://dredd.org/en/latest/how-to-guides/#using-apiary-reporter-and-apiary-tests
    pass: DELETE /honey duration: 884ms
    complete: 1 passing, 0 failing, 0 errors, 0 skipped, 1 total
@@ -725,29 +632,6 @@ When sending test reports to Apiary, Dredd inspects the environment where it was
 -  hostname (string) - ``DREDD_HOSTNAME`` or hostname of the OS
 -  CI (boolean) - looks for ``TRAVIS``, ``CIRCLE``, ``CI``, ``DRONE``, ``BUILD_ID``, …
 
-.. _example-values-for-request-parameters:
-
-Example Values for Request Parameters
--------------------------------------
-
-While example values are natural part of the API Blueprint format, the OpenAPI 2 specification allows them only for ``body`` request parameters (``schema.example``).
-
-However, Dredd needs to know what values to use when testing described API, so it supports ``x-example`` :openapi2:`vendor extension property <vendorextensions>` to overcome the OpenAPI 2 limitation:
-
-.. code-block:: openapi2
-
-   ...
-   paths:
-     /cars:
-       get:
-         parameters:
-           - name: limit
-             in: query
-             type: number
-             x-example: 42
-
-The ``x-example`` property is respected for all kinds of request parameters except of ``body`` parameters, where native ``schema.example`` should be used.
-
 .. _removing-sensitive-data-from-test-reports:
 
 Removing Sensitive Data from Test Reports
@@ -765,79 +649,66 @@ Sometimes your API sends back sensitive information you don’t want to get disc
 Sanitation of the Entire Request Body
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--  `API Blueprint <https://github.com/apiaryio/dredd/blob/master/packages/dredd/test/fixtures/sanitation/entire-request-body.apib>`__
 -  `Hooks <https://github.com/apiaryio/dredd/blob/master/packages/dredd/test/fixtures/sanitation/entire-request-body.js>`__
 
 Sanitation of the Entire Response Body
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--  `API Blueprint <https://github.com/apiaryio/dredd/blob/master/packages/dredd/test/fixtures/sanitation/entire-response-body.apib>`__
 -  `Hooks <https://github.com/apiaryio/dredd/blob/master/packages/dredd/test/fixtures/sanitation/entire-response-body.js>`__
 
 Sanitation of a Request Body Attribute
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--  `API Blueprint <https://github.com/apiaryio/dredd/blob/master/packages/dredd/test/fixtures/sanitation/request-body-attribute.apib>`__
 -  `Hooks <https://github.com/apiaryio/dredd/blob/master/packages/dredd/test/fixtures/sanitation/request-body-attribute.js>`__
 
 Sanitation of a Response Body Attribute
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--  `API Blueprint <https://github.com/apiaryio/dredd/blob/master/packages/dredd/test/fixtures/sanitation/response-body-attribute.apib>`__
 -  `Hooks <https://github.com/apiaryio/dredd/blob/master/packages/dredd/test/fixtures/sanitation/response-body-attribute.js>`__
 
 Sanitation of Plain Text Response Body by Pattern Matching
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--  `API Blueprint <https://github.com/apiaryio/dredd/blob/master/packages/dredd/test/fixtures/sanitation/plain-text-response-body.apib>`__
 -  `Hooks <https://github.com/apiaryio/dredd/blob/master/packages/dredd/test/fixtures/sanitation/plain-text-response-body.js>`__
 
 Sanitation of Request Headers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--  `API Blueprint <https://github.com/apiaryio/dredd/blob/master/packages/dredd/test/fixtures/sanitation/request-headers.apib>`__
 -  `Hooks <https://github.com/apiaryio/dredd/blob/master/packages/dredd/test/fixtures/sanitation/request-headers.js>`__
 
 Sanitation of Response Headers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--  `API Blueprint <https://github.com/apiaryio/dredd/blob/master/packages/dredd/test/fixtures/sanitation/response-headers.apib>`__
 -  `Hooks <https://github.com/apiaryio/dredd/blob/master/packages/dredd/test/fixtures/sanitation/response-headers.js>`__
 
 Sanitation of URI Parameters by Pattern Matching
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--  `API Blueprint <https://github.com/apiaryio/dredd/blob/master/packages/dredd/test/fixtures/sanitation/uri-parameters.apib>`__
 -  `Hooks <https://github.com/apiaryio/dredd/blob/master/packages/dredd/test/fixtures/sanitation/uri-parameters.js>`__
 
 Sanitation of Any Content by Pattern Matching
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--  `API Blueprint <https://github.com/apiaryio/dredd/blob/master/packages/dredd/test/fixtures/sanitation/any-content-pattern-matching.apib>`__
 -  `Hooks <https://github.com/apiaryio/dredd/blob/master/packages/dredd/test/fixtures/sanitation/any-content-pattern-matching.js>`__
 
 Sanitation of Test Data of Passing Transaction
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--  `API Blueprint <https://github.com/apiaryio/dredd/blob/master/packages/dredd/test/fixtures/sanitation/transaction-passing.apib>`__
 -  `Hooks <https://github.com/apiaryio/dredd/blob/master/packages/dredd/test/fixtures/sanitation/transaction-passing.js>`__
 
 Sanitation of Test Data When Transaction Is Marked as Failed in 'before' Hook
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--  `API Blueprint <https://github.com/apiaryio/dredd/blob/master/packages/dredd/test/fixtures/sanitation/transaction-marked-failed-before.apib>`__
 -  `Hooks <https://github.com/apiaryio/dredd/blob/master/packages/dredd/test/fixtures/sanitation/transaction-marked-failed-before.js>`__
 
 Sanitation of Test Data When Transaction Is Marked as Failed in 'after' Hook
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--  `API Blueprint <https://github.com/apiaryio/dredd/blob/master/packages/dredd/test/fixtures/sanitation/transaction-marked-failed-after.apib>`__
 -  `Hooks <https://github.com/apiaryio/dredd/blob/master/packages/dredd/test/fixtures/sanitation/transaction-marked-failed-after.js>`__
 
 Sanitation of Test Data When Transaction Is Marked as Skipped
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--  `API Blueprint <https://github.com/apiaryio/dredd/blob/master/packages/dredd/test/fixtures/sanitation/transaction-marked-skipped.apib>`__
 -  `Hooks <https://github.com/apiaryio/dredd/blob/master/packages/dredd/test/fixtures/sanitation/transaction-marked-skipped.js>`__
 
 .. _sanitation-ultimate-guard:
@@ -847,7 +718,6 @@ Ultimate ‘afterEach’ Guard Using Pattern Matching
 
 You can use this guard to make sure you won’t leak any sensitive data by mistake.
 
--  `API Blueprint <https://github.com/apiaryio/dredd/blob/master/packages/dredd/test/fixtures/sanitation/any-content-guard-pattern-matching.apib>`__
 -  `Hooks <https://github.com/apiaryio/dredd/blob/master/packages/dredd/test/fixtures/sanitation/any-content-guard-pattern-matching.js>`__
 
 .. _sanitation-secured-erroring-hooks:
@@ -857,5 +727,4 @@ Sanitation of Test Data of Transaction With Secured Erroring Hooks
 
 If your hooks crash, Dredd will send an error to reporters, alongside with current contents of the ``transaction.test`` (:ref:`docs <transaction-test>`) object. If you want to prevent this, you need to add ``try/catch`` to your hooks, sanitize the test object, and gracefully fail the transaction.
 
--  `API Blueprint <https://github.com/apiaryio/dredd/blob/master/packages/dredd/test/fixtures/sanitation/transaction-secured-erroring-hooks.apib>`__
 -  `Hooks <https://github.com/apiaryio/dredd/blob/master/packages/dredd/test/fixtures/sanitation/transaction-secured-erroring-hooks.js>`__

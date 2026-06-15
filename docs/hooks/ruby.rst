@@ -21,7 +21,7 @@ Usage
 
 ::
 
-   $ dredd apiary.apib http://127.0.0.1:3000 --language=ruby --hookfiles=./hooks*.rb
+   $ dredd api-description.yaml http://127.0.0.1:3000 --language=ruby --hookfiles=./hooks*.rb
 
 .. note::
    If you're running :ref:`Dredd inside Docker <docker>`, read about :ref:`specifics of getting it working together with non-JavaScript hooks <hooks-docker>`.
