@@ -172,8 +172,5 @@ class OpenAPI3Lexer(YamlLexer):
 # -- Setting up extensions ------------------------------------------------
 
 def setup(app):
-    # An extension adding the '_static/css/dredd.css' stylesheet
-    app.add_css_file('css/dredd.css')
-
     # Adding lexer for rendering OpenAPI 3 code blocks as YAML
     app.add_lexer('openapi3', OpenAPI3Lexer)
