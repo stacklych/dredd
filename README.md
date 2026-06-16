@@ -77,6 +77,6 @@ $ npm install -g dredd
 
 [openapi 3]: https://spec.openapis.org/oas/v3.0.4.html
 [openapi 3.1]: https://spec.openapis.org/oas/v3.1.2.html
-[documentation]: https://github.com/dalberola/dredd/tree/master/docs
-[changelog]: https://github.com/dalberola/dredd/releases
-[contributor's guidelines]: https://github.com/dalberola/dredd/blob/master/MAINTAINERS.md
+[documentation]: https://dalberola.github.io/dredd/
+[changelog]: CHANGELOG.md
+[contributor's guidelines]: MAINTAINERS.md
