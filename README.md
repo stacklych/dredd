@@ -48,8 +48,8 @@ Dredd supports writing [hooks](https://dredd.org/en/latest/hooks/)
 
 ### Supported Systems
 
-- Linux, macOS, Windows, ...
-- [Travis CI][], [CircleCI][], [Jenkins][], [AppVeyor][], ...
+- Linux, macOS, Windows
+- Runs in any CI environment (GitHub Actions, CircleCI, AppVeyor, etc.)
 
 ## Installation
 
@@ -80,7 +80,3 @@ $ npm install -g dredd
 [documentation]: https://github.com/dalberola/dredd/tree/master/docs
 [changelog]: https://github.com/dalberola/dredd/releases
 [contributor's guidelines]: https://github.com/dalberola/dredd/blob/master/MAINTAINERS.md
-[travis ci]: https://travis-ci.org/
-[circleci]: https://circleci.com/
-[jenkins]: https://jenkins.io/
-[appveyor]: https://www.appveyor.com/
