@@ -133,6 +133,7 @@ article.bd-article h4 {
 div[class^="highlight"] pre,
 .highlight pre {
   background: var(--dredd-ink) !important;
+  color: #F8F8F2 !important;
   border: none !important;
   border-radius: 8px !important;
   font-size: 13px;
