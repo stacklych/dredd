@@ -18,5 +18,6 @@ COPY --from=build /build/packages/dredd/node_modules ./node_modules
 COPY --from=build /build/packages/dredd/bin ./bin
 COPY --from=build /build/packages/dredd/build ./build
 COPY --from=build /build/packages/dredd/options.json ./options.json
+COPY --from=build /build/packages/dredd/package.json ./package.json
 RUN ln -s /app/bin/dredd /usr/local/bin/dredd
 CMD ["dredd"]
