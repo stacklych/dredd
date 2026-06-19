@@ -1,0 +1,78 @@
+<svg viewBox="0 0 900 240" width="900" height="240" xmlns="http://www.w3.org/2000/svg" role="img">
+  <title>Dredd — HTTP API Testing Framework</title>
+  <desc>Dredd logo banner showing the geometric helmet mark, the wordmark, and supported language hooks: js, go, python, ruby, php, perl, rust.</desc>
+  <defs>
+    <linearGradient id="hg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#22D3EE"/>
+      <stop offset="1" stop-color="#6366F1"/>
+    </linearGradient>
+    <linearGradient id="fdiv" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0"   stop-color="#1A1A18" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#1A1A18" stop-opacity="0.15"/>
+      <stop offset="1"   stop-color="#1A1A18" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="fdivd" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0"   stop-color="#F1EFE8" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#F1EFE8" stop-opacity="0.15"/>
+      <stop offset="1"   stop-color="#F1EFE8" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <style>
+    .bg    { fill: #F8F7F4 }
+    .title { fill: #1A1A18; font-family: system-ui,-apple-system,sans-serif; font-size: 68px; font-weight: 500; letter-spacing: -2px }
+    .sub   { fill: #6B6963; font-family: system-ui,-apple-system,sans-serif; font-size: 16px }
+    .div   { fill: url(#fdiv) }
+    .lhdr  { fill: #9C9A92; font-family: ui-monospace,Menlo,monospace; font-size: 10px; letter-spacing: 0.12em }
+    .pill  { fill: rgba(26,26,24,0.06) }
+    .ptxt  { fill: #6B6963; font-family: ui-monospace,Menlo,monospace; font-size: 11px; font-weight: 500 }
+    .visor { fill: #0B1120 }
+    @media (prefers-color-scheme: dark) {
+      .bg    { fill: #1A1A18 }
+      .title { fill: #F1EFE8 }
+      .sub   { fill: #9C9A92 }
+      .div   { fill: url(#fdivd) }
+      .lhdr  { fill: #6B6963 }
+      .pill  { fill: rgba(241,239,232,0.07) }
+      .ptxt  { fill: #9C9A92 }
+      .visor { fill: #1A1A18 }
+    }
+  </style>
+
+  <rect class="bg" width="900" height="240" rx="16"/>
+
+  <svg x="40" y="40" viewBox="0 0 96 96" width="160" height="160">
+    <path d="M30 84 a9 9 0 0 1 -8.5 -9 V45 C21.5 25 34 12 48 12 C62 12 74.5 25 74.5 45 V75 a9 9 0 0 1 -8.5 9 Z" fill="url(#hg)"/>
+    <rect class="visor" x="29" y="40" width="38" height="13" rx="6.5"/>
+  </svg>
+
+  <rect class="div" x="228" y="24" width="1" height="192"/>
+
+  <text class="title" x="256" y="136">dredd</text>
+  <text class="sub"   x="259" y="170">No more outdated API documentation.</text>
+
+  <rect class="div" x="614" y="24" width="1" height="192"/>
+
+  <text class="lhdr" x="636" y="72">LANGUAGE HOOKS</text>
+
+  <rect class="pill" x="636" y="86" width="32" height="24" rx="6"/>
+  <text class="ptxt" x="652" y="102" text-anchor="middle">js</text>
+
+  <rect class="pill" x="676" y="86" width="32" height="24" rx="6"/>
+  <text class="ptxt" x="692" y="102" text-anchor="middle">go</text>
+
+  <rect class="pill" x="716" y="86" width="64" height="24" rx="6"/>
+  <text class="ptxt" x="748" y="102" text-anchor="middle">python</text>
+
+  <rect class="pill" x="788" y="86" width="50" height="24" rx="6"/>
+  <text class="ptxt" x="813" y="102" text-anchor="middle">ruby</text>
+
+  <rect class="pill" x="636" y="118" width="40" height="24" rx="6"/>
+  <text class="ptxt" x="656" y="134" text-anchor="middle">php</text>
+
+  <rect class="pill" x="684" y="118" width="44" height="24" rx="6"/>
+  <text class="ptxt" x="706" y="134" text-anchor="middle">perl</text>
+
+  <rect class="pill" x="736" y="118" width="44" height="24" rx="6"/>
+  <text class="ptxt" x="758" y="134" text-anchor="middle">rust</text>
+
+</svg>

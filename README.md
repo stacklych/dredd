@@ -1,6 +1,6 @@
 # Dredd — HTTP API Testing Framework
 
-![Dredd - HTTP API Testing Framework](docs/_static/images/dredd.png?raw=true)
+![Dredd — HTTP API Testing Framework](docs/_static/images/dredd-banner.svg?raw=true)
 
 > **Dredd is a language-agnostic command-line tool for validating
 > API description document against backend implementation of the API.**
