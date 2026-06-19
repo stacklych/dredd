@@ -6,3 +6,11 @@
   max-height: 54px !important;
   width: auto;
 }
+
+/* Wordmark */
+.logo__title {
+  font-size: 1.75rem !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.03em !important;
+  line-height: 1 !important;
+}
