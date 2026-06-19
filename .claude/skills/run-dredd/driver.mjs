@@ -42,6 +42,20 @@ function dredd(args, opts = {}) {
   });
   return { code: r.status, out: clean((r.stdout || '') + (r.stderr || '')) };
 }
+// Run the CLI asynchronously (needed when an HTTP server runs in the same process).
+function dreddAsync(args, opts = {}) {
+  return new Promise((resolve) => {
+    const chunks = [];
+    const proc = spawn(process.execPath, [BIN, ...args], {
+      cwd: ROOT,
+      timeout: 60000,
+      ...opts,
+    });
+    proc.stdout.on('data', (d) => chunks.push(d));
+    proc.stderr.on('data', (d) => chunks.push(d));
+    proc.on('close', (code) => resolve({ code, out: clean(Buffer.concat(chunks).toString()) }));
+  });
+}
 
 let passed = 0;
 let failed = 0;
@@ -127,13 +141,15 @@ async function cmdE2e() {
   fs.writeFileSync(oasPath, OAS3);
 
   // PASS case: backend matches the description -> dredd exits 0.
-  const good = dredd([oasPath, `http://127.0.0.1:${probe.port}`]);
+  // dreddAsync is required here: spawnSync blocks the event loop and prevents
+  // the in-process HTTP server from responding, causing dredd to time out.
+  const good = await dreddAsync([oasPath, `http://127.0.0.1:${probe.port}`]);
   check('live validation passes against conforming backend', good.code === 0 && /1 passing/.test(good.out), `exit=${good.code}`);
   probe.srv.close();
 
   // FAIL case: backend returns the wrong body shape -> dredd exits 1.
   const badB = await startBackend(true);
-  const bad = dredd([oasPath, `http://127.0.0.1:${badB.port}`]);
+  const bad = await dreddAsync([oasPath, `http://127.0.0.1:${badB.port}`]);
   check('live validation fails against non-conforming backend', bad.code === 1 && /1 failing/.test(bad.out), `exit=${bad.code}`);
   badB.srv.close();
   fs.unlinkSync(oasPath);
