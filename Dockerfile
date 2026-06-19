@@ -5,7 +5,7 @@ COPY packages/dredd/package.json packages/dredd/
 COPY packages/dredd-transactions/package.json packages/dredd-transactions/
 RUN yarn install --frozen-lockfile
 COPY packages/ packages/
-RUN yarn build \
+RUN yarn workspace dredd build \
     && cp -rL node_modules/dredd-transactions node_modules/.dt-copy \
     && rm node_modules/dredd-transactions \
     && mv node_modules/.dt-copy node_modules/dredd-transactions
