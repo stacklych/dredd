@@ -1,5 +1,5 @@
 {
-  "name": "dredd",
+  "name": "@stacklych/dredd",
   "version": "0.1.0",
   "description": "HTTP API Testing Framework",
   "main": "build/index.js",
@@ -35,6 +35,9 @@
     "options.json",
     "README.md"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "ajv": "8.20.0",
     "ajv-formats": "3.0.1",
@@ -43,7 +46,7 @@
     "chai": "4.5.0",
     "clone": "2.1.2",
     "cross-spawn": "7.0.6",
-    "dredd-transactions": "^0.1.0",
+    "@stacklych/dredd-transactions": "^0.1.0",
     "glob": "13.0.6",
     "html": "1.0.0",
     "htmlencode": "0.0.5",

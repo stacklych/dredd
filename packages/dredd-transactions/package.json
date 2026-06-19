@@ -1,5 +1,5 @@
 {
-  "name": "dredd-transactions",
+  "name": "@stacklych/dredd-transactions",
   "version": "0.1.0",
   "description": "Compiles HTTP Transactions (Request-Response pairs) from an API description document",
   "main": "index.js",
@@ -22,10 +22,14 @@
     "url": "https://github.com/stacklych/dredd/issues"
   },
   "files": [
+    "index.js",
     "parse",
     "compile",
     "README.md"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@apielements/core": "^0.2.1",
     "@apielements/openapi3-parser": "0.16.1",
