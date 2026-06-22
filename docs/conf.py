@@ -155,6 +155,14 @@ linkcheck_ignore = [
     r'https?://(www\.)?npmjs\.com.*',
 ]
 
+# The strict (-W) link check hits live third-party URLs, so a momentary network
+# blip or slow host (e.g. mochajs.org timed out once) would hard-fail CI even
+# though the link is valid. Retry a few times with a generous per-request
+# timeout so transient failures don't break the build, while genuinely broken
+# links are still reported.
+linkcheck_retries = 3
+linkcheck_timeout = 30
+
 sphinx_tabs_valid_builders = ['linkcheck']
 
 
