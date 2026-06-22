@@ -1,3 +1,4 @@
+// @ts-check
 import R from 'ramda';
 import { EventEmitter } from 'events';
 
@@ -49,6 +50,10 @@ export const DEFAULT_CONFIG = {
 // This makes it possible to use nested "options" key without introducing
 // a breaking change to the library's public API.
 // TODO https://github.com/apiaryio/dredd/issues/1344
+/**
+ * @param {any} config
+ * @returns {any}
+ */
 function flattenConfig(config) {
   // Rename "root.server" key to "root.endpoint".
   // Necessary to prevent options values collision between:
@@ -62,9 +67,14 @@ function flattenConfig(config) {
   // on the normalization layer.
   const aliasedConfig = R.when(
     R.has('server'),
-    R.compose(
-      R.dissoc('server'),
-      R.assoc('endpoint', R.prop('server', config)),
+    // @types/ramda models dissoc/assoc with conditional return types that
+    // don't satisfy compose's overloads; cast the composed transform to a
+    // plain unary function since the runtime value is a dynamic config bag.
+    /** @type {(c: any) => any} */ (
+      R.compose(
+        R.dissoc('server'),
+        R.assoc('endpoint', R.prop('server', config)),
+      )
     ),
   )(config);
 
@@ -78,6 +88,10 @@ function flattenConfig(config) {
   return R.mergeDeepLeft(nestedOptions || {}, rootOptions);
 }
 
+/**
+ * @param {any} config
+ * @returns {{ config: any, warnings: string[], errors: string[] }}
+ */
 export function resolveConfig(config) {
   const inConfig = R.compose(
     // Set "emitter" property explicitly to preserve its prototype.
@@ -104,6 +118,10 @@ export function resolveConfig(config) {
   };
 }
 
+/**
+ * @param {any} config
+ * @returns {any}
+ */
 function applyConfiguration(config) {
   const { config: resolvedConfig } = resolveConfig(config);
 
