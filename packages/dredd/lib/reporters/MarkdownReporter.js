@@ -1,3 +1,4 @@
+// @ts-check
 import { EventEmitter } from 'events';
 import fs from 'fs';
 import { inherits } from 'util';
@@ -9,8 +10,20 @@ import logger from '../logger';
 import reporterOutputLogger from './reporterOutputLogger';
 import prettifyResponse from '../prettifyResponse';
 
+/**
+ * @typedef {import('../types/reporters').ReporterStats} ReporterStats
+ */
+
+/**
+ * @param {import('events').EventEmitter} emitter
+ * @param {ReporterStats} stats
+ * @param {string} [path]
+ * @param {boolean} [details]
+ */
 function MarkdownReporter(emitter, stats, path, details) {
-  EventEmitter.call(this);
+  // EventEmitter superclass init; the prototype link is set up via inherits()
+  // below, which TypeScript can't follow, so call through a Function cast.
+  /** @type {Function} */ (EventEmitter).call(this);
 
   this.type = 'markdown';
   this.stats = stats;
@@ -24,6 +37,7 @@ function MarkdownReporter(emitter, stats, path, details) {
   logger.debug(`Using '${this.type}' reporter.`);
 }
 
+/** @param {string} [path] */
 MarkdownReporter.prototype.sanitizedPath = function sanitizedPath(
   path = './report.md',
 ) {
@@ -34,9 +48,11 @@ MarkdownReporter.prototype.sanitizedPath = function sanitizedPath(
   return filePath;
 };
 
+/** @param {import('events').EventEmitter} emitter */
 MarkdownReporter.prototype.configureEmitter = function configureEmitter(
   emitter,
 ) {
+  /** @param {string} str */
   const title = (str) => `${Array(this.level).join('#')} ${str}`;
 
   emitter.on('start', (apiDescriptions, callback) => {
