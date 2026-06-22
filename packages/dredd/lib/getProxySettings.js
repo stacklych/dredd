@@ -1,3 +1,4 @@
+// @ts-check
 const PROXY_ENV_VARIABLES = ['HTTP_PROXY', 'HTTPS_PROXY', 'NO_PROXY'];
 
 /**
@@ -13,6 +14,8 @@ const PROXY_ENV_VARIABLES = ['HTTP_PROXY', 'HTTPS_PROXY', 'NO_PROXY'];
  * by ./httpClient.js for requests to remote API descriptions and the Apiary
  * API. Requests to the server under test deliberately opt out of proxying
  * (see performRequest.js, which sets 'proxy: false').
+ *
+ * @param {Record<string, string | undefined>} env
  */
 export default function getProxySettings(env) {
   return Object.entries(env)

@@ -1,6 +1,16 @@
+// @ts-check
 // This file is copy-pasted "as is" from the Dredd Transactions library, where
 // it's also tested. This is a temporary solution,
 // see https://github.com/apiaryio/dredd-transactions/issues/276
+/**
+ * @param {{
+ *   apiName?: string,
+ *   resourceGroupName?: string,
+ *   resourceName?: string,
+ *   actionName?: string,
+ *   exampleName?: string,
+ * }} origin
+ */
 export default function compileTransactionName(origin) {
   const segments = [];
   if (origin.apiName) {
