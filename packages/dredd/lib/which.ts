@@ -1,9 +1,7 @@
-// @ts-check
 import which from 'which';
 
 export default {
-  /** @param {string} command */
-  which(command) {
+  which(command: string): boolean {
     try {
       which.sync(command);
       return true;
