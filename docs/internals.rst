@@ -173,9 +173,17 @@ Coverage
 
 Tests coverage is a metric which helps developer to see which code **is not** tested. This is useful when introducing new code in Pull Requests or when maintaining under-tested old code (coverage shows that changes to such code are without any safety net).
 
+Coverage is measured locally with `c8 <https://github.com/bcoe/c8>`__ (Node's built-in V8 coverage), with no external service. Measure a single package with:
+
+.. code-block:: shell
+
+    npm run test:coverage
+
+or all packages from the repo root with ``yarn test:coverage``. Each package writes an ``lcov`` report plus a console summary to its own ``coverage/`` directory (git-ignored). Coverage is report-only for now — it is not yet enforced as a CI gate.
+
 .. note::
 
-    Due to reoccurring service denial from Coveralls, we have decided to remove any test coverage integration from Dredd. The topic of test coverage usefulness is to be discussed, and a suitable solution to be presented.
+    The previous Coveralls integration was removed due to reoccurring service denial. ``c8`` replaces it with a local, service-free report.
 
 
 .. _hacking-apiary-reporter:

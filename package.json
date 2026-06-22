@@ -20,11 +20,13 @@
     "commit:lint": "./scripts/commitlint.sh",
     "lint": "node scripts/run-workspaces.mjs lint",
     "test:smoke": "node scripts/run-workspaces.mjs test:smoke",
-    "test": "node scripts/run-workspaces.mjs test"
+    "test": "node scripts/run-workspaces.mjs test",
+    "test:coverage": "node scripts/run-workspaces.mjs test:coverage"
   },
   "devDependencies": {
     "@commitlint/cli": "21.0.2",
-    "@commitlint/config-conventional": "21.0.2"
+    "@commitlint/config-conventional": "21.0.2",
+    "c8": "11.0.0"
   },
   "workspaces": {
     "packages": [

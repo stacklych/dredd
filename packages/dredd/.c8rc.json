@@ -1,0 +1,7 @@
+{
+  "all": true,
+  "include": ["lib/**/*.js", "lib/**/*.ts"],
+  "exclude": ["lib/vendor/**", "test/**", "build/**", "**/*-test.js"],
+  "reporter": ["text", "lcov"],
+  "report-dir": "./coverage"
+}

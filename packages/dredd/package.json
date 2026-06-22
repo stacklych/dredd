@@ -18,6 +18,7 @@
     "test": "npm run test:unit && npm run test:integration",
     "test:unit": "mocha \"./test/unit/**/*-test.js\"",
     "test:integration": "mocha \"./test/integration/**/*-test.js\"",
+    "test:coverage": "c8 npm test",
     "test:smoke": "bash ./scripts/smoke.sh",
     "e2e": "cucumber-js --world-parameters=\"{\\\"apiDescriptionFormat\\\": \\\"application/vnd.oai.openapi\\\"}\"",
     "prepack": "npm run build"

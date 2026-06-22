@@ -12,6 +12,7 @@
     "lint": "eslint .",
     "pretest": "node ./scripts/pretest.js",
     "test": "npm run clean && mocha",
+    "test:coverage": "npm run pretest && c8 mocha",
     "test:smoke": "bash ./scripts/smoke.sh"
   },
   "repository": {
