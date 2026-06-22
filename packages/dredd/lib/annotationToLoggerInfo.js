@@ -1,10 +1,15 @@
+// @ts-check
 import compileTransactionName from './compileTransactionName';
 
 /**
  * Turns annotation type into a log level
+ * @param {string} annotationType
+ * @returns {string}
  */
 function typeToLogLevel(annotationType) {
-  const level = { error: 'error', warning: 'warn' }[annotationType];
+  /** @type {Record<string, string>} */
+  const levels = { error: 'error', warning: 'warn' };
+  const level = levels[annotationType];
   if (!level) {
     throw new Error(`Invalid annotation type: '${annotationType}'`);
   }
@@ -15,6 +20,7 @@ function typeToLogLevel(annotationType) {
  * Takes a component identifier and turns it into something user can understand
  *
  * @param {string} component
+ * @returns {string}
  */
 function formatComponent(component) {
   switch (component) {
@@ -33,7 +39,8 @@ function formatComponent(component) {
  * Formats given location data as something user can understand
  *
  * @param {string} apiDescriptionLocation API description location name
- * @param {array} annotationLocation See 'dredd-transactions' docs
+ * @param {number[][]} [annotationLocation] See 'dredd-transactions' docs
+ * @returns {string}
  */
 function formatLocation(apiDescriptionLocation, annotationLocation) {
   if (!annotationLocation) {
@@ -62,12 +69,27 @@ function formatLocation(apiDescriptionLocation, annotationLocation) {
  */
 
 /**
+ * @typedef {Object} Annotation The annotation object from Dredd Transactions
+ * @property {string} type
+ * @property {string} component
+ * @property {string} message
+ * @property {number[][]} [location]
+ * @property {{
+ *   apiName?: string,
+ *   resourceGroupName?: string,
+ *   resourceName?: string,
+ *   actionName?: string,
+ *   exampleName?: string,
+ * }} [origin] Present on compiler annotations (used in the non-parser branch)
+ */
+
+/**
  * Takes API description parser or compiler annotation returned from
  * the 'dredd-transactions' library and transforms it into a message
  * Dredd can show to the user. Returns an object logger accepts as input.
  *
  * @param {string} apiDescriptionLocation API description location name
- * @param {Object} annotation the annotation object from Dredd Transactions
+ * @param {Annotation} annotation the annotation object from Dredd Transactions
  * @return {LoggerInfo}
  */
 export default function annotationToLoggerInfo(
@@ -89,7 +111,7 @@ export default function annotationToLoggerInfo(
   const message =
     `${formatComponent(annotation.component)} ${annotation.type}` +
     ` in ${apiDescriptionLocation} (${compileTransactionName(
-      annotation.origin,
+      /** @type {NonNullable<Annotation['origin']>} */ (annotation.origin),
     )}):` +
     ` ${annotation.message}`;
   return { level, message };

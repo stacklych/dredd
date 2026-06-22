@@ -3,7 +3,7 @@ import util from 'util';
 
 /**
  * @param {Array<{ timestamp: number, content: string }>} logs
- * @param {{ hook?: (content: any) => void }} logger
+ * @param {{ hook?: (content: any) => void } | undefined} logger
  * @param {*} content
  */
 export default function hooksLog(logs = [], logger, content) {
