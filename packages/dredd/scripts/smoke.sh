@@ -41,6 +41,6 @@ fi
 "$TMPDIR/node_modules/.bin/dredd" --version
 
 # Test the JavaScript API
-node -e 'process.exitCode = (new (require("dredd"))({})).run ? 0 : 1;'
+node -e 'process.exitCode = (new (require("@stacklych/dredd"))({})).run ? 0 : 1;'
 
 rm -fr "$TMPDIR"

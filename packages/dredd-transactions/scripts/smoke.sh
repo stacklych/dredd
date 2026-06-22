@@ -42,7 +42,7 @@ echo "======================================================================"
 echo "Importing 'dredd-transactions'"
 echo "======================================================================"
 echo "const assert = require('assert');" > index.js
-echo "const dt = require('dredd-transactions');" >> index.js
+echo "const dt = require('@stacklych/dredd-transactions');" >> index.js
 echo "assert.ok(typeof dt.parse === 'function');" >> index.js
 echo "assert.ok(typeof dt.compile === 'function');" >> index.js
 node index.js
@@ -51,8 +51,8 @@ echo "======================================================================"
 echo "Importing 'dredd-transactions/parse' and 'dredd-transactions/compile'"
 echo "======================================================================"
 echo "const assert = require('assert');" > index.js
-echo "const parse = require('dredd-transactions/parse');" >> index.js
-echo "const compile = require('dredd-transactions/compile');" >> index.js
+echo "const parse = require('@stacklych/dredd-transactions/parse');" >> index.js
+echo "const compile = require('@stacklych/dredd-transactions/compile');" >> index.js
 echo "assert.ok(typeof parse === 'function');" >> index.js
 echo "assert.ok(typeof compile === 'function');" >> index.js
 node index.js
