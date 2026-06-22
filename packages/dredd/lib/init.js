@@ -60,122 +60,122 @@ export function prompt(config, detected, callback, options = {}) {
   (options.loadInquirer || loadInquirer)()
     .then((inquirer) =>
       inquirer.prompt([
-      {
-        name: 'apiDescription',
-        message: 'Location of the API description document',
-        type: 'input',
-        default: config.blueprint || detected.apiDescription,
-      },
-      {
-        name: 'server',
-        message: 'Command to start the API server under test',
-        type: 'input',
-        default: config.server || detected.server,
-      },
-      {
-        name: 'apiHost',
-        message: 'Host of the API under test',
-        type: 'input',
-        default: config.endpoint || 'http://127.0.0.1:3000',
-      },
-      {
-        name: 'hooks',
-        message: "Do you want to use hooks to customize Dredd's behavior?",
-        type: 'confirm',
-        default: true,
-        when: () => config.language === 'nodejs',
-      },
-      {
-        name: 'language',
-        message: 'Programming language of the hooks',
-        type: 'list',
-        default: detected.language,
-        choices: [
-          { name: 'Go', value: 'go' },
-          { name: 'JavaScript', value: 'nodejs' },
-          { name: 'Perl', value: 'perl' },
-          { name: 'PHP', value: 'php' },
-          { name: 'Python', value: 'python' },
-          { name: 'Ruby', value: 'ruby' },
-          { name: 'Rust', value: 'rust' },
-        ],
-        when: (answers) => answers.hooks,
-      },
-      {
-        name: 'apiary',
-        message: 'Do you want to report your tests to the Apiary inspector?',
-        type: 'confirm',
-        default: true,
-        when: () => config.reporter !== 'apiary',
-      },
-      {
-        name: 'apiaryApiKey',
-        message:
-          'Enter Apiary API key (leave empty for anonymous, disposable test reports)',
-        type: 'input',
-        default: config.custom ? config.custom.apiaryApiKey : undefined,
-        when: (answers) =>
-          answers.apiary && (!config.custom || !config.custom.apiaryApiKey),
-      },
-      {
-        name: 'apiaryApiName',
-        message: 'Enter Apiary API name',
-        type: 'input',
-        default: config.custom ? config.custom.apiaryApiName : undefined,
-        when: (answers) =>
-          answers.apiary &&
-          answers.apiaryApiKey &&
-          (!config.custom || !config.custom.apiaryApiName),
-      },
-      {
-        name: 'appveyor',
-        message: 'Found AppVeyor configuration, do you want to add Dredd?',
-        type: 'confirm',
-        default: true,
-        when: () => detected.ci.includes('appveyor'),
-      },
-      {
-        name: 'circleci',
-        message: 'Found CircleCI configuration, do you want to add Dredd?',
-        type: 'confirm',
-        default: true,
-        when: () => detected.ci.includes('circleci'),
-      },
-      {
-        name: 'travisci',
-        message: 'Found Travis CI configuration, do you want to add Dredd?',
-        type: 'confirm',
-        default: true,
-        when: () => detected.ci.includes('travisci'),
-      },
-      {
-        name: 'wercker',
-        message: 'Found Wercker configuration, do you want to add Dredd?',
-        type: 'confirm',
-        default: true,
-        when: () => detected.ci.includes('wercker'),
-      },
-      {
-        name: 'ci',
-        message:
-          'Dredd is best served with Continuous Integration. Do you want to create CI configuration?',
-        type: 'confirm',
-        default: true,
-        when: () => !detected.ci.length,
-      },
-      {
-        name: 'createCI',
-        message: 'Which CI do you want to use?',
-        type: 'list',
-        default: 'travisci',
-        choices: [
-          { name: 'AppVeyor', value: 'appveyor' },
-          { name: 'CircleCI', value: 'circleci' },
-          { name: 'Travis CI', value: 'travisci' },
-          { name: 'Wercker (Oracle Container Pipelines)', value: 'wercker' },
-        ],
-        when: (answers) => answers.ci,
-      },
+        {
+          name: 'apiDescription',
+          message: 'Location of the API description document',
+          type: 'input',
+          default: config.blueprint || detected.apiDescription,
+        },
+        {
+          name: 'server',
+          message: 'Command to start the API server under test',
+          type: 'input',
+          default: config.server || detected.server,
+        },
+        {
+          name: 'apiHost',
+          message: 'Host of the API under test',
+          type: 'input',
+          default: config.endpoint || 'http://127.0.0.1:3000',
+        },
+        {
+          name: 'hooks',
+          message: "Do you want to use hooks to customize Dredd's behavior?",
+          type: 'confirm',
+          default: true,
+          when: () => config.language === 'nodejs',
+        },
+        {
+          name: 'language',
+          message: 'Programming language of the hooks',
+          type: 'list',
+          default: detected.language,
+          choices: [
+            { name: 'Go', value: 'go' },
+            { name: 'JavaScript', value: 'nodejs' },
+            { name: 'Perl', value: 'perl' },
+            { name: 'PHP', value: 'php' },
+            { name: 'Python', value: 'python' },
+            { name: 'Ruby', value: 'ruby' },
+            { name: 'Rust', value: 'rust' },
+          ],
+          when: (answers) => answers.hooks,
+        },
+        {
+          name: 'apiary',
+          message: 'Do you want to report your tests to the Apiary inspector?',
+          type: 'confirm',
+          default: true,
+          when: () => config.reporter !== 'apiary',
+        },
+        {
+          name: 'apiaryApiKey',
+          message:
+            'Enter Apiary API key (leave empty for anonymous, disposable test reports)',
+          type: 'input',
+          default: config.custom ? config.custom.apiaryApiKey : undefined,
+          when: (answers) =>
+            answers.apiary && (!config.custom || !config.custom.apiaryApiKey),
+        },
+        {
+          name: 'apiaryApiName',
+          message: 'Enter Apiary API name',
+          type: 'input',
+          default: config.custom ? config.custom.apiaryApiName : undefined,
+          when: (answers) =>
+            answers.apiary &&
+            answers.apiaryApiKey &&
+            (!config.custom || !config.custom.apiaryApiName),
+        },
+        {
+          name: 'appveyor',
+          message: 'Found AppVeyor configuration, do you want to add Dredd?',
+          type: 'confirm',
+          default: true,
+          when: () => detected.ci.includes('appveyor'),
+        },
+        {
+          name: 'circleci',
+          message: 'Found CircleCI configuration, do you want to add Dredd?',
+          type: 'confirm',
+          default: true,
+          when: () => detected.ci.includes('circleci'),
+        },
+        {
+          name: 'travisci',
+          message: 'Found Travis CI configuration, do you want to add Dredd?',
+          type: 'confirm',
+          default: true,
+          when: () => detected.ci.includes('travisci'),
+        },
+        {
+          name: 'wercker',
+          message: 'Found Wercker configuration, do you want to add Dredd?',
+          type: 'confirm',
+          default: true,
+          when: () => detected.ci.includes('wercker'),
+        },
+        {
+          name: 'ci',
+          message:
+            'Dredd is best served with Continuous Integration. Do you want to create CI configuration?',
+          type: 'confirm',
+          default: true,
+          when: () => !detected.ci.length,
+        },
+        {
+          name: 'createCI',
+          message: 'Which CI do you want to use?',
+          type: 'list',
+          default: 'travisci',
+          choices: [
+            { name: 'AppVeyor', value: 'appveyor' },
+            { name: 'CircleCI', value: 'circleci' },
+            { name: 'Travis CI', value: 'travisci' },
+            { name: 'Wercker (Oracle Container Pipelines)', value: 'wercker' },
+          ],
+          when: (answers) => answers.ci,
+        },
       ]),
     )
     .then((answers) => {

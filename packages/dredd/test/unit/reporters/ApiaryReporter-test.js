@@ -381,11 +381,7 @@ describe('ApiaryReporter', () => {
           assert.lengthOf(parsedBody.blueprints, 1);
           for (const blueprint of parsedBody.blueprints) {
             assert.property(blueprint, 'raw');
-            assert.propertyVal(
-              blueprint,
-              'raw',
-              apiDescriptions[0].content,
-            );
+            assert.propertyVal(blueprint, 'raw', apiDescriptions[0].content);
             assert.property(blueprint, 'filename');
             assert.propertyVal(
               blueprint,
@@ -465,9 +461,7 @@ describe('ApiaryReporter', () => {
         // This is a hack how to get access to the performed request from nock
         // nock isn't able to provide it
 
-        call = nock(env.APIARY_API_URL)
-          .post(uri)
-          .reply(201, { _id: runId });
+        call = nock(env.APIARY_API_URL).post(uri).reply(201, { _id: runId });
         call.on('request', (req, interceptor, reqBody) => {
           requestBody = reqBody;
         });
@@ -590,9 +584,7 @@ describe('ApiaryReporter', () => {
         // This is a hack how to get access to the performed request from nock
         // nock isn't able to provide it
 
-        call = nock(env.APIARY_API_URL)
-          .post(uri)
-          .reply(201, { _id: runId });
+        call = nock(env.APIARY_API_URL).post(uri).reply(201, { _id: runId });
         call.on('request', (req, interceptor, reqBody) => {
           requestBody = reqBody;
         });
@@ -657,9 +649,7 @@ describe('ApiaryReporter', () => {
         // This is a hack how to get access to the performed request from nock
         // nock isn't able to provide it
 
-        call = nock(env.APIARY_API_URL)
-          .post(uri)
-          .reply(201, { _id: runId });
+        call = nock(env.APIARY_API_URL).post(uri).reply(201, { _id: runId });
         call.on('request', (req, interceptor, reqBody) => {
           requestBody = reqBody;
         });
@@ -814,9 +804,7 @@ describe('ApiaryReporter', () => {
         // This is a hack how to get access to the performed request from nock
         // nock isn't able to provide it
 
-        call = nock(env.APIARY_API_URL)
-          .patch(uri)
-          .reply(201, { _id: runId });
+        call = nock(env.APIARY_API_URL).patch(uri).reply(201, { _id: runId });
         call.on('request', (req, interceptor, reqBody) => {
           requestBody = reqBody;
         });

@@ -66,7 +66,11 @@ describe('init.prompt()', () => {
         assert.equal(questionByName(questions, 'language').default, 'nodejs');
         done();
       },
-      { loadInquirer: fakeInquirerLoader({}, (q) => { questions = q; }) },
+      {
+        loadInquirer: fakeInquirerLoader({}, (q) => {
+          questions = q;
+        }),
+      },
     );
   });
 
@@ -81,7 +85,11 @@ describe('init.prompt()', () => {
         assert.isFalse(language.when({ hooks: false }));
         done();
       },
-      { loadInquirer: fakeInquirerLoader({}, (q) => { questions = q; }) },
+      {
+        loadInquirer: fakeInquirerLoader({}, (q) => {
+          questions = q;
+        }),
+      },
     );
   });
 
@@ -94,7 +102,11 @@ describe('init.prompt()', () => {
         assert.isTrue(questionByName(questions, 'ci').when());
         done();
       },
-      { loadInquirer: fakeInquirerLoader({}, (q) => { questions = q; }) },
+      {
+        loadInquirer: fakeInquirerLoader({}, (q) => {
+          questions = q;
+        }),
+      },
     );
   });
 
@@ -107,7 +119,11 @@ describe('init.prompt()', () => {
         assert.isFalse(questionByName(questions, 'apiary').when());
         done();
       },
-      { loadInquirer: fakeInquirerLoader({}, (q) => { questions = q; }) },
+      {
+        loadInquirer: fakeInquirerLoader({}, (q) => {
+          questions = q;
+        }),
+      },
     );
   });
 });
