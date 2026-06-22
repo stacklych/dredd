@@ -163,6 +163,13 @@ linkcheck_ignore = [
 linkcheck_retries = 3
 linkcheck_timeout = 30
 
+# Don't verify URL fragments/anchors. GitHub (and similar) serve anti-bot or
+# JS-rendered pages to the link checker, so heading anchors like
+# '#user-content-...' are reported as "anchor not found" intermittently even
+# though the page and anchor are valid. The destination pages are still checked
+# for existence; only the in-page anchor check is skipped.
+linkcheck_anchors = False
+
 sphinx_tabs_valid_builders = ['linkcheck']
 
 
