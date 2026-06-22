@@ -1,4 +1,3 @@
-// @ts-check
 import createConsoleLogger from '../createConsoleLogger';
 
 const logger = createConsoleLogger({

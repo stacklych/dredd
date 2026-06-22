@@ -1,16 +1,10 @@
-// @ts-check
 import util from 'util';
 import winston from 'winston';
 
 // Reproduces Winston 2.x's metadata serialization (its lib/winston/common.js
 // `serialize`) so that upgrading to Winston 3.x keeps the console output
 // byte-for-byte identical.
-/**
- * @param {*} obj
- * @param {string | symbol} [key]
- * @returns {string}
- */
-function serialize(obj, key) {
+function serialize(obj: any, key?: string | symbol): string {
   if (typeof key === 'symbol') {
     key = key.toString();
   }
@@ -65,11 +59,7 @@ function serialize(obj, key) {
 // Winston 2.x level methods accepted printf-style arguments plus an optional
 // trailing metadata object; Winston 3.x does not. Assemble the message the old
 // way so the wrapped level methods stay backwards compatible.
-/**
- * @param {any[]} args
- * @returns {string}
- */
-function assembleMessage(args) {
+function assembleMessage(args: any[]): string {
   const rest = args.slice();
   let meta;
   if (
@@ -99,8 +89,7 @@ function assembleMessage(args) {
 }
 
 // ANSI foreground codes matching the colors Winston 2.x emitted (reset is 39).
-/** @type {Record<string, number>} */
-const ANSI_COLORS = {
+const ANSI_COLORS: Record<string, number> = {
   red: 31,
   green: 32,
   yellow: 33,
@@ -109,61 +98,57 @@ const ANSI_COLORS = {
   cyan: 36,
 };
 
-/**
- * @param {string} level
- * @param {string} colorName
- * @returns {string}
- */
-function colorizeLevel(level, colorName) {
+function colorizeLevel(level: string, colorName: string): string {
   const code = ANSI_COLORS[colorName];
   return code ? `\x1b[${code}m${level}\x1b[39m` : level;
 }
 
-/**
- * A Winston Console transport carrying the mutable `colorize`/`timestamp` flags
- * Dredd toggles at runtime; Winston's own types don't model these extras.
- * @typedef {import('winston').transports.ConsoleTransportInstance & {
- *   colorize: boolean,
- *   timestamp: boolean,
- * }} ConsoleTransport
- */
+// A Winston Console transport carrying the mutable `colorize`/`timestamp` flags
+// Dredd toggles at runtime; Winston's own types don't model these extras.
+type ConsoleTransport = winston.transports.ConsoleTransportInstance & {
+  colorize: boolean;
+  timestamp: boolean;
+};
+
+interface ConsoleLoggerOptions<TLevels extends Record<string, number>> {
+  levels: TLevels;
+  colors: Record<string, string>;
+  level: string;
+  // Selects which levels are written to stderr instead of stdout (matching
+  // Winston 2.x Dredd's routing): `true` for all levels, or an array of level
+  // names for a subset. Levels not listed go to stdout.
+  stderr?: boolean | string[];
+}
+
+// The Winston logger widened with a call signature for each custom level name
+// (the level methods are attached dynamically below) and the runtime-augmented
+// `transports.console` accessor.
+type LeveledLogger<TLevels extends Record<string, number>> = winston.Logger &
+  Record<keyof TLevels, (...args: any[]) => winston.Logger> & {
+    transports: ConsoleTransport[] & { console: ConsoleTransport };
+  };
 
 // Builds a Winston 3.x logger that behaves like the Winston 2.x loggers Dredd
 // relied on: a single Console transport whose `colorize`, `timestamp`, `silent`
 // and `level` flags can be toggled at runtime via `logger.transports.console`.
-// `stderr` selects which levels are written to stderr instead of stdout
-// (matching Winston 2.x Dredd's routing): pass `true` for all levels, or an
-// array of level names for a subset. Levels not listed go to stdout.
-/**
- * @template {Record<string, number>} TLevels
- * @param {object} options
- * @param {TLevels} options.levels
- * @param {Record<string, string>} options.colors
- * @param {string} options.level
- * @param {boolean | string[]} [options.stderr]
- *
- * Returns the Winston logger widened with a call signature for each custom
- * level name (the level methods are attached dynamically below).
- */
-export default function createConsoleLogger({
+export default function createConsoleLogger<
+  TLevels extends Record<string, number>,
+>({
   levels,
   colors,
   level,
   stderr = false,
-}) {
-  /** @type {string[]} */
-  let stderrLevels = [];
+}: ConsoleLoggerOptions<TLevels>): LeveledLogger<TLevels> {
+  let stderrLevels: string[] = [];
   if (stderr === true) {
     stderrLevels = Object.keys(levels);
   } else if (Array.isArray(stderr)) {
     stderrLevels = stderr;
   }
-  const consoleTransport = /** @type {ConsoleTransport} */ (
-    new winston.transports.Console({
-      level,
-      stderrLevels,
-    })
-  );
+  const consoleTransport = new winston.transports.Console({
+    level,
+    stderrLevels,
+  }) as ConsoleTransport;
   consoleTransport.colorize = true;
   consoleTransport.timestamp = false;
   consoleTransport.format = winston.format.printf((info) => {
@@ -182,8 +167,7 @@ export default function createConsoleLogger({
   });
 
   Object.keys(levels).forEach((levelName) => {
-    /** @param {...any} args */
-    const method = (...args) => {
+    const method = (...args: any[]) => {
       const message = assembleMessage(args);
       // Re-emit Winston 2.x's `logging` event (removed in 3.x) so consumers
       // that capture output by listening for it keep working. Gate on the
@@ -198,7 +182,7 @@ export default function createConsoleLogger({
       }
       return logger.log(levelName, message);
     };
-    /** @type {any} */ (logger)[levelName] = method;
+    (logger as any)[levelName] = method;
   });
 
   // Winston 3.x recomputes `logger.transports` as a fresh array on each access,
@@ -213,9 +197,5 @@ export default function createConsoleLogger({
     configurable: true,
   });
 
-  const leveledLogger =
-    /** @type {import('winston').Logger & Record<keyof TLevels, (...args: any[]) => import('winston').Logger> & { transports: ConsoleTransport[] & { console: ConsoleTransport } }} */ (
-      logger
-    );
-  return leveledLogger;
+  return logger as LeveledLogger<TLevels>;
 }
