@@ -153,6 +153,15 @@ linkcheck_ignore = [
     r'https?://json-schema\.org/understanding-json-schema/.*',
     # npmjs.com returns 403/429 to automated link checks (anti-bot).
     r'https?://(www\.)?npmjs\.com.*',
+    # Chronically slow / automated-check-hostile hosts that intermittently time
+    # out (read timeout) and hard-fail the strict (-W) link check even though
+    # the pages are valid. They are stable, well-known destinations:
+    # - snyk.io: the Snyk vulnerability page (anti-bot, like npmjs above).
+    # - ietf.org: the JSON Schema draft links and the :rfc: role resolve through
+    #   tools.ietf.org, which redirects to datatracker.ietf.org; the latter
+    #   regularly times out the checker.
+    r'https?://snyk\.io/.*',
+    r'https?://(tools|datatracker)\.ietf\.org/.*',
 ]
 
 # The strict (-W) link check hits live third-party URLs, so a momentary network
