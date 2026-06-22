@@ -4,7 +4,7 @@ import os from 'os';
 import url from 'url';
 
 import addHooks from './addHooks';
-import gavel from './vendor/gavel';
+import validate from './validation/validate';
 import logger from './logger';
 import reporterOutputLogger from './reporters/reporterOutputLogger';
 import packageData from '../package.json';
@@ -352,7 +352,7 @@ class TransactionRunner {
                 // - recieves a response
                 // - runs beforeEachValidation hooks
                 // - runs beforeValidation hooks
-                // - runs Gavel validation
+                // - runs response validation
                 this.executeTransaction(transaction, hooks, () => {
                   if (this.hookHandlerError) {
                     return iterationCallback(this.hookHandlerError);
@@ -542,8 +542,8 @@ class TransactionRunner {
     }
     request.headers = headers;
 
-    // The data models as used here must conform to Gavel.js
-    // as defined in `http-response.coffee`
+    // The data models as used here must conform to the shape the validator
+    // (lib/validation) expects for an `expected` HTTP response.
     /** @type {any} */
     const expected = { headers: headersArrayToObject(response.headers) };
     if (response.body) {
@@ -942,7 +942,7 @@ Not performing HTTP request for '${transaction.name}'.\
   // Motivations:
   // 1. Mutations at place.
   // 2. Constant shadowing and reusage of "validationOutput" object where it could be avoided.
-  // 3. Ambiguity between internal "results" and legacy "gavelResult[name].results".
+  // 3. Ambiguity between internal "results" and legacy "validationResult[name].results".
   // 4. Mapping with for/of that affects prototype properties.
   /**
    * @param {any} test
@@ -950,12 +950,9 @@ Not performing HTTP request for '${transaction.name}'.\
    * @param {(error?: any) => void} callback
    */
   validateTransaction(test, transaction, callback) {
-    logger.debug('Validating HTTP transaction by Gavel.js');
-    // The bundled Gavel (lib/vendor/gavel.js) ships no usable types; cast at
-    // the call sites so the `gavel` receiver (and its `this`) is preserved.
-    const gavelModule = /** @type {any} */ (gavel);
+    logger.debug('Validating HTTP transaction');
     /** @type {any} */
-    let gavelResult = { fields: {} };
+    let validationResult = { fields: {} };
 
     try {
       if (isAjvSchema(transaction.expected.bodySchema)) {
@@ -963,23 +960,17 @@ Not performing HTTP request for '${transaction.name}'.\
         delete expectedWithoutBody.body;
         delete expectedWithoutBody.bodySchema;
 
-        gavelResult = gavelModule.validate(
-          expectedWithoutBody,
-          transaction.real,
-        );
-        gavelResult.fields.body = validateBodySchemaWithAjv(
+        validationResult = validate(expectedWithoutBody, transaction.real);
+        validationResult.fields.body = validateBodySchemaWithAjv(
           transaction.expected.bodySchema,
           transaction.real.body,
         );
-        gavelResult.valid = validateFields(gavelResult.fields);
+        validationResult.valid = validateFields(validationResult.fields);
       } else {
-        gavelResult = gavelModule.validate(
-          transaction.expected,
-          transaction.real,
-        );
+        validationResult = validate(transaction.expected, transaction.real);
       }
     } catch (validationError) {
-      logger.debug('Gavel.js validation errored:', validationError);
+      logger.debug('HTTP transaction validation errored:', validationError);
       this.emitError(validationError, test);
     }
 
@@ -989,9 +980,9 @@ Not performing HTTP request for '${transaction.name}'.\
     test.request = transaction.request;
 
     // TODO
-    // Gavel result MUST NOT be undefined. Check transaction runner tests
-    // to find where and why it is.
-    const { valid: isValid } = gavelResult;
+    // The validation result MUST NOT be undefined. Check transaction runner
+    // tests to find where and why it is.
+    const { valid: isValid } = validationResult;
 
     if (isValid) {
       test.status = 'pass';
@@ -1023,23 +1014,23 @@ include a message body: https://tools.ietf.org/html/rfc7231#section-6.3\
     // Create test message from messages of all validation errors
     let message = '';
 
-    // Order-sensitive list of Gavel validation fields to output in the log
+    // Order-sensitive list of validation fields to output in the log
     // Note that Dredd asserts EXACTLY this order. Make sure to adjust tests upon change.
     const loggedFields = ['headers', 'body', 'statusCode'].filter((fieldName) =>
-      Object.prototype.hasOwnProperty.call(gavelResult.fields, fieldName),
+      Object.prototype.hasOwnProperty.call(validationResult.fields, fieldName),
     );
 
     loggedFields.forEach((fieldName) => {
-      const fieldResult = gavelResult.fields[fieldName];
-      (fieldResult.errors || []).forEach((/** @type {any} */ gavelError) => {
-        message += `${fieldName}: ${gavelError.message}\n`;
+      const fieldResult = validationResult.fields[fieldName];
+      (fieldResult.errors || []).forEach((/** @type {any} */ fieldError) => {
+        message += `${fieldName}: ${fieldError.message}\n`;
       });
     });
 
     test.message = message;
 
     // Set the validation results and the boolean verdict to the test object
-    transaction.results = gavelResult;
+    transaction.results = validationResult;
     test.valid = isValid;
     test.errors = transaction.errors;
     test.results = transaction.results;

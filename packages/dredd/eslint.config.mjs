@@ -10,7 +10,6 @@ export default [
       'build/**',
       'coverage/**',
       'docs/**',
-      'lib/vendor/**',
       'site-packages/**',
     ],
   },
