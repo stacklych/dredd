@@ -1,8 +1,51 @@
+// @ts-check
 import http from 'http';
 import https from 'https';
+// http-proxy-agent/https-proxy-agent v9 are ESM-only ("type": "module"), but
+// Dredd's build emits CommonJS. This works at runtime because Dredd requires
+// Node >= 22, where `require()` of an ESM module is supported; TypeScript's
+// node16 module mode doesn't model that, so it flags the import (TS1479).
+// Suppress it here until the package goes ESM (see #29).
+// @ts-ignore -- Node >=22 require(ESM); resolved as ESM by `module: node16`
 import { HttpProxyAgent } from 'http-proxy-agent';
+// @ts-ignore -- Node >=22 require(ESM); resolved as ESM by `module: node16`
 import { HttpsProxyAgent } from 'https-proxy-agent';
 
+/**
+ * @typedef {object} ResponseInfo
+ * @property {number} [statusCode]
+ * @property {import('http').IncomingHttpHeaders} headers
+ */
+
+/**
+ * @typedef {(
+ *   error: Error | null,
+ *   response?: ResponseInfo,
+ *   responseBody?: Buffer | string,
+ * ) => void} RequestCallback
+ */
+
+/**
+ * @typedef {object} HttpClientOptions
+ * @property {string} [uri]
+ * @property {string} [url]
+ * @property {string} [method]
+ * @property {import('http').OutgoingHttpHeaders} [headers]
+ * @property {string | Buffer} [body]
+ * @property {BufferEncoding | null} [encoding]
+ * @property {number} [timeout]
+ * @property {boolean} [proxy] Pass `false` to opt out of proxying
+ * @property {NodeJS.ProcessEnv} [env]
+ * @property {boolean} [rejectUnauthorized]
+ * @property {boolean} [strictSSL]
+ * Remaining TLS/auth keys (auth, ca, cert, ...) are forwarded dynamically.
+ */
+
+/**
+ * @param {NodeJS.ProcessEnv} env
+ * @param {string} name
+ * @returns {string | undefined}
+ */
 function getEnvVar(env, name) {
   const lower = env[name.toLowerCase()];
   return lower !== undefined && lower !== '' ? lower : env[name.toUpperCase()];
@@ -11,6 +54,11 @@ function getEnvVar(env, name) {
 // Decides whether a given hostname (optionally with port) is excluded from
 // proxying by the 'no_proxy' environment variable. Mirrors the behavior of
 // the de-facto standard honored by the 'request' library and curl.
+/**
+ * @param {URL} url
+ * @param {string | undefined} noProxy
+ * @returns {boolean}
+ */
 function isProxyExcluded(url, noProxy) {
   if (!noProxy) {
     return false;
@@ -37,6 +85,11 @@ function isProxyExcluded(url, noProxy) {
 // Returns the proxy URL that applies to the given target URL based on the
 // 'http_proxy'/'https_proxy'/'no_proxy' environment variables, or null when
 // no proxy should be used.
+/**
+ * @param {URL} url
+ * @param {NodeJS.ProcessEnv} env
+ * @returns {string | null}
+ */
 function getProxyForUrl(url, env) {
   if (isProxyExcluded(url, getEnvVar(env, 'NO_PROXY'))) {
     return null;
@@ -48,7 +101,14 @@ function getProxyForUrl(url, env) {
   return proxy || null;
 }
 
+/**
+ * @param {URL} url
+ * @param {string} proxy
+ * @param {HttpClientOptions} options
+ * @returns {import('http').Agent}
+ */
 function createProxyAgent(url, proxy, options) {
+  /** @type {{ rejectUnauthorized?: boolean }} */
   const agentOptions = {};
   if (options.rejectUnauthorized !== undefined) {
     agentOptions.rejectUnauthorized = options.rejectUnauthorized;
@@ -60,12 +120,20 @@ function createProxyAgent(url, proxy, options) {
     : new HttpProxyAgent(proxy, agentOptions);
 }
 
+/**
+ * @returns {NodeJS.ErrnoException}
+ */
 function createTimeoutError() {
+  /** @type {NodeJS.ErrnoException} */
   const error = new Error('ESOCKETTIMEDOUT');
   error.code = 'ESOCKETTIMEDOUT';
   return error;
 }
 
+/**
+ * @param {string | Buffer | undefined | null} body
+ * @returns {Buffer | null}
+ */
 function getRequestBody(body) {
   if (body === undefined || body === null) {
     return null;
@@ -73,6 +141,11 @@ function getRequestBody(body) {
   return body instanceof Buffer ? body : Buffer.from(`${body}`);
 }
 
+/**
+ * @param {Buffer} buffer
+ * @param {BufferEncoding | null | undefined} encoding
+ * @returns {Buffer | string}
+ */
 function getResponseBody(buffer, encoding) {
   if (encoding === null) {
     return buffer;
@@ -80,7 +153,13 @@ function getResponseBody(buffer, encoding) {
   return buffer.toString(encoding || 'utf8');
 }
 
+/**
+ * @param {HttpClientOptions} options
+ * @param {URL} url
+ * @returns {import('https').RequestOptions}
+ */
 function createRequestOptions(options, url) {
+  /** @type {import('https').RequestOptions} */
   const requestOptions = {
     protocol: url.protocol,
     hostname: url.hostname,
@@ -102,8 +181,11 @@ function createRequestOptions(options, url) {
     'secureProtocol',
     'servername',
   ].forEach((key) => {
-    if (options[key] !== undefined) {
-      requestOptions[key] = options[key];
+    // Forward a fixed set of TLS/auth pass-through options verbatim. The keys
+    // are dynamic, so the two option bags are indexed as `any` here.
+    const value = /** @type {any} */ (options)[key];
+    if (value !== undefined) {
+      /** @type {any} */ (requestOptions)[key] = value;
     }
   });
 
@@ -125,13 +207,22 @@ function createRequestOptions(options, url) {
   return requestOptions;
 }
 
+/**
+ * @param {HttpClientOptions} options
+ * @param {RequestCallback} callback
+ */
 export default function request(options, callback) {
   const uri = options.uri || options.url;
-  const url = new URL(uri);
+  const url = new URL(/** @type {string} */ (uri));
   const transport = url.protocol === 'https:' ? https : http;
   const requestBody = getRequestBody(options.body);
   let settled = false;
 
+  /**
+   * @param {Error | null} error
+   * @param {ResponseInfo} [response]
+   * @param {Buffer | string} [responseBody]
+   */
   function finish(error, response, responseBody) {
     if (settled) {
       return;
@@ -143,6 +234,7 @@ export default function request(options, callback) {
   const req = transport.request(
     createRequestOptions(options, url),
     (response) => {
+      /** @type {Buffer[]} */
       const chunks = [];
       const responseInfo = {
         statusCode: response.statusCode,
