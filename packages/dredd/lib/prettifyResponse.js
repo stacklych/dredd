@@ -1,10 +1,24 @@
+// @ts-check
 import html from 'html';
 
 import logger from './logger';
 
+/**
+ * Render an HTTP response-like object (real response, expected response, or
+ * schema-bearing object) as a human-readable string for the reporters. Field
+ * values are arbitrary (bodies may be any content type), so they are typed
+ * loosely.
+ * @param {Record<string, any> | null | undefined} response
+ * @returns {string}
+ */
 export default function prettifyResponse(response) {
+  /** @type {string | undefined} */
   let contentType;
 
+  /**
+   * @param {any} obj
+   * @returns {any}
+   */
   function stringify(obj) {
     try {
       if (typeof obj === 'string') {
@@ -17,6 +31,11 @@ export default function prettifyResponse(response) {
     return obj;
   }
 
+  /**
+   * @param {any} body
+   * @param {string | undefined} contentKind
+   * @returns {any}
+   */
   function prettifyBody(body, contentKind) {
     switch (contentKind) {
       case 'text/html':
@@ -33,9 +52,10 @@ export default function prettifyResponse(response) {
       response.headers['content-type'] || response.headers['Content-Type'];
   }
 
+  const safeResponse = /** @type {Record<string, any>} */ (response || {});
   let stringRepresentation = '';
-  for (const key of Object.keys(response || {})) {
-    let value = response[key];
+  for (const key of Object.keys(safeResponse)) {
+    let value = safeResponse[key];
     if (key === 'body') {
       value = `\n${prettifyBody(value, contentType)}`;
     } else if (key === 'schema') {
