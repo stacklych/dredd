@@ -224,9 +224,13 @@ class Dredd {
       }
 
       const loggerInfos = toLoggerInfos(apiDescriptions);
-      // Winston 3.x accepts the loggerInfo object directly; output is identical
-      // to the previous `.log(level, message)` form (verified byte-for-byte).
-      loggerInfos.forEach((loggerInfo) => this.logger.log(loggerInfo));
+      // Call with the (level, message) signature, not a single loggerInfo
+      // object: although Winston 3.x renders both identically, the integration
+      // tests in test/integration/annotations-test.js assert on these call
+      // arguments (args[0] === level, args[1] === message).
+      loggerInfos.forEach(({ level, message }) =>
+        this.logger.log(level, message),
+      );
       if (loggerInfos.find((loggerInfo) => loggerInfo.level === 'error')) {
         callback(new Error('API description processing error'), this.stats);
         return;
