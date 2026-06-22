@@ -1,8 +1,22 @@
+// @ts-check
 import fs from 'fs';
 
 import defaultRequest from './httpClient';
 import isURL from './isURL';
 
+/**
+ * @typedef {(error: Error | null, data?: string | Buffer) => void} ReadCallback
+ * @typedef {{
+ *   request?: typeof defaultRequest,
+ *   http?: Record<string, any>,
+ * }} ReadLocationOptions
+ */
+
+/**
+ * @param {{ statusCode?: number, headers: import('http').IncomingHttpHeaders }} response
+ * @param {boolean} hasBody
+ * @returns {Error}
+ */
 function getErrorFromResponse(response, hasBody) {
   const contentType = response.headers['content-type'];
   if (hasBody) {
@@ -18,12 +32,19 @@ function getErrorFromResponse(response, hasBody) {
   );
 }
 
+/**
+ * @param {string} uri
+ * @param {ReadLocationOptions | ReadCallback} options
+ * @param {ReadCallback} [callback]
+ */
 function readRemoteFile(uri, options, callback) {
   if (typeof options === 'function') {
     [options, callback] = [{}, options];
   }
+  const cb = /** @type {ReadCallback} */ (callback);
   const request = options.request || defaultRequest;
 
+  /** @type {Parameters<typeof defaultRequest>[0]} */
   const httpOptions = { ...(options.http || {}) };
   httpOptions.uri = uri;
   httpOptions.timeout = 5000; // ms, limits both connection time and server response time
@@ -31,24 +52,27 @@ function readRemoteFile(uri, options, callback) {
   try {
     request(httpOptions, (error, response, responseBody) => {
       if (error) {
-        callback(error);
+        cb(error);
       } else if (!response) {
-        callback(new Error('Unexpected error'));
-      } else if (
-        !responseBody ||
-        response.statusCode < 200 ||
-        response.statusCode >= 300
-      ) {
-        callback(getErrorFromResponse(response, !!responseBody));
+        cb(new Error('Unexpected error'));
       } else {
-        callback(null, responseBody);
+        const statusCode = /** @type {number} */ (response.statusCode);
+        if (!responseBody || statusCode < 200 || statusCode >= 300) {
+          cb(getErrorFromResponse(response, !!responseBody));
+        } else {
+          cb(null, responseBody);
+        }
       }
     });
   } catch (error) {
-    process.nextTick(() => callback(error));
+    process.nextTick(() => cb(/** @type {Error} */ (error)));
   }
 }
 
+/**
+ * @param {string} path
+ * @param {ReadCallback} callback
+ */
 function readLocalFile(path, callback) {
   fs.readFile(path, 'utf8', (error, data) => {
     if (error) {
@@ -59,13 +83,19 @@ function readLocalFile(path, callback) {
   });
 }
 
+/**
+ * @param {string} location
+ * @param {ReadLocationOptions | ReadCallback} options
+ * @param {ReadCallback} [callback]
+ */
 export default function readLocation(location, options, callback) {
   if (typeof options === 'function') {
     [options, callback] = [{}, options];
   }
+  const cb = /** @type {ReadCallback} */ (callback);
   if (isURL(location)) {
-    readRemoteFile(location, options, callback);
+    readRemoteFile(location, options, cb);
   } else {
-    readLocalFile(location, callback);
+    readLocalFile(location, cb);
   }
 }
