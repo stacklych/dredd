@@ -1,23 +1,20 @@
-// @ts-check
 import fs from 'fs';
+import type { IncomingHttpHeaders } from 'http';
 
 import defaultRequest from './httpClient';
 import isURL from './isURL';
 
-/**
- * @typedef {(error: Error | null, data?: string | Buffer) => void} ReadCallback
- * @typedef {{
- *   request?: typeof defaultRequest,
- *   http?: Record<string, any>,
- * }} ReadLocationOptions
- */
+type ReadCallback = (error: Error | null, data?: string | Buffer) => void;
 
-/**
- * @param {{ statusCode?: number, headers: import('http').IncomingHttpHeaders }} response
- * @param {boolean} hasBody
- * @returns {Error}
- */
-function getErrorFromResponse(response, hasBody) {
+interface ReadLocationOptions {
+  request?: typeof defaultRequest;
+  http?: Record<string, any>;
+}
+
+function getErrorFromResponse(
+  response: { statusCode?: number; headers: IncomingHttpHeaders },
+  hasBody: boolean,
+): Error {
   const contentType = response.headers['content-type'];
   if (hasBody) {
     const bodyDescription = contentType
@@ -32,20 +29,20 @@ function getErrorFromResponse(response, hasBody) {
   );
 }
 
-/**
- * @param {string} uri
- * @param {ReadLocationOptions | ReadCallback} options
- * @param {ReadCallback} [callback]
- */
-function readRemoteFile(uri, options, callback) {
+function readRemoteFile(
+  uri: string,
+  options: ReadLocationOptions | ReadCallback,
+  callback?: ReadCallback,
+): void {
   if (typeof options === 'function') {
     [options, callback] = [{}, options];
   }
-  const cb = /** @type {ReadCallback} */ (callback);
+  const cb = callback as ReadCallback;
   const request = options.request || defaultRequest;
 
-  /** @type {Parameters<typeof defaultRequest>[0]} */
-  const httpOptions = { ...(options.http || {}) };
+  const httpOptions: Parameters<typeof defaultRequest>[0] = {
+    ...(options.http || {}),
+  };
   httpOptions.uri = uri;
   httpOptions.timeout = 5000; // ms, limits both connection time and server response time
 
@@ -56,7 +53,7 @@ function readRemoteFile(uri, options, callback) {
       } else if (!response) {
         cb(new Error('Unexpected error'));
       } else {
-        const statusCode = /** @type {number} */ (response.statusCode);
+        const statusCode = response.statusCode as number;
         if (!responseBody || statusCode < 200 || statusCode >= 300) {
           cb(getErrorFromResponse(response, !!responseBody));
         } else {
@@ -65,15 +62,11 @@ function readRemoteFile(uri, options, callback) {
       }
     });
   } catch (error) {
-    process.nextTick(() => cb(/** @type {Error} */ (error)));
+    process.nextTick(() => cb(error as Error));
   }
 }
 
-/**
- * @param {string} path
- * @param {ReadCallback} callback
- */
-function readLocalFile(path, callback) {
+function readLocalFile(path: string, callback: ReadCallback): void {
   fs.readFile(path, 'utf8', (error, data) => {
     if (error) {
       callback(error);
@@ -83,16 +76,15 @@ function readLocalFile(path, callback) {
   });
 }
 
-/**
- * @param {string} location
- * @param {ReadLocationOptions | ReadCallback} options
- * @param {ReadCallback} [callback]
- */
-export default function readLocation(location, options, callback) {
+export default function readLocation(
+  location: string,
+  options: ReadLocationOptions | ReadCallback,
+  callback?: ReadCallback,
+): void {
   if (typeof options === 'function') {
     [options, callback] = [{}, options];
   }
-  const cb = /** @type {ReadCallback} */ (callback);
+  const cb = callback as ReadCallback;
   if (isURL(location)) {
     readRemoteFile(location, options, cb);
   } else {
