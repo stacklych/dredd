@@ -4,7 +4,7 @@
 Data Structures
 ===============
 
-Documentation of various data structures in both `Gavel`_ and Dredd. `MSON`_ notation is used to describe the data structures.
+Documentation of various data structures used by Dredd. `MSON`_ notation is used to describe the data structures.
 
 .. _transaction:
 
@@ -100,7 +100,7 @@ Transaction Test (object)
 Transaction Results (object)
 ----------------------------
 
-Transaction result equals to the result of the `Gavel <https://github.com/apiaryio/gavel.js>`__ validation library.
+Transaction result is produced by Dredd’s built-in response validator.
 
 -  valid (boolean) - Indicates whether the transaction is valid.
 -  fields (object)
@@ -113,10 +113,8 @@ Transaction result equals to the result of the `Gavel <https://github.com/apiary
 .. _gavel-validator-output:
 .. _gavel-validation-result-field:
 
-Gavel Validation Result Field (object)
---------------------------------------
-
-Can be seen also `here <https://relishapp.com/apiary/gavel/docs/data-validators-and-output-format#validators-output-format>`__.
+Validation Result Field (object)
+--------------------------------
 
 -  valid (boolean) - Whether the HTTP message field is valid
 -  kind (enum[string], nullable) - The validation kind applied to the expected/actual data (how the values were compared)
@@ -131,8 +129,8 @@ Can be seen also `here <https://relishapp.com/apiary/gavel/docs/data-validators-
 
 .. _gavel-error:
 
-Gavel Error (object)
---------------------
+Validation Error (object)
+-------------------------
 
 -  message (string) - Error message
 -  location (object, optional) - Kind-dependent extra error information

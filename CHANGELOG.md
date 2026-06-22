@@ -23,10 +23,12 @@ _This section will be published as the **0.1.0** baseline of the maintained fork
 - Node.js engine floor raised to 22; CI runs the test matrix on Node.js 22 and 24.
 - Refreshed the dependency tree to maintained releases while preserving the CommonJS package surface.
 - Removed `lerna` from the monorepo tooling.
+- Response validation (status code, headers, and structural/text body checks) is now performed by a built-in TypeScript validator (`lib/validation`) instead of the vendored Gavel.js bundle. Behaviour — verdicts and error messages — is preserved.
 
 ### Removed
 
 - API Blueprint and OpenAPI 2 (Swagger) support, together with their parser and runtime dependencies. Dredd now targets OpenAPI 3.0 and OpenAPI 3.1 only; convert older descriptions to OpenAPI 3 before use.
+- Vendored Gavel.js validator bundle (`lib/vendor/gavel.js`, ~10k lines) and the dependency on the unmaintained upstream `gavel` package.
 
 ### Notes
 

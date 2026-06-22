@@ -33,7 +33,7 @@ Dredd supports many programming languages thanks to the work of several contribu
 -  `@snikch <https://github.com/snikch>`__ (:ref:`Go <hooks-go>`)
 -  `@ungrim97 <https://github.com/ungrim97>`__ (:ref:`Perl <hooks-perl>`)
 
-Big thanks also to `@netmilk <https://github.com/netmilk/>`__, the original author of Dredd and Gavel!
+Big thanks also to `@netmilk <https://github.com/netmilk/>`__, the original author of Dredd and `Gavel`_!
 
 
 .. _contributing:
@@ -123,7 +123,7 @@ Previously Dredd was written in `CoffeeScript <https://coffeescript.org>`__, and
 Supported Node.js versions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Given the `table with LTS schedule <https://github.com/nodejs/Release>`__, only versions marked as **Current**, **Maintenance**, or **Active** are supported, until their **Maintenance End**. The testing matrix of Dredd’s CI builds must contain all currently supported versions and must not contain any unsupported versions. The same applies for the underlying libraries, such as `Dredd Transactions`_ or `Gavel`_. In ``appveyor.yml`` the latest supported Node.js version should be used. When dropping support for Node.js versions, remember to update the :ref:`installation guide <install-npm>`.
+Given the `table with LTS schedule <https://github.com/nodejs/Release>`__, only versions marked as **Current**, **Maintenance**, or **Active** are supported, until their **Maintenance End**. The testing matrix of Dredd’s CI builds must contain all currently supported versions and must not contain any unsupported versions. The same applies for the underlying libraries, such as `Dredd Transactions`_. In ``appveyor.yml`` the latest supported Node.js version should be used. When dropping support for Node.js versions, remember to update the :ref:`installation guide <install-npm>`.
 
 When dropping support for a certain Node.js version, it should be removed from the testing matrix, and it **must** be delivered as a breaking change, which increments Dredd's major version number.
 
