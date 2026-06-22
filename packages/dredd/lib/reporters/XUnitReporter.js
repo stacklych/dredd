@@ -1,3 +1,4 @@
+// @ts-check
 import { EventEmitter } from 'events';
 import fs from 'fs';
 import { inherits } from 'util';
@@ -9,9 +10,17 @@ import logger from '../logger';
 import reporterOutputLogger from './reporterOutputLogger';
 import prettifyResponse from '../prettifyResponse';
 
+/**
+ * @typedef {import('../types/reporters').ReporterStats} ReporterStats
+ */
+
 // Escape the XML metacharacters relevant to a double-quoted attribute value
 // (test titles are emitted as the `name="..."` attribute). `&` must be replaced
 // first so the entities introduced afterwards are not double-escaped.
+/**
+ * @param {unknown} value
+ * @returns {string}
+ */
 function escapeXML(value) {
   return String(value)
     .replace(/&/g, '&amp;')
@@ -20,8 +29,16 @@ function escapeXML(value) {
     .replace(/"/g, '&quot;');
 }
 
+/**
+ * @param {import('events').EventEmitter} emitter
+ * @param {ReporterStats} stats
+ * @param {string} [path]
+ * @param {boolean} [details]
+ */
 function XUnitReporter(emitter, stats, path, details) {
-  EventEmitter.call(this);
+  // EventEmitter superclass init; the prototype link is set up via inherits()
+  // below, which TypeScript can't follow, so call through a Function cast.
+  /** @type {Function} */ (EventEmitter).call(this);
 
   this.type = 'xunit';
   this.stats = stats;
@@ -33,6 +50,11 @@ function XUnitReporter(emitter, stats, path, details) {
   logger.debug(`Using '${this.type}' reporter.`);
 }
 
+/**
+ * @param {string} path
+ * @param {ReporterStats} stats
+ * @param {() => void} callback
+ */
 XUnitReporter.prototype.updateSuiteStats = function updateSuiteStats(
   path,
   stats,
@@ -40,10 +62,10 @@ XUnitReporter.prototype.updateSuiteStats = function updateSuiteStats(
 ) {
   fs.readFile(path, (err, data) => {
     if (!err) {
-      data = data.toString();
-      const position = data.toString().indexOf('\n');
+      const text = data.toString();
+      const position = text.indexOf('\n');
       if (position !== -1) {
-        const restOfFile = data.substr(position + 1);
+        const restOfFile = text.substr(position + 1);
         const newStats = this.toTag(
           'testsuite',
           {
@@ -53,7 +75,7 @@ XUnitReporter.prototype.updateSuiteStats = function updateSuiteStats(
             errors: stats.errors,
             skip: stats.skipped,
             timestamp: new Date().toUTCString(),
-            time: stats.duration / 1000,
+            time: Number(stats.duration) / 1000,
           },
           false,
         );
@@ -78,16 +100,29 @@ XUnitReporter.prototype.updateSuiteStats = function updateSuiteStats(
   });
 };
 
+/** @param {string} str */
 XUnitReporter.prototype.cdata = function cdata(str) {
   return `<![CDATA[${str}]]>`;
 };
 
+/**
+ * @param {string} path
+ * @param {string} line
+ */
 XUnitReporter.prototype.appendLine = function appendLine(path, line) {
   fs.appendFileSync(path, `${line}\n`);
 };
 
+/**
+ * @param {string} name
+ * @param {Record<string, string | number> | null} attrs
+ * @param {boolean} close
+ * @param {string} [content]
+ * @returns {string}
+ */
 XUnitReporter.prototype.toTag = function toTag(name, attrs, close, content) {
   const end = close ? '/>' : '>';
+  /** @type {string[]} */
   const pairs = [];
   if (attrs) {
     Object.keys(attrs).forEach((key) => pairs.push(`${key}="${attrs[key]}"`));
@@ -99,6 +134,7 @@ XUnitReporter.prototype.toTag = function toTag(name, attrs, close, content) {
   return tag;
 };
 
+/** @param {string} [path] */
 XUnitReporter.prototype.sanitizedPath = function sanitizedPath(
   path = './report.xml',
 ) {
@@ -110,6 +146,7 @@ XUnitReporter.prototype.sanitizedPath = function sanitizedPath(
   return filePath;
 };
 
+/** @param {import('events').EventEmitter} emitter */
 XUnitReporter.prototype.configureEmitter = function configureEmitter(emitter) {
   emitter.on('start', (apiDescriptions, callback) => {
     fs.promises
@@ -126,7 +163,7 @@ XUnitReporter.prototype.configureEmitter = function configureEmitter(emitter) {
               errors: this.stats.errors,
               skip: this.stats.skipped,
               timestamp: new Date().toUTCString(),
-              time: this.stats.duration / 1000,
+              time: Number(this.stats.duration) / 1000,
             },
             false,
           ),
@@ -146,7 +183,7 @@ XUnitReporter.prototype.configureEmitter = function configureEmitter(emitter) {
   emitter.on('test pass', (test) => {
     const attrs = {
       name: escapeXML(test.title),
-      time: test.duration / 1000,
+      time: Number(test.duration) / 1000,
     };
 
     if (this.details) {
@@ -175,7 +212,7 @@ ${prettifyResponse(test.actual)}\
   emitter.on('test skip', (test) => {
     const attrs = {
       name: escapeXML(test.title),
-      time: test.duration / 1000,
+      time: Number(test.duration) / 1000,
     };
     this.appendLine(
       this.path,
@@ -186,7 +223,7 @@ ${prettifyResponse(test.actual)}\
   emitter.on('test fail', (test) => {
     const attrs = {
       name: escapeXML(test.title),
-      time: test.duration / 1000,
+      time: Number(test.duration) / 1000,
     };
     const diff = `\
 Message:
@@ -212,7 +249,7 @@ ${prettifyResponse(test.actual)}\
   emitter.on('test error', (error, test) => {
     const attrs = {
       name: escapeXML(test.title),
-      time: test.duration / 1000,
+      time: Number(test.duration) / 1000,
     };
     const errorMessage = `\nError: \n${error}\nStacktrace: \n${error.stack}`;
     this.appendLine(
