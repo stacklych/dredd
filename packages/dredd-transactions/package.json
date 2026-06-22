@@ -1,6 +1,6 @@
 {
   "name": "@stacklych/dredd-transactions",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Compiles HTTP Transactions (Request-Response pairs) from an API description document",
   "main": "index.js",
   "engines": {
