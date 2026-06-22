@@ -2,13 +2,23 @@ import { EventEmitter } from 'events';
 import fs from 'fs';
 import { inherits } from 'util';
 
-import htmlencode from 'htmlencode';
 import expandTilde from '../expandTilde';
 import pathmodule from 'path';
 
 import logger from '../logger';
 import reporterOutputLogger from './reporterOutputLogger';
 import prettifyResponse from '../prettifyResponse';
+
+// Escape the XML metacharacters relevant to a double-quoted attribute value
+// (test titles are emitted as the `name="..."` attribute). `&` must be replaced
+// first so the entities introduced afterwards are not double-escaped.
+function escapeXML(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
 
 function XUnitReporter(emitter, stats, path, details) {
   EventEmitter.call(this);
@@ -135,7 +145,7 @@ XUnitReporter.prototype.configureEmitter = function configureEmitter(emitter) {
 
   emitter.on('test pass', (test) => {
     const attrs = {
-      name: htmlencode.htmlEncode(test.title),
+      name: escapeXML(test.title),
       time: test.duration / 1000,
     };
 
@@ -164,7 +174,7 @@ ${prettifyResponse(test.actual)}\
 
   emitter.on('test skip', (test) => {
     const attrs = {
-      name: htmlencode.htmlEncode(test.title),
+      name: escapeXML(test.title),
       time: test.duration / 1000,
     };
     this.appendLine(
@@ -175,7 +185,7 @@ ${prettifyResponse(test.actual)}\
 
   emitter.on('test fail', (test) => {
     const attrs = {
-      name: htmlencode.htmlEncode(test.title),
+      name: escapeXML(test.title),
       time: test.duration / 1000,
     };
     const diff = `\
@@ -201,7 +211,7 @@ ${prettifyResponse(test.actual)}\
 
   emitter.on('test error', (error, test) => {
     const attrs = {
-      name: htmlencode.htmlEncode(test.title),
+      name: escapeXML(test.title),
       time: test.duration / 1000,
     };
     const errorMessage = `\nError: \n${error}\nStacktrace: \n${error.stack}`;

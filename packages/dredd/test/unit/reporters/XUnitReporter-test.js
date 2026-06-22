@@ -214,6 +214,22 @@ describe('XUnitReporter', () => {
         emitter.emit('test pass', test);
         assert.isOk(fsStub.appendFileSync.called);
       }));
+
+    describe('when the title contains XML metacharacters', () =>
+      it('should escape them in the testcase name attribute', () => {
+        const emitter = new EventEmitter();
+        new XUnitReporter(emitter, {}, 'test.xml');
+        emitter.emit('test start', test);
+        emitter.emit('test pass', {
+          ...test,
+          title: 'A & B < C > D " E',
+        });
+        const written = fsStub.appendFileSync.getCall(0).args[1];
+        assert.include(
+          written,
+          'name="A &amp; B &lt; C &gt; D &quot; E"',
+        );
+      }));
   });
 
   describe('when test is skipped', () => {

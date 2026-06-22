@@ -224,14 +224,9 @@ class Dredd {
       }
 
       const loggerInfos = toLoggerInfos(apiDescriptions);
-      // FIXME: Winston 3.x supports calling .log() directly with the loggerInfo
-      // object as it's sole argument, but that's not the case with Winston 2.x
-      // Once we upgrade Winston, the line below can be simplified to .log(loggerInfo)
-      //
-      // Watch https://github.com/apiaryio/dredd/issues/1225 for updates
-      loggerInfos.forEach(({ level, message }) =>
-        this.logger.log(level, message),
-      );
+      // Winston 3.x accepts the loggerInfo object directly; output is identical
+      // to the previous `.log(level, message)` form (verified byte-for-byte).
+      loggerInfos.forEach((loggerInfo) => this.logger.log(loggerInfo));
       if (loggerInfos.find((loggerInfo) => loggerInfo.level === 'error')) {
         callback(new Error('API description processing error'), this.stats);
         return;

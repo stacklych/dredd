@@ -1896,11 +1896,6 @@ html@1.0.0:
   dependencies:
     concat-stream "^1.4.7"
 
-htmlencode@0.0.5:
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/htmlencode/-/htmlencode-0.0.5.tgz#c0e082b398027141d08eae13f6625a0963925afc"
-  integrity sha512-wdWZ6HysCVu5BurawxrETKdN4u7DbDjfbAXlpDRHohchq598Ire4ZCKVxvbH327mggKL5hwW0RykPKN0GxgpdA==
-
 http-errors@^2.0.0, http-errors@^2.0.1, http-errors@~2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/http-errors/-/http-errors-2.0.1.tgz#36d2f65bc909c8790018dd36fb4d93da6caae06b"
