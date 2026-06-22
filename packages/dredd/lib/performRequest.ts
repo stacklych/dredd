@@ -1,54 +1,56 @@
-// @ts-check
 import caseless from 'caseless';
+import type { IncomingHttpHeaders, OutgoingHttpHeaders } from 'http';
 
 import defaultRequest from './httpClient';
 import defaultLogger from './logger';
 
-/**
- * @typedef {{
- *   method?: string,
- *   body?: string | Buffer,
- *   bodyEncoding?: string,
- *   headers?: import('http').OutgoingHttpHeaders,
- * }} TransactionRequest
- *
- * @typedef {{
- *   statusCode?: number,
- *   headers: import('http').IncomingHttpHeaders,
- *   bodyEncoding?: BufferEncoding,
- *   body?: string,
- * }} TransactionResponse
- *
- * @typedef {(error: Error | null, response?: TransactionResponse) => void} PerformCallback
- *
- * @typedef {{
- *   logger?: typeof defaultLogger,
- *   request?: typeof defaultRequest,
- *   http?: Record<string, any>,
- * }} PerformRequestOptions
- */
+interface TransactionRequest {
+  method?: string;
+  body?: string | Buffer;
+  bodyEncoding?: string;
+  headers?: OutgoingHttpHeaders;
+}
+
+interface TransactionResponse {
+  statusCode?: number;
+  headers: IncomingHttpHeaders;
+  bodyEncoding?: BufferEncoding;
+  body?: string;
+}
+
+type PerformCallback = (
+  error: Error | null,
+  response?: TransactionResponse,
+) => void;
+
+interface PerformRequestOptions {
+  logger?: typeof defaultLogger;
+  request?: typeof defaultRequest;
+  http?: Record<string, any>;
+}
 
 /**
  * Performs the HTTP request as described in the 'transaction.request' object
  *
  * In future we should introduce a 'real' request object as well so user has
  * access to the modifications made on the way.
- *
- * @param {string} uri
- * @param {TransactionRequest} transactionReq
- * @param {PerformRequestOptions | PerformCallback} options
- * @param {PerformCallback} [callback]
  */
-function performRequest(uri, transactionReq, options, callback) {
+function performRequest(
+  uri: string,
+  transactionReq: TransactionRequest,
+  options: PerformRequestOptions | PerformCallback,
+  callback?: PerformCallback,
+): void {
   if (typeof options === 'function') {
     [options, callback] = [{}, options];
   }
-  const cb = /** @type {PerformCallback} */ (callback);
+  const cb = callback as PerformCallback;
   const logger = options.logger || defaultLogger;
   const request = options.request || defaultRequest;
 
-  /** @type {Parameters<typeof defaultRequest>[0] & { followRedirect?: boolean }} */
-  const httpOptions = { ...(options.http || {}) };
+  const httpOptions: Parameters<typeof defaultRequest>[0] & {
+    followRedirect?: boolean;
+  } = { ...(options.http || {}) };
   httpOptions.proxy = false;
   httpOptions.followRedirect = false;
   httpOptions.encoding = null;
@@ -81,24 +83,23 @@ function performRequest(uri, transactionReq, options, callback) {
           null,
           createTransactionResponse(
             response,
-            /** @type {Buffer | undefined} */ (responseBody),
+            responseBody as Buffer | undefined,
           ),
         );
       }
     });
   } catch (error) {
-    process.nextTick(() => cb(/** @type {Error} */ (error)));
+    process.nextTick(() => cb(error as Error));
   }
 }
 
 /**
  * Coerces the HTTP request body to a Buffer
- *
- * @param {string | Buffer | undefined} body
- * @param {string | undefined} encoding
- * @returns {Buffer}
  */
-export function getBodyAsBuffer(body, encoding) {
+export function getBodyAsBuffer(
+  body: string | Buffer | undefined,
+  encoding: string | undefined,
+): Buffer {
   return body instanceof Buffer
     ? body
     : Buffer.from(`${body || ''}`, normalizeBodyEncoding(encoding));
@@ -107,11 +108,10 @@ export function getBodyAsBuffer(body, encoding) {
 /**
  * Returns the encoding as either 'utf-8' or 'base64'. Throws
  * an error in case any other encoding is provided.
- *
- * @param {string | undefined} encoding
- * @returns {'utf-8' | 'base64'}
  */
-export function normalizeBodyEncoding(encoding) {
+export function normalizeBodyEncoding(
+  encoding: string | undefined,
+): 'utf-8' | 'base64' {
   if (!encoding) {
     return 'utf-8';
   }
@@ -134,12 +134,14 @@ export function normalizeBodyEncoding(encoding) {
  * Detects an existing Content-Length header and overrides the user-provided
  * header value in case it's out of sync with the real length of the body.
  *
- * @param {import('http').OutgoingHttpHeaders | undefined} headers HTTP request headers
- * @param {Buffer} body HTTP request body
- * @param {{ logger?: typeof defaultLogger }} [options]
- * @returns {import('http').OutgoingHttpHeaders}
+ * @param headers HTTP request headers
+ * @param body HTTP request body
  */
-export function normalizeContentLengthHeader(headers, body, options = {}) {
+export function normalizeContentLengthHeader(
+  headers: OutgoingHttpHeaders | undefined,
+  body: Buffer,
+  options: { logger?: typeof defaultLogger } = {},
+): OutgoingHttpHeaders {
   const logger = options.logger || defaultLogger;
 
   const modifiedHeaders = { ...headers };
@@ -164,14 +166,14 @@ export function normalizeContentLengthHeader(headers, body, options = {}) {
  * Real transaction response object factory. Serializes binary responses
  * to string using Base64 encoding.
  *
- * @param {{ statusCode?: number, headers?: import('http').IncomingHttpHeaders }} [response]
- *   Node.js HTTP response
- * @param {Buffer} [body] HTTP response body as Buffer
- * @returns {TransactionResponse}
+ * @param response Node.js HTTP response
+ * @param body HTTP response body as Buffer
  */
-export function createTransactionResponse(response, body) {
-  /** @type {TransactionResponse} */
-  const transactionRes = {
+export function createTransactionResponse(
+  response?: { statusCode?: number; headers?: IncomingHttpHeaders },
+  body?: Buffer,
+): TransactionResponse {
+  const transactionRes: TransactionResponse = {
     statusCode: response && response.statusCode,
     headers: { ...(response && response.headers) },
   };
@@ -182,11 +184,7 @@ export function createTransactionResponse(response, body) {
   return transactionRes;
 }
 
-/**
- * @param {Buffer} body
- * @returns {'base64' | 'utf-8'}
- */
-export function detectBodyEncoding(body) {
+export function detectBodyEncoding(body: Buffer): 'base64' | 'utf-8' {
   // U+FFFD is a replacement character in UTF-8 and indicates there
   // are some bytes which could not been translated as UTF-8. Therefore
   // let's assume the body is in binary format. Dredd encodes binary as
