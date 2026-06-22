@@ -1,3 +1,4 @@
+// @ts-check
 /* eslint no-console: ["error", { allow: ["log"] }] */
 import fs from 'fs';
 import path from 'path';
@@ -10,6 +11,26 @@ import packageData from '../package.json';
 const INSTALL_DREDD = `npm install dredd@${packageData.version} --global`;
 const RUN_DREDD = 'dredd';
 
+/**
+ * Result of scanning the working directory for project signals.
+ *
+ * @typedef {{
+ *   ci: string[],
+ *   apiDescription: string,
+ *   server: string,
+ *   language: string,
+ * }} DetectResult
+ */
+
+/**
+ * `config` is the raw, pre-normalization CLI config bag and is mutated in
+ * place; it has no canonical type until `normalizeConfig` is type-checked, so
+ * it stays `any` here.
+ *
+ * @param {any} config
+ * @param {(config: any) => void} save
+ * @param {(error?: any) => void} callback
+ */
 function init(config, save, callback) {
   if (!config) {
     config = {};
@@ -42,6 +63,10 @@ function init(config, save, callback) {
   });
 }
 
+/**
+ * @param {string[]} files
+ * @returns {DetectResult}
+ */
 function detect(files) {
   return {
     ci: detectCI(files),
@@ -53,9 +78,18 @@ function detect(files) {
 
 // inquirer 9+ is ESM-only; load it through a native dynamic import that
 // the CommonJS build will not downlevel to a failing require().
+/** @returns {Promise<any>} */
 const loadInquirer = () =>
-  new Function('return import("inquirer")')().then((m) => m.default);
+  new Function('return import("inquirer")')().then(
+    (/** @type {any} */ m) => m.default,
+  );
 
+/**
+ * @param {any} config
+ * @param {DetectResult} detected
+ * @param {(error: any, answers?: any) => void} callback
+ * @param {{ loadInquirer?: () => Promise<any> }} [options]
+ */
 export function prompt(config, detected, callback, options = {}) {
   (options.loadInquirer || loadInquirer)()
     .then((inquirer) =>
@@ -99,7 +133,7 @@ export function prompt(config, detected, callback, options = {}) {
             { name: 'Ruby', value: 'ruby' },
             { name: 'Rust', value: 'rust' },
           ],
-          when: (answers) => answers.hooks,
+          when: (/** @type {any} */ answers) => answers.hooks,
         },
         {
           name: 'apiary',
@@ -114,7 +148,7 @@ export function prompt(config, detected, callback, options = {}) {
             'Enter Apiary API key (leave empty for anonymous, disposable test reports)',
           type: 'input',
           default: config.custom ? config.custom.apiaryApiKey : undefined,
-          when: (answers) =>
+          when: (/** @type {any} */ answers) =>
             answers.apiary && (!config.custom || !config.custom.apiaryApiKey),
         },
         {
@@ -122,7 +156,7 @@ export function prompt(config, detected, callback, options = {}) {
           message: 'Enter Apiary API name',
           type: 'input',
           default: config.custom ? config.custom.apiaryApiName : undefined,
-          when: (answers) =>
+          when: (/** @type {any} */ answers) =>
             answers.apiary &&
             answers.apiaryApiKey &&
             (!config.custom || !config.custom.apiaryApiName),
@@ -174,7 +208,7 @@ export function prompt(config, detected, callback, options = {}) {
             { name: 'Travis CI', value: 'travisci' },
             { name: 'Wercker (Oracle Container Pipelines)', value: 'wercker' },
           ],
-          when: (answers) => answers.ci,
+          when: (/** @type {any} */ answers) => answers.ci,
         },
       ]),
     )
@@ -183,7 +217,14 @@ export function prompt(config, detected, callback, options = {}) {
     });
 }
 
+/**
+ * @param {any} config
+ * @param {Record<string, any>} answers
+ * @param {{ ci?: Record<string, (options?: any) => void> }} [options]
+ * @returns {any}
+ */
 export function applyAnswers(config, answers, options = {}) {
+  /** @type {Record<string, (options?: any) => void>} */
   const ci = options.ci || {
     appveyor: updateAppVeyor,
     circleci: updateCircleCI,
@@ -225,6 +266,10 @@ export function applyAnswers(config, answers, options = {}) {
   return config;
 }
 
+/**
+ * @param {{ language?: string }} config
+ * @param {(message?: any) => void} [print]
+ */
 export function printClosingMessage(config, print = console.log) {
   print('\nConfiguration saved to dredd.yml\n');
   if (config.language === 'nodejs') {
@@ -257,6 +302,10 @@ export function printClosingMessage(config, print = console.log) {
   print('  $ dredd\n');
 }
 
+/**
+ * @param {string} file
+ * @param {(contents: any) => void} update
+ */
 export function editYaml(file, update) {
   const contents = fs.existsSync(file)
     ? yaml.load(fs.readFileSync(file, 'utf8'))
@@ -268,6 +317,9 @@ export function editYaml(file, update) {
   fs.writeFileSync(file, yaml.dump(contents));
 }
 
+/**
+ * @param {{ editYaml?: typeof editYaml }} [options]
+ */
 export function updateAppVeyor(options = {}) {
   const edit = options.editYaml || editYaml;
 
@@ -291,6 +343,9 @@ export function updateAppVeyor(options = {}) {
   });
 }
 
+/**
+ * @param {{ editYaml?: typeof editYaml }} [options]
+ */
 export function updateCircleCI(options = {}) {
   const edit = options.editYaml || editYaml;
 
@@ -309,6 +364,9 @@ export function updateCircleCI(options = {}) {
   });
 }
 
+/**
+ * @param {{ editYaml?: typeof editYaml }} [options]
+ */
 export function updateTravisCI(options = {}) {
   const edit = options.editYaml || editYaml;
 
@@ -329,6 +387,9 @@ export function updateTravisCI(options = {}) {
   });
 }
 
+/**
+ * @param {{ editYaml?: typeof editYaml }} [options]
+ */
 export function updateWercker(options = {}) {
   const edit = options.editYaml || editYaml;
 
@@ -340,7 +401,7 @@ export function updateWercker(options = {}) {
     if (!contents.build) {
       contents.build = {};
     }
-    contents.build.steps = [].concat(
+    contents.build.steps = /** @type {any[]} */ ([]).concat(
       [{ script: { name: 'install-dredd', code: INSTALL_DREDD } }],
       contents.build.steps || [],
       [{ script: { name: 'dredd', code: RUN_DREDD } }],
@@ -348,6 +409,10 @@ export function updateWercker(options = {}) {
   });
 }
 
+/**
+ * @param {string[]} files
+ * @returns {string}
+ */
 export function detectLanguage(files) {
   const lcFiles = files.map((f) => f.toLowerCase());
 
@@ -388,7 +453,12 @@ export function detectLanguage(files) {
   return 'nodejs';
 }
 
+/**
+ * @param {string[]} files
+ * @returns {string}
+ */
 export function detectServer(files) {
+  /** @type {Record<string, string>} */
   const commands = {
     nodejs: 'npm start',
     ruby: 'bundle exec rails server',
@@ -398,6 +468,10 @@ export function detectServer(files) {
   return commands[language] || commands.nodejs;
 }
 
+/**
+ * @param {string[]} files
+ * @returns {string}
+ */
 export function detectApiDescription(files) {
   const openapi = files.filter((f) => f.match(/\.ya?ml$/i) && f.match(/api/));
   if (openapi.length) {
@@ -407,7 +481,12 @@ export function detectApiDescription(files) {
   return 'apiary.yaml';
 }
 
+/**
+ * @param {string[]} files
+ * @returns {string[]}
+ */
 export function detectCI(files) {
+  /** @type {Record<string, string>} */
   const ci = {
     'wercker.yml': 'wercker',
     'appveyor.yml': 'appveyor',
