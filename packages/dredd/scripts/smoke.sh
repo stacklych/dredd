@@ -8,24 +8,35 @@ set -e
 TMPDIR="$(mktemp -d)"
 PROJECT_DIR="$(pwd)/../.."
 
-# install monorepo package into $TMPDIR
-install() {
+# Pack a monorepo package into a tarball inside $TMPDIR and echo its filename.
+# Note: only packing here, NOT installing. dredd depends on the unpublished
+# '@stacklych/dredd-transactions@^0.1.0', so the tarballs must be installed
+# together (see below) to avoid npm trying to resolve it from the registry.
+pack() {
   PACKAGE="$1"
 
   cd "$PROJECT_DIR/packages/$PACKAGE"
   TARBALL="$(npm pack | tail -n1)"
   mv "$PROJECT_DIR/packages/$PACKAGE/$TARBALL" "$TMPDIR"
 
-  cd "$TMPDIR" && npm install --no-save "$TARBALL"
+  echo "$TARBALL"
 }
 
 # Prepare a throwaway project to install the packed tarballs into
 cd "$TMPDIR" && npm init --yes > /dev/null
 
-install dredd-transactions
-install dredd
+# Pack both packages first.
+DREDD_TRANSACTIONS_TARBALL="$(pack dredd-transactions)"
+DREDD_TARBALL="$(pack dredd)"
 
 cd "$TMPDIR"
+
+# Install BOTH tarballs in a single command. Passing the locally-packed
+# 'dredd-transactions' (version 0.1.0) tarball alongside the 'dredd' tarball
+# lets npm satisfy dredd's '@stacklych/dredd-transactions@^0.1.0' dependency
+# from the provided tarball, so it never hits the npm registry for that
+# unpublished package (which would 404).
+npm install --no-save "$DREDD_TRANSACTIONS_TARBALL" "$DREDD_TARBALL"
 
 # Assert that Protagonist (the C++ dependency) was not installed
 if [[ "$(find node_modules -name protagonist)" != "" ]]; then
