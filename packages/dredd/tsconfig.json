@@ -10,6 +10,7 @@
     "moduleResolution": "node16",
     "skipLibCheck": true,
     "esModuleInterop": true,
+    "strict": true,
     "allowJs": true,
     "allowSyntheticDefaultImports": true
   },
