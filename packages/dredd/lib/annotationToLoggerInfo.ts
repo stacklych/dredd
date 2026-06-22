@@ -1,14 +1,10 @@
-// @ts-check
 import compileTransactionName from './compileTransactionName';
 
 /**
  * Turns annotation type into a log level
- * @param {string} annotationType
- * @returns {string}
  */
-function typeToLogLevel(annotationType) {
-  /** @type {Record<string, string>} */
-  const levels = { error: 'error', warning: 'warn' };
+function typeToLogLevel(annotationType: string): string {
+  const levels: Record<string, string> = { error: 'error', warning: 'warn' };
   const level = levels[annotationType];
   if (!level) {
     throw new Error(`Invalid annotation type: '${annotationType}'`);
@@ -18,11 +14,8 @@ function typeToLogLevel(annotationType) {
 
 /**
  * Takes a component identifier and turns it into something user can understand
- *
- * @param {string} component
- * @returns {string}
  */
-function formatComponent(component) {
+function formatComponent(component: string): string {
   switch (component) {
     case 'apiDescriptionParser':
       return 'API description parser';
@@ -38,11 +31,13 @@ function formatComponent(component) {
 /**
  * Formats given location data as something user can understand
  *
- * @param {string} apiDescriptionLocation API description location name
- * @param {number[][]} [annotationLocation] See 'dredd-transactions' docs
- * @returns {string}
+ * @param apiDescriptionLocation API description location name
+ * @param annotationLocation See 'dredd-transactions' docs
  */
-function formatLocation(apiDescriptionLocation, annotationLocation) {
+function formatLocation(
+  apiDescriptionLocation: string,
+  annotationLocation?: number[][],
+): string {
   if (!annotationLocation) {
     return apiDescriptionLocation;
   }
@@ -62,40 +57,40 @@ function formatLocation(apiDescriptionLocation, annotationLocation) {
   return `${editorLink} (from ${from} to ${to})`;
 }
 
-/**
- * @typedef {Object} LoggerInfo A plain object winston.log() accepts as input
- * @property {string} level
- * @property {string} message
- */
+/** A plain object winston.log() accepts as input */
+interface LoggerInfo {
+  level: string;
+  message: string;
+}
 
-/**
- * @typedef {Object} Annotation The annotation object from Dredd Transactions
- * @property {string} type
- * @property {string} component
- * @property {string} message
- * @property {number[][]} [location]
- * @property {{
- *   apiName?: string,
- *   resourceGroupName?: string,
- *   resourceName?: string,
- *   actionName?: string,
- *   exampleName?: string,
- * }} [origin] Present on compiler annotations (used in the non-parser branch)
- */
+/** The annotation object from Dredd Transactions */
+interface Annotation {
+  type: string;
+  component: string;
+  message: string;
+  location?: number[][];
+  /** Present on compiler annotations (used in the non-parser branch) */
+  origin?: {
+    apiName?: string;
+    resourceGroupName?: string;
+    resourceName?: string;
+    actionName?: string;
+    exampleName?: string;
+  };
+}
 
 /**
  * Takes API description parser or compiler annotation returned from
  * the 'dredd-transactions' library and transforms it into a message
  * Dredd can show to the user. Returns an object logger accepts as input.
  *
- * @param {string} apiDescriptionLocation API description location name
- * @param {Annotation} annotation the annotation object from Dredd Transactions
- * @return {LoggerInfo}
+ * @param apiDescriptionLocation API description location name
+ * @param annotation the annotation object from Dredd Transactions
  */
 export default function annotationToLoggerInfo(
-  apiDescriptionLocation,
-  annotation,
-) {
+  apiDescriptionLocation: string,
+  annotation: Annotation,
+): LoggerInfo {
   const level = typeToLogLevel(annotation.type);
 
   if (annotation.component === 'apiDescriptionParser') {
@@ -111,7 +106,7 @@ export default function annotationToLoggerInfo(
   const message =
     `${formatComponent(annotation.component)} ${annotation.type}` +
     ` in ${apiDescriptionLocation} (${compileTransactionName(
-      /** @type {NonNullable<Annotation['origin']>} */ (annotation.origin),
+      annotation.origin as NonNullable<Annotation['origin']>,
     )}):` +
     ` ${annotation.message}`;
   return { level, message };

@@ -1,4 +1,3 @@
-// @ts-check
 import html from 'html';
 
 import logger from './logger';
@@ -8,18 +7,13 @@ import logger from './logger';
  * schema-bearing object) as a human-readable string for the reporters. Field
  * values are arbitrary (bodies may be any content type), so they are typed
  * loosely.
- * @param {Record<string, any> | null | undefined} response
- * @returns {string}
  */
-export default function prettifyResponse(response) {
-  /** @type {string | undefined} */
-  let contentType;
+export default function prettifyResponse(
+  response: Record<string, any> | null | undefined,
+): string {
+  let contentType: string | undefined;
 
-  /**
-   * @param {any} obj
-   * @returns {any}
-   */
-  function stringify(obj) {
+  function stringify(obj: any): any {
     try {
       if (typeof obj === 'string') {
         obj = JSON.parse(obj);
@@ -31,12 +25,7 @@ export default function prettifyResponse(response) {
     return obj;
   }
 
-  /**
-   * @param {any} body
-   * @param {string | undefined} contentKind
-   * @returns {any}
-   */
-  function prettifyBody(body, contentKind) {
+  function prettifyBody(body: any, contentKind: string | undefined): any {
     switch (contentKind) {
       case 'text/html':
         body = html.prettyPrint(body, { indent_size: 2 });
@@ -52,7 +41,7 @@ export default function prettifyResponse(response) {
       response.headers['content-type'] || response.headers['Content-Type'];
   }
 
-  const safeResponse = /** @type {Record<string, any>} */ (response || {});
+  const safeResponse: Record<string, any> = response || {};
   let stringRepresentation = '';
   for (const key of Object.keys(safeResponse)) {
     let value = safeResponse[key];
