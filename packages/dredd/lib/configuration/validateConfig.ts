@@ -1,13 +1,11 @@
-// @ts-check
+interface ConfigRule {
+  /** Config keys this rule matches */
+  options: string[];
+  /** Warning/error message to surface */
+  message: string;
+}
 
-/**
- * @typedef {object} ConfigRule
- * @property {string[]} options Config keys this rule matches
- * @property {string} message Warning/error message to surface
- */
-
-/** @type {ConfigRule[]} */
-const deprecatedOptions = [
+const deprecatedOptions: ConfigRule[] = [
   {
     options: ['c'],
     message:
@@ -32,8 +30,7 @@ const deprecatedOptions = [
   },
 ];
 
-/** @type {ConfigRule[]} */
-const unsupportedOptions = [
+const unsupportedOptions: ConfigRule[] = [
   {
     options: ['timestamp', 't'],
     message:
@@ -56,24 +53,22 @@ const unsupportedOptions = [
   },
 ];
 
-/**
- * @param {ConfigRule[]} rules
- * @param {Record<string, unknown>} config
- * @returns {string[]}
- */
-function flushMessages(rules, config) {
+function flushMessages(
+  rules: ConfigRule[],
+  config: Record<string, unknown>,
+): string[] {
   return Object.keys(config).reduce((messages, configKey) => {
     const warning = rules.find((rule) => rule.options.includes(configKey));
     return warning ? messages.concat(warning.message) : messages;
-  }, /** @type {string[]} */ ([]));
+  }, [] as string[]);
 }
 
 /**
  * Returns the errors and warnings relative to the given config.
- * @param {Record<string, unknown>} config
- * @returns {{ warnings: string[], errors: string[] }}
  */
-const validateConfig = (config) => ({
+const validateConfig = (
+  config: Record<string, unknown>,
+): { warnings: string[]; errors: string[] } => ({
   warnings: flushMessages(deprecatedOptions, config),
   errors: flushMessages(unsupportedOptions, config),
 });

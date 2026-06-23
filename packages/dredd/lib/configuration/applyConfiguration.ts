@@ -1,5 +1,8 @@
-// @ts-check
-import R from 'ramda';
+// @types/ramda models dissoc/assoc/compose with conditional return types that
+// don't satisfy compose()/when()'s overloads on this dynamic config bag; treat
+// the ramda namespace as untyped here (the typed boundaries — validateConfig's
+// return and resolveConfig's explicit return type — are preserved below).
+import RTyped from 'ramda';
 import { EventEmitter } from 'events';
 
 import logger from '../logger';
@@ -7,6 +10,8 @@ import getProxySettings from '../getProxySettings';
 import applyLoggingOptions from './applyLoggingOptions';
 import validateConfig from './validateConfig';
 import normalizeConfig from './normalizeConfig';
+
+const R: any = RTyped;
 
 export const DEFAULT_CONFIG = {
   http: {},
@@ -50,11 +55,7 @@ export const DEFAULT_CONFIG = {
 // This makes it possible to use nested "options" key without introducing
 // a breaking change to the library's public API.
 // TODO https://github.com/apiaryio/dredd/issues/1344
-/**
- * @param {any} config
- * @returns {any}
- */
-function flattenConfig(config) {
+function flattenConfig(config: any): any {
   // Rename "root.server" key to "root.endpoint".
   // Necessary to prevent options values collision between:
   // - root.server - stands for server url.
@@ -67,14 +68,9 @@ function flattenConfig(config) {
   // on the normalization layer.
   const aliasedConfig = R.when(
     R.has('server'),
-    // @types/ramda models dissoc/assoc with conditional return types that
-    // don't satisfy compose's overloads; cast the composed transform to a
-    // plain unary function since the runtime value is a dynamic config bag.
-    /** @type {(c: any) => any} */ (
-      R.compose(
-        R.dissoc('server'),
-        R.assoc('endpoint', R.prop('server', config)),
-      )
+    R.compose(
+      R.dissoc('server'),
+      R.assoc('endpoint', R.prop('server', config)),
     ),
   )(config);
 
@@ -88,11 +84,11 @@ function flattenConfig(config) {
   return R.mergeDeepLeft(nestedOptions || {}, rootOptions);
 }
 
-/**
- * @param {any} config
- * @returns {{ config: any, warnings: string[], errors: string[] }}
- */
-export function resolveConfig(config) {
+export function resolveConfig(config: any): {
+  config: any;
+  warnings: string[];
+  errors: string[];
+} {
   const inConfig = R.compose(
     // Set "emitter" property explicitly to preserve its prototype.
     // During deep merge Ramda omits prototypes, breaking emitter.
@@ -118,11 +114,7 @@ export function resolveConfig(config) {
   };
 }
 
-/**
- * @param {any} config
- * @returns {any}
- */
-function applyConfiguration(config) {
+function applyConfiguration(config: any): any {
   const { config: resolvedConfig } = resolveConfig(config);
 
   applyLoggingOptions(resolvedConfig);

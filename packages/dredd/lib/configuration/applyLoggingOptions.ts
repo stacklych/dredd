@@ -1,4 +1,3 @@
-// @ts-check
 import logger from '../logger';
 import reporterOutputLogger from '../reporters/reporterOutputLogger';
 
@@ -6,10 +5,10 @@ import reporterOutputLogger from '../reporters/reporterOutputLogger';
  * Applies logging options from the given configuration.
  * Operates on the validated normalized config.
  *
- * @param {any} config The validated, normalized Dredd config (a dynamic bag
- *   with no canonical type until `normalizeConfig` is type-checked).
+ * @param config The validated, normalized Dredd config (a dynamic bag with no
+ *   canonical type until `normalizeConfig` is type-checked).
  */
-function applyLoggingOptions(config) {
+function applyLoggingOptions(config: any): void {
   if (config.color === false) {
     logger.transports.console.colorize = false;
     reporterOutputLogger.transports.console.colorize = false;

@@ -1,4 +1,3 @@
-// @ts-check
 // This module is pure point-free ramda plumbing operating on the dynamic,
 // pre-normalization config bag. @types/ramda models dissoc/assoc/over/evolve/
 // adjust with conditional return types that don't satisfy compose()/when()'s
@@ -7,8 +6,7 @@
 // callbacks below — is still type-checked via their annotated parameters.
 import RTyped from 'ramda';
 
-/** @type {any} */
-const R = RTyped;
+const R: any = RTyped;
 
 /**
  * Removes options that are no longer supported by Dredd.
@@ -25,8 +23,8 @@ export const removeUnsupportedOptions = R.compose(
 );
 
 const getUserHeader = R.compose(
-  (/** @type {string} */ token) => `Authorization: Basic ${token}`,
-  (/** @type {string} */ user) => Buffer.from(user).toString('base64'),
+  (token: string) => `Authorization: Basic ${token}`,
+  (user: string) => Buffer.from(user).toString('base64'),
 );
 
 const updateHeaderWithUser = R.compose(
@@ -37,16 +35,12 @@ const updateHeaderWithUser = R.compose(
 );
 
 export const coerceToArray = R.cond([
-  [R.is(String), (/** @type {any} */ v) => [v]],
+  [R.is(String), (v: any) => [v]],
   [R.isNil, R.always([])],
   [R.T, R.identity],
 ]);
 
-/**
- * @param {any} value
- * @returns {boolean}
- */
-export function coerceToBoolean(value) {
+export function coerceToBoolean(value: any): boolean {
   if (value === 'true') return true;
   if (value === 'false') return false;
   if (value) return true;
@@ -67,7 +61,7 @@ export const coerceUserOption = R.when(
 const mapIndexed = R.addIndex(R.map);
 
 export const coerceApiDescriptions = R.compose(
-  mapIndexed((/** @type {any} */ content, /** @type {number} */ index) => ({
+  mapIndexed((content: any, index: number) => ({
     location: `configuration.apiDescriptions[${index}]`,
     content: R.when(R.has('content'), R.prop('content'), content),
   })),
@@ -102,7 +96,7 @@ const coerceDataToApiDescriptions = R.compose(
   R.values,
   R.evolve({
     data: R.compose(
-      R.map((/** @type {[string, any]} */ [location, content]) => {
+      R.map(([location, content]: [string, any]) => {
         const apiDescription =
           typeof content === 'string'
             ? { location, content }
