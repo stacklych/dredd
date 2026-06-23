@@ -23,7 +23,7 @@ Supported API Description Formats
 
 .. note::
 
-   Dredd supports **OpenAPI 3.0 and OpenAPI 3.1 only**. API Blueprint and
+   Dredd supports **OpenAPI 3.0, 3.1, and 3.2 only**. API Blueprint and
    OpenAPI 2 (Swagger) are no longer supported. Convert older descriptions to
    OpenAPI 3 before using Dredd.
 

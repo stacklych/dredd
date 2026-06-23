@@ -75,7 +75,7 @@ Following execution life cycle documentation should help you to understand how D
 Automatic Expectations
 ----------------------
 
-Dredd automatically generates expectations on HTTP responses based on examples and schemas in the API description. Structural expectations are validated by Dredd’s built-in validator. In addition, **both OpenAPI 3.0 and OpenAPI 3.1 response schemas are validated with Ajv**, so response data types — including ``$ref``, ``allOf``, arrays, ``nullable``, and string formats — are checked against the described schema.
+Dredd automatically generates expectations on HTTP responses based on examples and schemas in the API description. Structural expectations are validated by Dredd’s built-in validator. In addition, **OpenAPI 3.0, 3.1, and 3.2 response schemas are validated with Ajv**, so response data types — including ``$ref``, ``allOf``, arrays, ``nullable``, and string formats — are checked against the described schema.
 
 Response Headers Expectations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

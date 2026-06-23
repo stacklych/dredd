@@ -25,7 +25,10 @@ function parse(apiDescription, callback) {
   }
 
   const version = document && document.openapi;
-  if (typeof version === 'string' && /^3\.1\.\d+$/.test(version)) {
+  // OpenAPI 3.1 and 3.2 share the same schema model (JSON Schema 2020-12 and the
+  // OAS 3.1 dialect), so both go through the in-house compiler path instead of
+  // the API Elements adapter (which targets 3.0).
+  if (typeof version === 'string' && /^3\.[12]\.\d+$/.test(version)) {
     const apiElements = new ParseResult([]);
     apiElements.openapi31 = { document, source: apiDescription };
     callback(null, {
@@ -41,7 +44,7 @@ function parse(apiDescription, callback) {
     apiElements.push(createAnnotation(
       'error', (
         'Unrecognized API description format. '
-        + 'Only OpenAPI 3.0 and 3.1 descriptions are supported.'
+        + 'Only OpenAPI 3.0, 3.1, and 3.2 descriptions are supported.'
       )
     ));
     callback(null, {

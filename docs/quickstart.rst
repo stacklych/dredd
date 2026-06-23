@@ -18,7 +18,7 @@ If you’re not familiar with the Node.js ecosystem or you bump into any issues,
 Document Your API
 -----------------
 
-First, let’s design the API we are about to build and test. That means you will need to create an API description file, which will document how your API should look like. Dredd supports **OpenAPI 3.0 and OpenAPI 3.1** (API Blueprint and OpenAPI 2 are no longer supported).
+First, let’s design the API we are about to build and test. That means you will need to create an API description file, which will document how your API should look like. Dredd supports **OpenAPI 3.0, 3.1, and 3.2** (API Blueprint and OpenAPI 2 are no longer supported).
 
 Create a file called ``api-description.yaml`` with the following content:
 

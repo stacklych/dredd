@@ -771,4 +771,78 @@ paths:
       });
     });
   });
+
+  describe('OpenAPI 3.2', () => {
+    it('routes a 3.2 document through the in-house compiler', () => {
+      const compileResult = compileOpenAPI31(`
+openapi: 3.2.0
+info: { title: T, version: '1.0' }
+paths:
+  /things/{id}:
+    get:
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string, example: abc } }
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema: { type: object, properties: { id: { type: string } } }
+`);
+      assert.jsonSchema(compileResult, createCompileResultSchema({
+        annotations: 0,
+        transactions: 1,
+      }));
+      assert.equal(compileResult.transactions[0].request.method, 'GET');
+      assert.equal(compileResult.transactions[0].request.uri, '/things/abc');
+      assert.equal(
+        JSON.parse(compileResult.transactions[0].response.schema).$schema,
+        'https://spec.openapis.org/oas/3.1/dialect/base'
+      );
+    });
+
+    it('compiles the QUERY method, including its request body', () => {
+      const compileResult = compileOpenAPI31(`
+openapi: 3.2.0
+info: { title: T, version: '1.0' }
+paths:
+  /search:
+    query:
+      requestBody:
+        content:
+          application/json:
+            schema: { type: object, properties: { q: { type: string, example: hi } } }
+      responses:
+        '200': { description: ok }
+`);
+      assert.jsonSchema(compileResult, createCompileResultSchema({
+        annotations: 0,
+        transactions: 1,
+      }));
+      assert.equal(compileResult.transactions[0].request.method, 'QUERY');
+      assert.deepEqual(compileResult.transactions[0].request.headers, [
+        { name: 'Content-Type', value: 'application/json' },
+      ]);
+      assert.equal(compileResult.transactions[0].request.body, '{"q":"hi"}');
+    });
+
+    it('compiles additionalOperations using the method key verbatim', () => {
+      const compileResult = compileOpenAPI31(`
+openapi: 3.2.0
+info: { title: T, version: '1.0' }
+paths:
+  /cache:
+    additionalOperations:
+      PURGE:
+        responses:
+          '204': { description: gone }
+`);
+      assert.jsonSchema(compileResult, createCompileResultSchema({
+        annotations: 0,
+        transactions: 1,
+      }));
+      assert.equal(compileResult.transactions[0].request.method, 'PURGE');
+      assert.equal(compileResult.transactions[0].response.status, '204');
+    });
+  });
 });

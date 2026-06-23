@@ -1,6 +1,9 @@
 import compileTransactionName from './compileTransactionName.js';
 
-const METHODS = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'];
+// `query` is the OpenAPI 3.2 QUERY operation (a safe, idempotent method that
+// may carry a request body). Other non-fixed-field methods arrive via the
+// 3.2 `additionalOperations` map (see collectOperations).
+const METHODS = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace', 'query'];
 const OAS_31_DIALECT = 'https://spec.openapis.org/oas/3.1/dialect/base';
 
 function decodePointerSegment(segment) {
@@ -408,7 +411,7 @@ function compileRequests(document, method, uri, operation, leadingHeaders) {
   // path); an operation without a request body yields a single request.
   return getAllContents(content).map((requestContent) => {
     const request = {
-      method: method.toUpperCase(),
+      method,
       uri,
       headers: [...(leadingHeaders || [])],
       body: '',
@@ -469,7 +472,7 @@ function compileOrigin(filename, document, pathTemplate, method, response) {
     apiName: (document.info && document.info.title) || filename || '',
     resourceGroupName: '',
     resourceName: pathTemplate,
-    actionName: method.toUpperCase(),
+    actionName: method,
     exampleName: [
       response.status,
       response.headers
@@ -533,6 +536,30 @@ function compileOperation(document, filename, pathTemplate, pathItem, method, op
   return { transactions, annotations: [] };
 }
 
+// Collects the operations of a Path Item as `{ method, operation }`, where
+// `method` is the HTTP method exactly as it should be sent. The fixed-field
+// methods (including the 3.2 `query` field) are uppercased; the keys of the
+// 3.2 `additionalOperations` map are used verbatim, since the spec defines them
+// as the method with the capitalization to be sent in the request.
+function collectOperations(pathItem) {
+  const operations = [];
+
+  METHODS.forEach((method) => {
+    if (pathItem[method]) {
+      operations.push({ method: method.toUpperCase(), operation: pathItem[method] });
+    }
+  });
+
+  const additionalOperations = pathItem.additionalOperations || {};
+  Object.keys(additionalOperations).forEach((method) => {
+    if (additionalOperations[method]) {
+      operations.push({ method, operation: additionalOperations[method] });
+    }
+  });
+
+  return operations;
+}
+
 export default function compileOpenAPI31(apiElements, filename) {
   const { document } = apiElements.openapi31;
   const paths = document.paths || {};
@@ -542,15 +569,12 @@ export default function compileOpenAPI31(apiElements, filename) {
 
   Object.keys(paths).forEach((pathTemplate) => {
     const pathItem = resolveRef(document, paths[pathTemplate]);
-    METHODS.forEach((method) => {
-      const operation = pathItem[method];
-      if (operation) {
-        const compiled = compileOperation(
-          document, filename, pathTemplate, pathItem, method, operation
-        );
-        transactions.push(...compiled.transactions);
-        annotations.push(...compiled.annotations);
-      }
+    collectOperations(pathItem).forEach(({ method, operation }) => {
+      const compiled = compileOperation(
+        document, filename, pathTemplate, pathItem, method, operation
+      );
+      transactions.push(...compiled.transactions);
+      annotations.push(...compiled.annotations);
     });
   });
 

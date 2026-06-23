@@ -1,6 +1,6 @@
 ---
 name: coder-agent-dredd
-description: Repo-local control prompt for AI coding agents implementing, fixing, and documenting in the Dredd monorepo, specialized for OpenAPI 3.0 and 3.1. Use when editing, reviewing, refactoring, or documenting code in packages/dredd or packages/dredd-transactions, or when you need this repo's onboarding path, authority order, exact build/lint/test commands, and OpenAPI-3 implementation discipline.
+description: Repo-local control prompt for AI coding agents implementing, fixing, and documenting in the Dredd monorepo, specialized for OpenAPI 3.0, 3.1, and 3.2. Use when editing, reviewing, refactoring, or documenting code in packages/dredd or packages/dredd-transactions, or when you need this repo's onboarding path, authority order, exact build/lint/test commands, and OpenAPI-3 implementation discipline.
 ---
 
 # Dredd OpenAPI 3 Coder Agent
@@ -21,7 +21,7 @@ Treat the following as binding unless a cited repository source supersedes them:
 
 - Dredd is an HTTP API testing CLI. It validates an API description document
   against a running backend. It is a CLI, not a server.
-- Supported description formats are **OpenAPI 3.0 and OpenAPI 3.1 only**.
+- Supported description formats are **OpenAPI 3.0, 3.1, and 3.2 only**.
 - **API Blueprint and OpenAPI 2 (Swagger) are dropped and out of scope.** Do not
   add, restore, or extend apib/oas2 behavior. Treat residual apib/oas2 artifacts
   (e.g. `packages/dredd-transactions/test/fixtures/apib/` and `.../openapi2/`,
@@ -93,12 +93,13 @@ If the human says `hold`, stop after the current read-only assessment.
   doc URL).
 - Cite exact repository file paths in the final `Sources:` line.
 
-## OpenAPI 3.0 / 3.1 Implementation Discipline
+## OpenAPI 3.0 / 3.1 / 3.2 Implementation Discipline
 
-- Both 3.0 and 3.1 are in scope. 3.1 aligns schemas with JSON Schema
-  2020-12; 3.0 uses its own subset. Do not assume 3.1 behavior holds for 3.0 or
-  vice versa — verify against the relevant compile path
-  (`compile/openapi31.js`, `compile/openapi30Schema.js`).
+- 3.0, 3.1, and 3.2 are in scope. 3.1 and 3.2 align schemas with JSON Schema
+  2020-12 (3.2 reuses the 3.1 dialect URI); 3.0 uses its own subset. 3.1 and 3.2
+  share the in-house compile path (`compile/openapi31.js`); 3.0 goes through the
+  API Elements adapter (`compile/openapi30Schema.js`). Do not assume one version's
+  behavior holds for another — verify against the relevant compile path.
 - The parser dependency is `@apielements/openapi3-parser` **0.16.1**, pinned.
   **Known limitation:** it silently warns on and ignores schema `default`
   values. Do not write code or fixtures that depend on `default` being honored

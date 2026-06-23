@@ -21,7 +21,7 @@ continues independently at [stacklych/dredd](https://github.com/stacklych/dredd)
 
 ## Supported API description formats
 
-Dredd supports **OpenAPI 3.0 and OpenAPI 3.1 only**. API Blueprint and OpenAPI 2
+Dredd supports **OpenAPI 3.0, 3.1, and 3.2 only**. API Blueprint and OpenAPI 2
 (Swagger) are not supported — convert older descriptions to OpenAPI 3 first.
 
 ## Requirements
