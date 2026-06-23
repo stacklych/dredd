@@ -1,31 +1,21 @@
-
 name: run-docs-test
 
-on: push
-    # here add directory listing on push to test
-    # paths:
-      # - /docs/*.rst
-      # - /docs/**/*.rst
+# Documentation validation (Sphinx linkcheck, extension unit tests, and the HTML
+# build) only needs to run when the documentation — or this workflow — changes.
+# Gating on paths keeps Sphinx (and its external-network linkcheck) off code-only
+# pushes, where it adds minutes and a network-flake surface for no benefit.
+#
+# `commitlint` used to live here; it moved to commitlint.yml so it keeps running
+# on every push. Code linting (`yarn lint`) is covered by run-test.yml and is no
+# longer duplicated here.
+on:
+  push:
+    paths:
+      - 'docs/**'
+      - 'package.json' # the docs:* scripts live in the root manifest
+      - '.github/workflows/run-docs-test.yml'
 
 jobs:
-
-  commitlint:
-
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        node-version: [22.x]
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22.x
-      - run: yarn install          
-      - run: npx commitlint --last --verbose
 
   quality-checks:
 
@@ -54,7 +44,6 @@ jobs:
 
     # install
     - run: yarn install
-    - run: yarn lint
     - run: yarn docs:lint
     - run: yarn docs:test-extensions
 
