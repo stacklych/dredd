@@ -1,6 +1,6 @@
 {
   "name": "@stacklych/dredd",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "HTTP API Testing Framework",
   "type": "module",
   "main": "build/index.js",
