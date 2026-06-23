@@ -176,6 +176,24 @@ node .claude/skills/run-dredd/driver.mjs
 - Conflicts with binding facts (e.g. re-adding a dropped format): stop, report
   the conflict, do not interpret around it.
 
+## Backlog & Issue Triage
+
+When a real, out-of-scope finding surfaces during authorized work — confirmed dead
+code, stale docs/provenance, a missing test, a security smell, a 404'd link — file
+it as a GitHub issue instead of fixing it inline or dropping it. This builds a
+durable, triaged backlog rather than scattering fixes or losing the observation.
+
+- File only confirmed, out-of-scope findings. Skip vague hunches and anything
+  fixable inline in seconds. One issue per finding.
+- Title is imperative ("Fix ...", "Remove ..."). Body carries `file:line`
+  evidence plus why it is out of the current change's scope.
+- Classify with exactly one type label (`bug` / `documentation` / `enhancement` /
+  `tech-debt` / `ci`), one `priority: high|medium|low`, and `agent-flagged`.
+- Group related items under a milestone when they form a coherent batch (as the
+  v0.4.0 "Post-modernization cleanup" milestone did).
+- Filing is the action; never fan out into fixing the backlog. The fix is a
+  separate, authorized task.
+
 ## Review Discipline
 
 When asked for review: findings first, ordered by severity (bugs, regressions,
