@@ -1,8 +1,8 @@
-const compileParams = require('./compileParams');
-const validateParams = require('./validateParams');
-const expandUriTemplate = require('./expandURItemplate');
+import compileParams from './compileParams.js';
+import validateParams from './validateParams.js';
+import expandUriTemplate from './expandURItemplate.js';
 
-module.exports = function compileURI(httpRequestElement) {
+export default function compileURI(httpRequestElement) {
   const annotations = [];
   const cascade = [
     httpRequestElement.parents.find('resource'),

@@ -17,7 +17,7 @@ function compileLocation(sourceMapElement) {
   }
 }
 
-module.exports = function compileAnnotation(annotationElement) {
+export default function compileAnnotation(annotationElement) {
   return {
     type: annotationElement.classes.getValue(0),
     component: 'apiDescriptionParser',

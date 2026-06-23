@@ -1,4 +1,5 @@
-const parse = require('./parse');
-const compile = require('./compile');
+import parse from './parse/index.js';
+import compile from './compile/index.js';
 
-module.exports = { parse, compile };
+export { parse, compile };
+export default { parse, compile };

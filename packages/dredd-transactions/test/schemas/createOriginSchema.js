@@ -1,4 +1,4 @@
-module.exports = function createOriginSchema(options = {}) {
+export default function createOriginSchema(options = {}) {
   let filenameSchema;
   if (options.filename) {
     filenameSchema = { type: 'string', enum: [options.filename] };

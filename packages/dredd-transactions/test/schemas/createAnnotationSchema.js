@@ -1,5 +1,5 @@
-const createLocationSchema = require('./createLocationSchema');
-const createOriginSchema = require('./createOriginSchema');
+import createLocationSchema from './createLocationSchema.js';
+import createOriginSchema from './createOriginSchema.js';
 
 const TYPES = ['error', 'warning'];
 
@@ -15,7 +15,7 @@ function toPattern(message) {
   return message;
 }
 
-module.exports = function createAnnotationSchema(options = {}) {
+export default function createAnnotationSchema(options = {}) {
   // Either filename string or undefined (= doesn't matter)
   const { filename } = options;
 

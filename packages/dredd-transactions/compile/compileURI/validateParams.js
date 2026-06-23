@@ -1,4 +1,4 @@
-module.exports = function validateParams(params) {
+export default function validateParams(params) {
   const result = { warnings: [], errors: [] };
 
   Object.keys(params).forEach((paramName) => {

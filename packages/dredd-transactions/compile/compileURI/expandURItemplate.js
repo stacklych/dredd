@@ -1,6 +1,9 @@
-const ut = require('uri-template');
+// Named import: uri-template marks itself `__esModule` but exposes no default
+// export, so a default import resolves to `undefined` under esbuild/tsx (which
+// honours `__esModule`) even though it works under plain Node.
+import { parse as parseUriTemplate } from 'uri-template';
 
-module.exports = function expandURITemplate(uriTemplate, params) {
+export default function expandURITemplate(uriTemplate, params) {
   let parsed;
   const result = {
     errors: [],
@@ -9,7 +12,7 @@ module.exports = function expandURITemplate(uriTemplate, params) {
   };
 
   try {
-    parsed = ut.parse(uriTemplate);
+    parsed = parseUriTemplate(uriTemplate);
   } catch (e) {
     result.errors.push(`\
 Failed to parse URI template: ${uriTemplate}

@@ -1,13 +1,10 @@
-import { createRequire } from 'module';
+import esmock from 'esmock';
 
 import createAnnotationSchema from '../schemas/createAnnotationSchema.js';
 import createCompileResultSchema from '../schemas/createCompileResultSchema.js';
 
 import { assert, fixtures } from '../support.mjs';
 import compile from '../../compile/index.js';
-
-const require = createRequire(import.meta.url);
-const proxyquire = require('proxyquire').noPreserveCache();
 
 describe('compile() · all API description formats', () => {
   describe('ordinary, valid API description', () => {
@@ -151,12 +148,18 @@ describe('compile() · all API description formats', () => {
     // we need to pretend it's possible in this test.
     fixtures('ordinary').forEachDescribe(({ mediaType, apiElements }) => {
       const message = '... dummy warning message ...';
-      const stubbedCompile = proxyquire('../../compile', {
-        './compileURI': proxyquire('../../compile/compileURI', {
-          './expandURItemplate': () => ({ uri: '/honey?beekeeper=Honza', errors: [], warnings: [message] }),
-        }),
+      let compileResult;
+      before(async () => {
+        const stubbedCompileURI = await esmock('../../compile/compileURI/index.js', {
+          '../../compile/compileURI/expandURItemplate.js': {
+            default: () => ({ uri: '/honey?beekeeper=Honza', errors: [], warnings: [message] }),
+          },
+        });
+        const stubbedCompile = await esmock('../../compile/index.js', {
+          '../../compile/compileURI/index.js': stubbedCompileURI,
+        });
+        compileResult = stubbedCompile.default(mediaType, apiElements);
       });
-      const compileResult = stubbedCompile(mediaType, apiElements);
 
       it('produces some annotations', () => {
         assert.jsonSchema(compileResult, createCompileResultSchema({
@@ -225,12 +228,18 @@ describe('compile() · all API description formats', () => {
     // test.
     fixtures('ordinary').forEachDescribe(({ mediaType, apiElements }) => {
       const message = '... dummy warning message ...';
-      const stubbedCompile = proxyquire('../../compile', {
-        './compileURI': proxyquire('../../compile/compileURI', {
-          './validateParams': () => ({ errors: [], warnings: [message] }),
-        }),
+      let compileResult;
+      before(async () => {
+        const stubbedCompileURI = await esmock('../../compile/compileURI/index.js', {
+          '../../compile/compileURI/validateParams.js': {
+            default: () => ({ errors: [], warnings: [message] }),
+          },
+        });
+        const stubbedCompile = await esmock('../../compile/index.js', {
+          '../../compile/compileURI/index.js': stubbedCompileURI,
+        });
+        compileResult = stubbedCompile.default(mediaType, apiElements);
       });
-      const compileResult = stubbedCompile(mediaType, apiElements);
 
       it('produces some annotations', () => {
         assert.jsonSchema(compileResult, createCompileResultSchema({

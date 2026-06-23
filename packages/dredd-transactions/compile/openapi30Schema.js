@@ -205,5 +205,5 @@ function augmentWithOpenAPI30Schemas(transactions, document) {
   return transactions;
 }
 
-module.exports = augmentWithOpenAPI30Schemas;
-module.exports.normalizeSchema = normalizeSchema;
+export default augmentWithOpenAPI30Schemas;
+export { normalizeSchema };

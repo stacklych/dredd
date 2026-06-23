@@ -1,7 +1,8 @@
-const fury = require('@apielements/core');
-const yaml = require('yaml-js');
+import fury from '@apielements/core';
+import yaml from 'yaml-js';
+import openapi3Parser from '@apielements/openapi3-parser';
 
-fury.use(require('@apielements/openapi3-parser'));
+fury.use(openapi3Parser);
 
 const { Annotation, SourceMap, ParseResult } = fury.minim.elements;
 
@@ -80,4 +81,4 @@ function parse(apiDescription, callback) {
   });
 }
 
-module.exports = parse;
+export default parse;

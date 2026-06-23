@@ -1,4 +1,4 @@
-module.exports = function compileTransactionName(origin) {
+export default function compileTransactionName(origin) {
   return [
     origin.apiName,
     origin.resourceGroupName,

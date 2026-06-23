@@ -1,7 +1,7 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
-const fury = require('@apielements/core');
+import fury from '@apielements/core';
 
 const FORMATS = {
   openapi3: { name: 'OpenAPI 3', ext: '.yml', mediaType: 'application/vnd.oai.openapi' },
@@ -24,8 +24,8 @@ function fixtures(basename) {
       format,
       formatName: FORMATS[format].name,
       mediaType: FORMATS[format].mediaType,
-      apiDescriptionPath: path.join(__dirname, format, `${basename}${FORMATS[format].ext}`),
-      apiElementsPath: path.join(__dirname, format, `${basename}.json`),
+      apiDescriptionPath: path.join(import.meta.dirname, format, `${basename}${FORMATS[format].ext}`),
+      apiElementsPath: path.join(import.meta.dirname, format, `${basename}.json`),
     }))
     // skip formats which do not have the requested fixture, but do not skip
     // fixtures with the API Elements JSON missing (should blow up and the
@@ -53,4 +53,4 @@ function fixtures(basename) {
   return array;
 }
 
-module.exports = fixtures;
+export default fixtures;

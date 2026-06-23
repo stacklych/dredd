@@ -38,23 +38,23 @@ echo "======================================================================"
 npm ci
 
 echo "======================================================================"
-echo "Importing 'dredd-transactions'"
+echo "Importing 'dredd-transactions' (the package is ESM)"
 echo "======================================================================"
-echo "const assert = require('assert');" > index.js
-echo "const dt = require('@stacklych/dredd-transactions');" >> index.js
-echo "assert.ok(typeof dt.parse === 'function');" >> index.js
-echo "assert.ok(typeof dt.compile === 'function');" >> index.js
-node index.js
+echo "import assert from 'assert';" > index.mjs
+echo "import { parse, compile } from '@stacklych/dredd-transactions';" >> index.mjs
+echo "assert.ok(typeof parse === 'function');" >> index.mjs
+echo "assert.ok(typeof compile === 'function');" >> index.mjs
+node index.mjs
 
 echo "======================================================================"
 echo "Importing 'dredd-transactions/parse' and 'dredd-transactions/compile'"
 echo "======================================================================"
-echo "const assert = require('assert');" > index.js
-echo "const parse = require('@stacklych/dredd-transactions/parse');" >> index.js
-echo "const compile = require('@stacklych/dredd-transactions/compile');" >> index.js
-echo "assert.ok(typeof parse === 'function');" >> index.js
-echo "assert.ok(typeof compile === 'function');" >> index.js
-node index.js
+echo "import assert from 'assert';" > index.mjs
+echo "import parse from '@stacklych/dredd-transactions/parse';" >> index.mjs
+echo "import compile from '@stacklych/dredd-transactions/compile';" >> index.mjs
+echo "assert.ok(typeof parse === 'function');" >> index.mjs
+echo "assert.ok(typeof compile === 'function');" >> index.mjs
+node index.mjs
 
 echo "======================================================================"
 echo "Cleaning up"

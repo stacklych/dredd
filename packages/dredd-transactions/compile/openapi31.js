@@ -1,4 +1,4 @@
-const compileTransactionName = require('./compileTransactionName');
+import compileTransactionName from './compileTransactionName.js';
 
 const METHODS = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace'];
 const OAS_31_DIALECT = 'https://spec.openapis.org/oas/3.1/dialect/base';
@@ -533,7 +533,7 @@ function compileOperation(document, filename, pathTemplate, pathItem, method, op
   return { transactions, annotations: [] };
 }
 
-module.exports = function compileOpenAPI31(apiElements, filename) {
+export default function compileOpenAPI31(apiElements, filename) {
   const { document } = apiElements.openapi31;
   const paths = document.paths || {};
 
@@ -562,4 +562,4 @@ module.exports = function compileOpenAPI31(apiElements, filename) {
 };
 
 // Exposed only for unit tests.
-module.exports._sampleFromSchema = sampleFromSchema;
+export { sampleFromSchema as _sampleFromSchema };

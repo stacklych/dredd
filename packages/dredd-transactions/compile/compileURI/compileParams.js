@@ -43,4 +43,4 @@ function compileParams(hrefVariablesElement) {
     .reduce((params, param) => Object.assign(params, param), {});
 }
 
-module.exports = compileParams;
+export default compileParams;

@@ -1,8 +1,8 @@
-const compileUri = require('./compileURI');
-const compileTransactionName = require('./compileTransactionName');
-const compileAnnotation = require('./compileAnnotation');
-const compileOpenAPI31 = require('./openapi31');
-const augmentWithOpenAPI30Schemas = require('./openapi30Schema');
+import compileUri from './compileURI/index.js';
+import compileTransactionName from './compileTransactionName.js';
+import compileAnnotation from './compileAnnotation.js';
+import compileOpenAPI31 from './openapi31.js';
+import augmentWithOpenAPI30Schemas from './openapi30Schema.js';
 
 function findRelevantTransactions(apiElements) {
   const relevantTransactions = [];
@@ -158,4 +158,4 @@ function compile(mediaType, apiElements, filename) {
 compile._compileBody = compileBody;
 compile._hasMultipartBody = hasMultipartBody;
 
-module.exports = compile;
+export default compile;

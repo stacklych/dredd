@@ -1,13 +1,13 @@
 /* eslint-disable no-console */
 
-const path = require('path');
-const fs = require('fs');
+import path from 'path';
+import fs from 'fs';
 
-const fury = require('@apielements/core');
+import fury from '@apielements/core';
 
-const parse = require('../parse');
+import parse from '../parse/index.js';
 
-const FIXTURES_DIR = path.join(__dirname, '..', 'test', 'fixtures');
+const FIXTURES_DIR = path.join(import.meta.dirname, '..', 'test', 'fixtures');
 
 function listFixtures(fixturesSubDir) {
   return fs.readdirSync(fixturesSubDir)

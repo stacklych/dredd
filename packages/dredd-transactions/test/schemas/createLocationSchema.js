@@ -7,7 +7,7 @@ const position = {
   additionalItems: false,
 };
 
-module.exports = () => ({
+export default () => ({
   anyOf: [
     {
       type: 'array',
