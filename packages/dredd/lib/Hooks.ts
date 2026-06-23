@@ -1,21 +1,33 @@
-// @ts-check
 import hooksLog from './hooksLog';
 
 // READ THIS! Disclaimer:
 // Do not add any functionality to this class unless you want to expose it to the Hooks API.
 // This class is only an interface for users of Dredd hooks.
 
-/**
- * @typedef {(...args: any[]) => any} Hook A user-supplied hook callback
- * @typedef {{ timestamp: number, content: string }} HookLog
- * @typedef {object} HooksOptions
- * @property {HookLog[]} [logs]
- * @property {{ hook?: (content: any) => void }} [logger]
- */
+/** A user-supplied hook callback */
+type Hook = (...args: any[]) => any;
+interface HookLog {
+  timestamp: number;
+  content: string;
+}
+interface HooksOptions {
+  logs?: HookLog[];
+  logger?: { hook?: (content: any) => void };
+}
 
 class Hooks {
-  /** @param {HooksOptions} options */
-  constructor(options = {}) {
+  logs: HookLog[] | undefined;
+  logger: { hook?: (content: any) => void } | undefined;
+  beforeHooks: Record<string, Hook[]>;
+  beforeValidationHooks: Record<string, Hook[]>;
+  afterHooks: Record<string, Hook[]>;
+  beforeAllHooks: Hook[];
+  afterAllHooks: Hook[];
+  beforeEachHooks: Hook[];
+  beforeEachValidationHooks: Hook[];
+  afterEachHooks: Hook[];
+
+  constructor(options: HooksOptions = {}) {
     this.before = this.before.bind(this);
     this.beforeValidation = this.beforeValidation.bind(this);
     this.after = this.after.bind(this);
@@ -27,66 +39,49 @@ class Hooks {
     this.log = this.log.bind(this);
     this.logs = options.logs;
     this.logger = options.logger;
-    /** @type {Record<string, Hook[]>} */
     this.beforeHooks = {};
-    /** @type {Record<string, Hook[]>} */
     this.beforeValidationHooks = {};
-    /** @type {Record<string, Hook[]>} */
     this.afterHooks = {};
-    /** @type {Hook[]} */
     this.beforeAllHooks = [];
-    /** @type {Hook[]} */
     this.afterAllHooks = [];
-    /** @type {Hook[]} */
     this.beforeEachHooks = [];
-    /** @type {Hook[]} */
     this.beforeEachValidationHooks = [];
-    /** @type {Hook[]} */
     this.afterEachHooks = [];
   }
 
-  /** @param {string} name @param {Hook} hook */
-  before(name, hook) {
+  before(name: string, hook: Hook) {
     this.addHook(this.beforeHooks, name, hook);
   }
 
-  /** @param {string} name @param {Hook} hook */
-  beforeValidation(name, hook) {
+  beforeValidation(name: string, hook: Hook) {
     this.addHook(this.beforeValidationHooks, name, hook);
   }
 
-  /** @param {string} name @param {Hook} hook */
-  after(name, hook) {
+  after(name: string, hook: Hook) {
     this.addHook(this.afterHooks, name, hook);
   }
 
-  /** @param {Hook} hook */
-  beforeAll(hook) {
+  beforeAll(hook: Hook) {
     this.beforeAllHooks.push(hook);
   }
 
-  /** @param {Hook} hook */
-  afterAll(hook) {
+  afterAll(hook: Hook) {
     this.afterAllHooks.push(hook);
   }
 
-  /** @param {Hook} hook */
-  beforeEach(hook) {
+  beforeEach(hook: Hook) {
     this.beforeEachHooks.push(hook);
   }
 
-  /** @param {Hook} hook */
-  beforeEachValidation(hook) {
+  beforeEachValidation(hook: Hook) {
     this.beforeEachValidationHooks.push(hook);
   }
 
-  /** @param {Hook} hook */
-  afterEach(hook) {
+  afterEach(hook: Hook) {
     this.afterEachHooks.push(hook);
   }
 
-  /** @param {Record<string, Hook[]>} hooks @param {string} name @param {Hook} hook */
-  addHook(hooks, name, hook) {
+  addHook(hooks: Record<string, Hook[]>, name: string, hook: Hook) {
     if (hooks[name]) {
       hooks[name].push(hook);
     } else {
@@ -96,8 +91,7 @@ class Hooks {
 
   // log(logVariant, content)
   // log(content)
-  /** @param {...any} args */
-  log(...args) {
+  log(...args: any[]) {
     // hooksLog only consumes a single `content` argument; spreading `args`
     // bound it to `args[0]` and ignored the rest, so pass it directly.
     this.logs = hooksLog(this.logs, this.logger, args[0]);
