@@ -5,6 +5,7 @@ import BaseReporter from './reporters/BaseReporter.js';
 import CLIReporter from './reporters/CLIReporter.js';
 import DotReporter from './reporters/DotReporter.js';
 import HTMLReporter from './reporters/HTMLReporter.js';
+import JSONReporter from './reporters/JSONReporter.js';
 import MarkdownReporter from './reporters/MarkdownReporter.js';
 import NyanCatReporter from './reporters/NyanReporter.js';
 import XUnitReporter from './reporters/XUnitReporter.js';
@@ -27,7 +28,7 @@ interface ReportersConfig {
   http?: Record<string, any>;
 }
 
-const fileReporters = ['xunit', 'html', 'markdown', 'apiary'];
+const fileReporters = ['xunit', 'html', 'json', 'markdown', 'apiary'];
 
 const cliReporters = ['dot', 'nyan'];
 
@@ -86,6 +87,8 @@ function configureReporters(
         return new NyanCatReporter(emitter, statistics);
       case 'html':
         return new HTMLReporter(emitter, statistics, path, config.details);
+      case 'json':
+        return new JSONReporter(emitter, statistics, path, config.details);
       case 'markdown':
         return new MarkdownReporter(emitter, statistics, path, config.details);
       case 'apiary':

@@ -16,6 +16,7 @@ import CLIReporter from '../../lib/reporters/CLIReporter';
 import DotReporter from '../../lib/reporters/DotReporter';
 import NyanReporter from '../../lib/reporters/NyanReporter';
 import HTMLReporter from '../../lib/reporters/HTMLReporter';
+import JSONReporter from '../../lib/reporters/JSONReporter';
 import MarkdownReporter from '../../lib/reporters/MarkdownReporter';
 import ApiaryReporter from '../../lib/reporters/ApiaryReporter';
 
@@ -25,6 +26,7 @@ const CliReporterStub = sinon.spy(CLIReporter);
 const DotReporterStub = sinon.spy(DotReporter);
 const NyanCatReporterStub = sinon.spy(NyanReporter);
 const HtmlReporterStub = sinon.spy(HTMLReporter);
+const JsonReporterStub = sinon.spy(JSONReporter);
 const MarkdownReporterStub = sinon.spy(MarkdownReporter);
 const ApiaryReporterStub = sinon.spy(ApiaryReporter);
 
@@ -43,6 +45,7 @@ function resetStubs() {
   DotReporterStub.resetHistory();
   NyanCatReporterStub.resetHistory();
   HtmlReporterStub.resetHistory();
+  JsonReporterStub.resetHistory();
   MarkdownReporterStub.resetHistory();
   return ApiaryReporterStub.resetHistory();
 }
@@ -65,6 +68,7 @@ describe('configureReporters()', () => {
         '../../lib/reporters/DotReporter.ts': { default: DotReporterStub },
         '../../lib/reporters/NyanReporter.ts': { default: NyanCatReporterStub },
         '../../lib/reporters/HTMLReporter.ts': { default: HtmlReporterStub },
+        '../../lib/reporters/JSONReporter.ts': { default: JsonReporterStub },
         '../../lib/reporters/MarkdownReporter.ts': {
           default: MarkdownReporterStub,
         },
@@ -117,6 +121,32 @@ describe('configureReporters()', () => {
     it('should not add more than one cli-based reporters', (done) => {
       configureReporters(configuration, {}, null);
       assert.notOk(CliReporterStub.called);
+      return done();
+    });
+  });
+
+  describe('when the json reporter is used', () => {
+    before(() => {
+      configuration.reporter = ['json'];
+      configuration.output = ['report.json'];
+    });
+
+    after(() => {
+      configuration.reporter = [];
+      configuration.output = [];
+    });
+
+    beforeEach(() => resetStubs());
+
+    it('should add a JSONReporter with the provided output path', (done) => {
+      configureReporters(configuration, {}, () => {});
+      assert.isOk(
+        JsonReporterStub.calledWith(
+          emitterStub,
+          { fileBasedReporters: 1 },
+          'report.json',
+        ),
+      );
       return done();
     });
   });
