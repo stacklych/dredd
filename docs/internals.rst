@@ -199,7 +199,7 @@ Contributing to documentation
 
 The documentation is written `as code <http://www.writethedocs.org/guide/docs-as-code/>`__ in the `reStructuredText <http://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html>`__ format and its source files are located in the `docs <https://github.com/stacklych/dredd/tree/master/docs>`__ directory.
 
-The historical documentation site is https://dredd.org. This maintained fork should link to the fork repository until a new documentation hosting target is configured.
+This fork's documentation is published at https://stacklych.github.io/dredd/.
 
 
 Building documentation locally

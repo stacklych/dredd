@@ -7,8 +7,8 @@ Deprecated links (follow-up)
 =============================
 
 Ownership of Dredd has moved to **Stackly**. The links below still point to
-the previous owner's sites and assets (Apiary / ``dredd.org`` / ``apiaryio``
-on GitHub and related services). They are kept temporarily so the docs remain
+the previous owner's sites and assets (Apiary / ``apiaryio`` on GitHub and
+related services). They are kept temporarily so the docs remain
 usable, but they should be replaced once verified Stackly equivalents exist.
 
 This page exists purely to track that follow-up work. The same domains are
@@ -20,7 +20,6 @@ Sites and services
 
 - ``https://apiary.io`` and ``https://apiary.io/support`` — former product site.
 - ``https://help.apiary.io`` — former help center.
-- ``https://dredd.org`` — former documentation site.
 - ``https://travis-ci.org/apiaryio/...`` — former CI badges and links.
 
 GitHub (former owner ``apiaryio``)

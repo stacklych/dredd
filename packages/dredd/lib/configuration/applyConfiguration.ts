@@ -127,7 +127,7 @@ function applyConfiguration(config: any): any {
         ', ',
       )}. ` +
         'Please read documentation on how Dredd works with proxies: ' +
-        'https://dredd.org/en/latest/how-it-works/#using-https-proxy',
+        'https://stacklych.github.io/dredd/how-it-works.html#using-https-proxy',
     );
   }
 

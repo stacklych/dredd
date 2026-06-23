@@ -15,7 +15,7 @@ const deprecatedOptions: ConfigRule[] = [
     options: ['data'],
     message:
       'DEPRECATED: The --data configuration option is deprecated ' +
-      'in favor of `apiDescriptions`, please see https://dredd.org',
+      'in favor of `apiDescriptions`, please see https://stacklych.github.io/dredd/',
   },
   {
     options: ['blueprintPath'],

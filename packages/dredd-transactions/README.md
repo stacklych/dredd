@@ -183,7 +183,7 @@ Description of an error or warning which occurred during parsing of the API desc
 
 > **Note:** These properties are to be superseded by whatever comes out of the proposal in [apiaryio/dredd#227](https://github.com/apiaryio/dredd/issues/227).
 
-[dredd]: https://dredd.org
+[dredd]: https://stacklych.github.io/dredd/
 [mson-spec]: https://github.com/apiaryio/mson
 [api-elements]: http://api-elements.readthedocs.org/
 [api-blueprint-glossary]: https://github.com/apiaryio/api-blueprint/blob/master/Glossary%20of%20Terms.md

@@ -137,7 +137,6 @@ linkcheck_ignore = [
     # equivalents exist. See docs/deprecated-links.rst.
     r'https?://apiary\.io.*',
     r'https?://help\.apiary\.io.*',
-    r'https?://dredd\.org.*',
     r'https?://hub\.docker\.com/r/apiaryio/.*',
     # travis-ci.org is defunct (migrated to travis-ci.com); ignore the dead
     # CI badges/links for Dredd and the third-party hook libraries.
