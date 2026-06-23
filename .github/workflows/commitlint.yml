@@ -1,0 +1,24 @@
+name: commitlint
+
+# Commit-message linting must run on every push, regardless of which files
+# changed. It lives in its own workflow so that `run-docs-test` can be
+# path-filtered to documentation changes without dropping this check.
+on: push
+
+jobs:
+  commitlint:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        node-version: [22.x]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+      - run: yarn install
+      - run: npx commitlint --last --verbose

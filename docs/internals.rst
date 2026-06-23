@@ -160,6 +160,14 @@ Dredd uses `eslint <https://eslint.org/>`__ to test the quality of the JavaScrip
 The linter is optional for local development to make easy prototyping and working with unpolished code, but it’s enforced on the CI level. It is recommended you integrate `eslint <https://eslint.org/>`__ with your favorite editor so you see violations immediately during coding.
 
 
+Continuous integration
+~~~~~~~~~~~~~~~~~~~~~~
+
+`GitHub Actions <https://github.com/stacklych/dredd/actions>`__ runs the checks on every push: ``run-test`` (build, lint, formatting check, and the test suite), ``run-e2e-tests`` and ``run-smoke-tests`` (end-to-end and smoke runs), and ``commitlint`` (validates the commit message against the Conventional Changelog format).
+
+The documentation checks in ``run-docs-test`` — the Sphinx ``linkcheck``, the ``docs/_extensions`` unit tests, and the HTML build — are path-filtered. They run only when files under ``docs/``, the root ``package.json`` (which holds the ``docs:*`` scripts), or the workflow itself change. This keeps Sphinx and its external-network link check off code-only pushes, while documentation breakage is still caught on the pull request that introduces it.
+
+
 Changelog
 ~~~~~~~~~
 
