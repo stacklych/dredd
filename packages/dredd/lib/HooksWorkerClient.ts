@@ -1,4 +1,3 @@
-// @ts-check
 import { randomUUID as generateUuid } from 'crypto';
 import net from 'net';
 import path from 'path';
@@ -11,8 +10,28 @@ import which from './which';
 import { spawn } from './childProcess';
 
 class HooksWorkerClient {
-  /** @param {any} runner The TransactionRunner instance. */
-  constructor(runner) {
+  runner: any;
+  language: any;
+  timeout: number;
+  connectTimeout: number;
+  connectRetry: number;
+  afterConnectWait: number;
+  termTimeout: number;
+  termRetry: number;
+  handlerHost: string;
+  handlerPort: number;
+  handlerMessageDelimiter: string;
+  clientConnected: boolean;
+  // Holds `false` until a TCP error occurs, then the Error itself.
+  connectError: boolean | Error;
+  emitter: EventEmitter;
+  // Runtime-bound members assigned by the worker methods below.
+  handler: any;
+  handlerClient: any;
+  handlerCommand: any;
+  handlerCommandArgs: any;
+
+  constructor(runner: any) {
     this.runner = runner;
     const options = this.runner.hooks.configuration;
 
@@ -27,14 +46,11 @@ class HooksWorkerClient {
     this.handlerPort = options['hooks-worker-handler-port'] || 61321;
     this.handlerMessageDelimiter = '\n';
     this.clientConnected = false;
-    // Holds `false` until a TCP error occurs, then the Error itself.
-    /** @type {boolean | Error} */
     this.connectError = false;
     this.emitter = new EventEmitter();
   }
 
-  /** @param {(error?: any) => void} callback */
-  start(callback) {
+  start(callback: (error?: any) => void) {
     logger.debug('Looking up hooks handler implementation:', this.language);
     this.setCommandAndCheckForExecutables((executablesError) => {
       if (executablesError) {
@@ -68,14 +84,12 @@ class HooksWorkerClient {
     });
   }
 
-  /** @param {(error?: any) => void} callback */
-  stop(callback) {
+  stop(callback: (error?: any) => void) {
     this.disconnectFromHandler();
     this.terminateHandler(callback);
   }
 
-  /** @param {(error?: any) => void} callback */
-  terminateHandler(callback) {
+  terminateHandler(callback: (error?: any) => void) {
     logger.debug('Terminating hooks handler process, PID', this.handler.pid);
     if (this.handler.terminated) {
       logger.debug('The hooks handler process has already terminated');
@@ -94,14 +108,11 @@ class HooksWorkerClient {
     this.handlerClient.destroy();
   }
 
-  /** @param {(error?: any) => void} callback */
-  setCommandAndCheckForExecutables(callback) {
+  setCommandAndCheckForExecutables(callback: (error?: any) => void) {
     // Select handler based on option, use option string as command if not match anything
     let msg;
     if (this.language === 'ruby') {
-      /** @type {any} */
       this.handlerCommand = 'dredd-hooks-ruby';
-      /** @type {any} */
       this.handlerCommandArgs = [];
       if (!which.which(this.handlerCommand)) {
         msg = `
@@ -178,10 +189,7 @@ Use Dredd's native Node.js hooks instead.
             new Error(`Go doesn't seem to be installed: ${err.message}`),
           );
         } else {
-          this.handlerCommand = path.join(
-            /** @type {string} */ (goBin),
-            'goodman',
-          );
+          this.handlerCommand = path.join(goBin as string, 'goodman');
           this.handlerCommandArgs = [];
           if (which.which(this.handlerCommand)) {
             callback();
@@ -216,20 +224,17 @@ $ go get github.com/snikch/goodman/cmd/goodman
     }
   }
 
-  /** @param {(error?: any) => void} callback */
-  spawnHandler(callback) {
+  spawnHandler(callback: (error?: any) => void) {
     const pathGlobs = this.runner.hooks.configuration.hookfiles;
     const handlerCommandArgs = this.handlerCommandArgs.concat(pathGlobs);
 
     logger.debug(`Spawning '${this.language}' hooks handler process.`);
-    // Runtime-augmented spawned process (custom events + nullable stdio).
-    /** @type {any} */
     this.handler = spawn(this.handlerCommand, handlerCommandArgs);
 
-    this.handler.stdout.on('data', (/** @type {any} */ data) =>
+    this.handler.stdout.on('data', (data: any) =>
       logger.debug('Hooks handler stdout:', data.toString()),
     );
-    this.handler.stderr.on('data', (/** @type {any} */ data) =>
+    this.handler.stderr.on('data', (data: any) =>
       logger.debug('Hooks handler stderr:', data.toString()),
     );
 
@@ -240,33 +245,28 @@ $ go get github.com/snikch/goodman/cmd/goodman
       logger.debug('Killing the hooks handler process'),
     );
 
-    this.handler.on(
-      'crash',
-      (/** @type {number} */ exitStatus, /** @type {boolean} */ killed) => {
-        let msg;
-        if (killed) {
-          msg = `Hooks handler process '${
-            this.handlerCommand
-          } ${handlerCommandArgs.join(' ')}' was killed.`;
-        } else {
-          msg = `Hooks handler process '${
-            this.handlerCommand
-          } ${handlerCommandArgs.join(' ')}' exited with status: ${exitStatus}`;
-        }
-        logger.error(msg);
-        this.runner.hookHandlerError = new Error(msg);
-      },
-    );
-    this.handler.on('error', (/** @type {any} */ err) => {
+    this.handler.on('crash', (exitStatus: number, killed: boolean) => {
+      let msg;
+      if (killed) {
+        msg = `Hooks handler process '${
+          this.handlerCommand
+        } ${handlerCommandArgs.join(' ')}' was killed.`;
+      } else {
+        msg = `Hooks handler process '${
+          this.handlerCommand
+        } ${handlerCommandArgs.join(' ')}' exited with status: ${exitStatus}`;
+      }
+      logger.error(msg);
+      this.runner.hookHandlerError = new Error(msg);
+    });
+    this.handler.on('error', (err: any) => {
       this.runner.hookHandlerError = err;
     });
     callback();
   }
 
-  /** @param {(error?: any) => void} callback */
-  connectToHandler(callback) {
-    /** @type {any} */
-    let timeout;
+  connectToHandler(callback: (error?: any) => void) {
+    let timeout: any;
     const start = Date.now();
     const waitForConnect = () => {
       if (Date.now() - start < this.connectTimeout) {
@@ -306,7 +306,6 @@ $ go get github.com/snikch/goodman/cmd/goodman
         callback(this.runner.hookHandlerError);
       }
 
-      /** @type {any} */
       this.handlerClient = net.connect({
         port: this.handlerPort,
         host: this.handlerHost,
@@ -327,7 +326,7 @@ $ go get github.com/snikch/goodman/cmd/goodman
         logger.debug('TCP communication with hooks handler closed.'),
       );
 
-      this.handlerClient.on('error', (/** @type {Error} */ connectError) => {
+      this.handlerClient.on('error', (connectError: Error) => {
         logger.debug(
           'TCP communication with hooks handler errored.',
           connectError,
@@ -337,7 +336,7 @@ $ go get github.com/snikch/goodman/cmd/goodman
 
       let handlerBuffer = '';
 
-      this.handlerClient.on('data', (/** @type {any} */ data) => {
+      this.handlerClient.on('data', (data: any) => {
         logger.debug('Dredd received some data from hooks handler.');
 
         handlerBuffer += data.toString();
@@ -347,7 +346,7 @@ $ go get github.com/snikch/goodman/cmd/goodman
           );
 
           // Add last chunk to the buffer (split() always yields >= 1 element)
-          handlerBuffer = /** @type {string} */ (splittedData.pop());
+          handlerBuffer = splittedData.pop() as string;
 
           const messages = [];
           for (const message of splittedData) {
@@ -379,8 +378,7 @@ $ go get github.com/snikch/goodman/cmd/goodman
     timeout = setTimeout(waitForConnect, this.connectRetry);
   }
 
-  /** @param {(error?: any) => void} callback */
-  registerHooks(callback) {
+  registerHooks(callback: (error?: any) => void) {
     const eachHookNames = [
       'beforeEach',
       'beforeEachValidation',
@@ -390,94 +388,83 @@ $ go get github.com/snikch/goodman/cmd/goodman
     ];
 
     for (const eventName of eachHookNames) {
-      this.runner.hooks[eventName](
-        (/** @type {any} */ data, /** @type {any} */ hookCallback) => {
-          const uuid = generateUuid();
+      this.runner.hooks[eventName]((data: any, hookCallback: any) => {
+        const uuid = generateUuid();
 
-          // Send transaction to the handler
-          const message = {
-            event: eventName,
-            uuid,
-            data,
-          };
+        // Send transaction to the handler
+        const message = {
+          event: eventName,
+          uuid,
+          data,
+        };
 
-          logger.debug('Sending HTTP transaction data to hooks handler:', uuid);
-          this.handlerClient.write(JSON.stringify(message));
-          this.handlerClient.write(this.handlerMessageDelimiter);
+        logger.debug('Sending HTTP transaction data to hooks handler:', uuid);
+        this.handlerClient.write(JSON.stringify(message));
+        this.handlerClient.write(this.handlerMessageDelimiter);
 
-          // Register event for the sent transaction
-          /** @param {any} receivedMessage */
-          function messageHandler(receivedMessage) {
-            let value;
-            logger.debug('Handling hook:', uuid);
-            clearTimeout(timeout);
+        // Register event for the sent transaction
+        function messageHandler(receivedMessage: any) {
+          let value;
+          logger.debug('Handling hook:', uuid);
+          clearTimeout(timeout);
 
-            // We are directly modifying the `data` argument here. Neither direct
-            // assignment (`data = receivedMessage.data`) nor `clone()` will work...
+          // We are directly modifying the `data` argument here. Neither direct
+          // assignment (`data = receivedMessage.data`) nor `clone()` will work...
 
-            // *All hooks receive array of transactions
-            if (eventName.indexOf('All') > -1) {
-              for (
-                let index = 0;
-                index < receivedMessage.data.length;
-                index++
-              ) {
-                value = receivedMessage.data[index];
-                data[index] = value;
-              }
-              // *Each hook receives single transaction
-            } else {
-              for (const key of Object.keys(receivedMessage.data || {})) {
-                value = receivedMessage.data[key];
-                data[key] = value;
-              }
+          // *All hooks receive array of transactions
+          if (eventName.indexOf('All') > -1) {
+            for (let index = 0; index < receivedMessage.data.length; index++) {
+              value = receivedMessage.data[index];
+              data[index] = value;
             }
-
-            hookCallback();
+            // *Each hook receives single transaction
+          } else {
+            for (const key of Object.keys(receivedMessage.data || {})) {
+              value = receivedMessage.data[key];
+              data[key] = value;
+            }
           }
 
-          const handleTimeout = () => {
-            logger.warn('Hook handling timed out.');
+          hookCallback();
+        }
 
-            if (eventName.indexOf('All') === -1) {
-              data.fail = 'Hook timed out.';
-            }
+        const handleTimeout = () => {
+          logger.warn('Hook handling timed out.');
 
-            this.emitter.removeListener(uuid, messageHandler);
+          if (eventName.indexOf('All') === -1) {
+            data.fail = 'Hook timed out.';
+          }
 
-            hookCallback();
-          };
+          this.emitter.removeListener(uuid, messageHandler);
 
-          // Set timeout for the hook
-          let timeout = setTimeout(handleTimeout, this.timeout);
+          hookCallback();
+        };
 
-          this.emitter.on(uuid, messageHandler);
-        },
-      );
+        // Set timeout for the hook
+        const timeout = setTimeout(handleTimeout, this.timeout);
+
+        this.emitter.on(uuid, messageHandler);
+      });
     }
 
-    this.runner.hooks.afterAll(
-      (/** @type {any} */ transactions, /** @type {any} */ hookCallback) => {
-        // This is needed for transaction modification integration tests:
-        // https://github.com/apiaryio/dredd-hooks-template/blob/master/features/execution_order.feature
-        if (process.env.TEST_DREDD_HOOKS_HANDLER_ORDER === 'true') {
-          console.error('FOR TESTING ONLY');
-          const modifications =
-            (transactions[0] && transactions[0].hooks_modifications) || [];
-          if (!modifications.length) {
-            throw new Error(
-              'Hooks must modify transaction.hooks_modifications',
-            );
-          }
-          for (let index = 0; index < modifications.length; index++) {
-            const modification = modifications[index];
-            console.error(`${index} ${modification}`);
-          }
-          console.error('FOR TESTING ONLY');
+    this.runner.hooks.afterAll((transactions: any, hookCallback: any) => {
+      // This is needed for transaction modification integration tests:
+      // https://github.com/apiaryio/dredd-hooks-template/blob/master/features/execution_order.feature
+      if (process.env.TEST_DREDD_HOOKS_HANDLER_ORDER === 'true') {
+        console.error('FOR TESTING ONLY');
+        const modifications =
+          (transactions[0] && transactions[0].hooks_modifications) || [];
+        if (!modifications.length) {
+          throw new Error('Hooks must modify transaction.hooks_modifications');
         }
-        this.stop(hookCallback);
-      },
-    );
+        for (let index = 0; index < modifications.length; index++) {
+          const modification = modifications[index];
+          console.error(`${index} ${modification}`);
+        }
+        console.error('FOR TESTING ONLY');
+      }
+      this.stop(hookCallback);
+    });
 
     callback();
   }
