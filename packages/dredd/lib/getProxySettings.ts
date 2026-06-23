@@ -9,9 +9,9 @@ const PROXY_ENV_VARIABLES = ['HTTP_PROXY', 'HTTPS_PROXY', 'NO_PROXY'];
 // be strings).
 //
 // Note: Dredd prints these settings for diagnostics. The settings are applied
-// by ./httpClient.js for requests to remote API descriptions and the Apiary
-// API. Requests to the server under test deliberately opt out of proxying
-// (see performRequest.js, which sets 'proxy: false').
+// by ./httpClient.js for requests to remote API descriptions. Requests to the
+// server under test deliberately opt out of proxying (see performRequest.js,
+// which sets 'proxy: false').
 export default function getProxySettings(
   env: Record<string, string | undefined>,
 ): string[] {

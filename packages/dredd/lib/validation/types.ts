@@ -8,7 +8,7 @@
 // Each field result carries `valid`, a `kind` tag, the `values` that were
 // compared, and a list of `errors` whose `message` strings are surfaced to the
 // reporters. Only `valid` and `errors[].message` are read by Dredd itself; the
-// full object is forwarded opaquely to the Apiary reporter.
+// full object is forwarded opaquely to file-based reporters (e.g. json).
 
 export type FieldKind = 'text' | 'json' | null;
 

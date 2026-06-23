@@ -186,13 +186,7 @@ Depending on what you test and how, output of Dredd may contain sensitive data.
 
 Mind that if you run Dredd in a CI server provided as a service (such as `CircleCI`_, `Travis CI`_, etc.), you are disclosing the CLI output of Dredd to third parties.
 
-When using :ref:`Apiary Reporter and Apiary Tests <using-apiary-reporter-and-apiary-tests>`, you are sending your testing data to `Apiary`_ (Dredd creators and maintainers). See their `Terms of Service <https://apiary.io/tos>`__ and `Privacy Policy <https://apiary.io/privacy>`__. Which data exactly is being sent to Apiary?
-
--  **Complete API description under test.** This means your OpenAPI 3.0 or OpenAPI 3.1 files. The API description is stored encrypted in Apiary.
--  **Complete testing results.** Those can contain details of all requests made to the server under test and their responses. Apiary stores this data unencrypted, even if the original communication between Dredd and the API server under test happens to be over HTTPS. See :ref:`Apiary Reporter Test Data <apiary-reporter-test-data>` for detailed description of what is sent. You can :ref:`sanitize it before it gets sent <removing-sensitive-data-from-test-reports>`.
--  **Little meta data about your environment.** Contents of environment variables ``TRAVIS``, ``CIRCLE``, ``CI``, ``DRONE``, ``BUILD_ID``, ``DREDD_AGENT``, ``USER``, and ``DREDD_HOSTNAME`` can be sent to Apiary. Your `hostname <https://en.wikipedia.org/wiki/Hostname>`__, version of your Dredd installation, and `type <https://nodejs.org/api/os.html#os_os_type>`__, `release <https://nodejs.org/api/os.html#os_os_release>`__ and `architecture <https://nodejs.org/api/os.html#os_os_arch>`__ of your OS can be sent as well. Apiary stores this data unencrypted.
-
-See also :ref:`guidelines on how to develop Apiary Reporter <hacking-apiary-reporter>`.
+If you save test reports with a file-based reporter (e.g. :option:`--reporter` ``html`` or ``json``), those reports can contain details of all requests made to the server under test and their responses. You can :ref:`sanitize them before they get written <removing-sensitive-data-from-test-reports>`.
 
 .. _using-http-s-proxy:
 .. _using-https-proxy:
@@ -203,7 +197,6 @@ Using HTTP(S) Proxy
 You can tell Dredd to use HTTP(S) proxy for:
 
 -  downloading API description documents (the positional argument :option:`api-description-document` or the :option:`--path` option accepts also URL)
--  :ref:`reporting to Apiary <using-apiary-reporter-and-apiary-tests>`
 
 Dredd respects ``HTTP_PROXY``, ``HTTPS_PROXY``, ``NO_PROXY``, ``http_proxy``, ``https_proxy``, and ``no_proxy`` environment variables. For more information on how those work see `relevant section <https://github.com/request/request#user-content-proxies>`__ of the underlying library’s documentation.
 

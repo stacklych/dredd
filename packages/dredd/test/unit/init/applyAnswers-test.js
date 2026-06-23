@@ -44,21 +44,9 @@ describe('init._applyAnswers()', () => {
     const config = applyAnswers(createConfig(), {});
     assert.isUndefined(config.reporter);
   });
-  it("sets the reporter to 'apiary' if asked", () => {
-    const config = applyAnswers(createConfig(), { apiary: true });
-    assert.equal(config.reporter, 'apiary');
-  });
   it('sets no custom data by default', () => {
     const config = applyAnswers(createConfig(), {});
     assert.deepEqual(config.custom, {});
-  });
-  it('sets the Apiary API key if provided', () => {
-    const config = applyAnswers(createConfig(), { apiaryApiKey: '1234' });
-    assert.equal(config.custom.apiaryApiKey, '1234');
-  });
-  it('sets the Apiary API name if provided', () => {
-    const config = applyAnswers(createConfig(), { apiaryApiName: 'myproject' });
-    assert.equal(config.custom.apiaryApiName, 'myproject');
   });
   it('creates selected CI configuration if asked', () => {
     applyAnswers(createConfig(), { createCI: 'wercker' }, { ci });

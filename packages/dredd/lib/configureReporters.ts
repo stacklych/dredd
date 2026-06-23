@@ -1,6 +1,5 @@
 import type { EventEmitter } from 'events';
 
-import ApiaryReporter from './reporters/ApiaryReporter.js';
 import BaseReporter from './reporters/BaseReporter.js';
 import CLIReporter from './reporters/CLIReporter.js';
 import DotReporter from './reporters/DotReporter.js';
@@ -28,7 +27,7 @@ interface ReportersConfig {
   http?: Record<string, any>;
 }
 
-const fileReporters = ['xunit', 'html', 'json', 'markdown', 'apiary'];
+const fileReporters = ['xunit', 'html', 'json', 'markdown'];
 
 const cliReporters = ['dot', 'nyan'];
 
@@ -39,11 +38,7 @@ function intersection(a: string[], b: string[]): string[] {
   return Array.from(a).filter((value) => Array.from(b).includes(value));
 }
 
-function configureReporters(
-  config: ReportersConfig,
-  stats: ConfigureStats,
-  runner?: { logs?: any[] },
-) {
+function configureReporters(config: ReportersConfig, stats: ConfigureStats) {
   addReporter('base', config.emitter, stats);
 
   const reporters = config.reporter;
@@ -91,8 +86,6 @@ function configureReporters(
         return new JSONReporter(emitter, statistics, path, config.details);
       case 'markdown':
         return new MarkdownReporter(emitter, statistics, path, config.details);
-      case 'apiary':
-        return new ApiaryReporter(emitter, statistics, config, runner);
       default:
         // I don't even know where to begin...
         // TODO: DESIGN / REFACTOR WHOLE REPORTER(S) API FROM SCRATCH, THIS IS MADNESS!!1
@@ -107,12 +100,7 @@ function configureReporters(
   stats.fileBasedReporters = usedFileReporters.length;
 
   if (usedFileReporters.length > 0) {
-    let usedFileReportersLength = usedFileReporters.length;
-    if (reporters.indexOf('apiary') > -1) {
-      usedFileReportersLength -= 1;
-    }
-
-    if (usedFileReportersLength > outputs.length) {
+    if (usedFileReporters.length > outputs.length) {
       logger.warn(`
 There are more reporters requiring output paths than there are output paths
 provided. Using default paths for additional file-based reporters.

@@ -15,8 +15,8 @@ export default function hooksLog(
     logger.hook(content);
   }
 
-  // Append to array of logs to allow further operations, e.g. send all hooks
-  // logs to Apiary
+  // Append to array of logs to allow further operations, e.g. surface all
+  // hooks logs to reporters
   logs.push({
     timestamp: Date.now(),
     content: typeof content === 'object' ? util.format(content) : `${content}`,

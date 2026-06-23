@@ -109,21 +109,4 @@ describe('init.prompt()', () => {
       },
     );
   });
-
-  it('does not offer Apiary reporting when it is already configured', (done) => {
-    let questions;
-    prompt(
-      { custom: {}, reporter: 'apiary' },
-      detected,
-      () => {
-        assert.isFalse(questionByName(questions, 'apiary').when());
-        done();
-      },
-      {
-        loadInquirer: fakeInquirerLoader({}, (q) => {
-          questions = q;
-        }),
-      },
-    );
-  });
 });

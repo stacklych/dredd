@@ -279,7 +279,7 @@ class Dredd {
     }
 
     this.logger.debug('Configuring reporters');
-    configureReporters(this.configuration, this.stats, this.transactionRunner);
+    configureReporters(this.configuration, this.stats);
     // FIXME: 'configureReporters()' pollutes the 'stats' object with
     // this property. Which is unfortunate, as the 'stats' object is
     // a part of Dredd's public interface. This line cleans it up for now, but

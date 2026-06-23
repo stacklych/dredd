@@ -214,25 +214,6 @@ ${protocol}_proxy=${PROXY_URL}\
         expectedUrl: '/machines',
       }));
 
-    describe('Using Apiary Reporter', () => {
-      before(() => {
-        process.env.APIARY_API_URL = serverUrl;
-      });
-      after(() => delete process.env.APIARY_API_URL);
-
-      test({
-        protocol,
-        configureDredd(configuration) {
-          configuration.server = DUMMY_URL;
-          configuration.options.path = './test/fixtures/single-get.yaml';
-          configuration.options.reporter = ['apiary'];
-        },
-        expectedLog,
-        expectedDestination: 'proxy',
-        expectedUrl: `${serverUrl}/apis/public/tests/runs`,
-      });
-    });
-
     describe('Downloading API Description Document', () =>
       test({
         protocol,
@@ -273,25 +254,6 @@ http_proxy=${PROXY_URL}, no_proxy=${SERVER_HOST}\
       expectedDestination: 'server',
       expectedUrl: '/machines',
     }));
-
-  describe('Using Apiary Reporter', () => {
-    before(() => {
-      process.env.APIARY_API_URL = serverUrl;
-    });
-    after(() => delete process.env.APIARY_API_URL);
-
-    test({
-      protocol: 'http',
-      configureDredd(configuration) {
-        configuration.server = DUMMY_URL;
-        configuration.options.path = './test/fixtures/single-get.yaml';
-        configuration.options.reporter = ['apiary'];
-      },
-      expectedLog,
-      expectedDestination: 'server',
-      expectedUrl: '/apis/public/tests/runs',
-    });
-  });
 
   describe('Downloading API Description Document', () =>
     test({

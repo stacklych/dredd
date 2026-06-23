@@ -582,67 +582,16 @@ If you don’t want to test a particular response, you can skip it in a :ref:`ho
 
 In case you need to perform particular request with different URI parameters and standard inheritance of URI parameters isn’t working for you, try :ref:`modifying transaction before its execution <modifying-transaction-request-body-prior-to-execution>` in hooks.
 
-.. _using-apiary-reporter-and-apiary-tests:
-
-Using Apiary Reporter and Apiary Tests
---------------------------------------
-
-Command-line output of complex HTTP responses and expectations can be hard to read. To tackle the problem, you can use Dredd to send test reports to `Apiary`_. Apiary provides a comfortable interface for browsing complex test reports:
-
-::
-
-   $ dredd api-description.yaml http://127.0.0.1 --reporter=apiary
-   warn: Apiary API Key or API Project Name were not provided. Configure Dredd to be able to save test reports alongside your Apiary API project: https://dredd.org/en/latest/how-to-guides/#using-apiary-reporter-and-apiary-tests
-   pass: DELETE /honey duration: 884ms
-   complete: 1 passing, 0 failing, 0 errors, 0 skipped, 1 total
-   complete: Tests took 1631ms
-   complete: See results in Apiary at: https://app.apiary.io/public/tests/run/74d20a82-55c5-49bb-aac9-a3a5a7450f06
-
-.. figure:: _static/images/apiary-tests.png
-   :alt: Apiary Tests
-
-   Apiary Tests
-
-Saving Test Reports under Your Account in Apiary
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-As you can see on the screenshot, the test reports are anonymous by default and will expire after some time. However, if you provide Apiary credentials, your test reports will appear on the *Tests* page of your API Project. This is great especially for introspection of test reports from Continuous Integration.
-
-To get and setup credentials, just follow the tutorial in Apiary:
-
-.. figure:: _static/images/apiary-tests-tutorial.png
-   :alt: Apiary Tests Tutorial
-
-   Apiary Tests Tutorial
-
-As you can see, the parameters go like this:
-
-::
-
-   $ dredd -j apiaryApiKey:<Apiary API Key> -j apiaryApiName:<API Project Name>
-
-In addition to using parameters and ``dredd.yml``, you can also use environment variables:
-
--  ``APIARY_API_KEY=<Apiary API Key>`` - Alternative way to pass credentials to Apiary Reporter.
--  ``APIARY_API_NAME=<API Project Name>`` - Alternative way to pass credentials to Apiary Reporter.
-
-When sending test reports to Apiary, Dredd inspects the environment where it was executed and sends some information about it alongside test results. Those are used mainly for detection whether the environment is Continuous Integration and also, they help you to identify individual test reports on the *Tests* page. You can use the following variables to tell Dredd what to send:
-
--  agent (string) - ``DREDD_AGENT`` or current user in the OS
--  hostname (string) - ``DREDD_HOSTNAME`` or hostname of the OS
--  CI (boolean) - looks for ``TRAVIS``, ``CIRCLE``, ``CI``, ``DRONE``, ``BUILD_ID``, …
-
 .. _removing-sensitive-data-from-test-reports:
 
 Removing Sensitive Data from Test Reports
 -----------------------------------------
 
-Sometimes your API sends back sensitive information you don’t want to get disclosed in :ref:`Apiary Tests <using-apiary-reporter-and-apiary-tests>` or in your CI log. In that case you can use :ref:`Hooks <hooks>` to do sanitation. Before diving into examples below, do not forget to consider following:
+Sometimes your API sends back sensitive information you don’t want to get disclosed in your test reports or in your CI log. In that case you can use :ref:`Hooks <hooks>` to do sanitation. Before diving into examples below, do not forget to consider following:
 
 -  Be sure to read :ref:`section about security <security>` first.
 -  Only the ``transaction.test`` (:ref:`docs <transaction-test>`) object will make it to reporters. You don’t have to care about sanitation of the rest of the ``transaction`` (:ref:`docs <transaction>`) object.
 -  The ``transaction.test.message`` and all the ``transaction.test.results.body.results.rawData.*.message`` properties contain validation error messages. While they’re very useful for learning about what’s wrong on command line, they can contain direct mentions of header names, header values, body properties, body structure, body values, etc., thus it’s recommended their contents are completely removed to prevent unintended leaks of sensitive information.
--  Without the ``transaction.test.results.body.results.rawData`` property :ref:`Apiary reporter <using-apiary-reporter-and-apiary-tests>` won’t be able to render green/red difference between payloads.
 -  You can use :ref:`Ultimate ‘afterEach’ Guard <sanitation-ultimate-guard>` to make sure you won’t leak any sensitive data by mistake.
 -  If your hooks crash, Dredd will send an error to reporters, alongside with current contents of the ``transaction.test`` (:ref:`docs <transaction-test>`) object. See the :ref:`Sanitation of Test Data of Transaction With Secured Erroring Hooks <sanitation-secured-erroring-hooks>` example to learn how to prevent this.
 

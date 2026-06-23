@@ -11,8 +11,8 @@ describe('resolveConfig()', () => {
       options: {
         path: './foo.yaml',
         custom: {
-          apiaryApiKey: 'the-key',
-          apiaryApiName: 'the-api-name',
+          myCustomKey: 'the-key',
+          myCustomName: 'the-api-name',
         },
       },
     });
@@ -23,7 +23,7 @@ describe('resolveConfig()', () => {
 
     it('moves options on the rool level', () => {
       assert.containsAllKeys(config, ['path', 'custom']);
-      assert.containsAllKeys(config.custom, ['apiaryApiKey', 'apiaryApiName']);
+      assert.containsAllKeys(config.custom, ['myCustomKey', 'myCustomName']);
     });
   });
 
@@ -33,8 +33,8 @@ describe('resolveConfig()', () => {
       options: {
         path: './foo.yaml',
         custom: {
-          apiaryApiKey: 'the-key',
-          apiaryApiName: 'the-api-name',
+          myCustomKey: 'the-key',
+          myCustomName: 'the-api-name',
         },
       },
     });
@@ -53,8 +53,8 @@ describe('resolveConfig()', () => {
       });
 
       it('includes custom properties', () => {
-        assert.equal(config.custom.apiaryApiKey, 'the-key');
-        assert.equal(config.custom.apiaryApiName, 'the-api-name');
+        assert.equal(config.custom.myCustomKey, 'the-key');
+        assert.equal(config.custom.myCustomName, 'the-api-name');
       });
     });
   });
