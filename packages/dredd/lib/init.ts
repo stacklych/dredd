@@ -124,32 +124,6 @@ export function prompt(
           when: (answers: any) => answers.hooks,
         },
         {
-          name: 'apiary',
-          message: 'Do you want to report your tests to the Apiary inspector?',
-          type: 'confirm',
-          default: true,
-          when: () => config.reporter !== 'apiary',
-        },
-        {
-          name: 'apiaryApiKey',
-          message:
-            'Enter Apiary API key (leave empty for anonymous, disposable test reports)',
-          type: 'input',
-          default: config.custom ? config.custom.apiaryApiKey : undefined,
-          when: (answers: any) =>
-            answers.apiary && (!config.custom || !config.custom.apiaryApiKey),
-        },
-        {
-          name: 'apiaryApiName',
-          message: 'Enter Apiary API name',
-          type: 'input',
-          default: config.custom ? config.custom.apiaryApiName : undefined,
-          when: (answers: any) =>
-            answers.apiary &&
-            answers.apiaryApiKey &&
-            (!config.custom || !config.custom.apiaryApiName),
-        },
-        {
           name: 'appveyor',
           message: 'Found AppVeyor configuration, do you want to add Dredd?',
           type: 'confirm',
@@ -222,16 +196,6 @@ export function applyAnswers(
 
   config.server = answers.server || null;
   config.language = answers.language || 'nodejs';
-
-  if (answers.apiary) {
-    config.reporter = 'apiary';
-  }
-  if (answers.apiaryApiKey) {
-    config.custom.apiaryApiKey = answers.apiaryApiKey;
-  }
-  if (answers.apiaryApiName) {
-    config.custom.apiaryApiName = answers.apiaryApiName;
-  }
 
   if (answers.createCI) {
     ci[answers.createCI]();

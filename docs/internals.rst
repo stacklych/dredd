@@ -194,21 +194,6 @@ or all packages from the repo root with ``yarn test:coverage``. Each package wri
     The previous Coveralls integration was removed due to reoccurring service denial. ``c8`` replaces it with a local, service-free report.
 
 
-.. _hacking-apiary-reporter:
-
-Hacking Apiary reporter
-~~~~~~~~~~~~~~~~~~~~~~~
-
-If you want to build something on top of the Apiary Reporter, note that
-it uses a public API for authenticated test reports
-
-Following data are sent over the wire to Apiary:
-
--  :ref:`Apiary Reporter Test Data <apiary-reporter-test-data>`
-
-The ``APIARY_API_URL`` environment variable allows the developer to override the host of the Apiary Tests API.
-
-
 Contributing to documentation
 -----------------------------
 

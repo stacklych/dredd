@@ -49,7 +49,7 @@
   },
   "reporter": {
     "alias": "r",
-    "description": "Output additional report format. This option can be used multiple times to add multiple reporters. Options: xunit, nyan, dot, markdown, html, json, apiary.",
+    "description": "Output additional report format. This option can be used multiple times to add multiple reporters. Options: xunit, nyan, dot, markdown, html, json.",
     "default": []
   },
   "output": {

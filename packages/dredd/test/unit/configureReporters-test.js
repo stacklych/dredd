@@ -18,7 +18,6 @@ import NyanReporter from '../../lib/reporters/NyanReporter';
 import HTMLReporter from '../../lib/reporters/HTMLReporter';
 import JSONReporter from '../../lib/reporters/JSONReporter';
 import MarkdownReporter from '../../lib/reporters/MarkdownReporter';
-import ApiaryReporter from '../../lib/reporters/ApiaryReporter';
 
 const BaseReporterStub = sinon.spy(BaseReporter);
 const XUnitReporterStub = sinon.spy(XUnitReporter);
@@ -28,7 +27,6 @@ const NyanCatReporterStub = sinon.spy(NyanReporter);
 const HtmlReporterStub = sinon.spy(HTMLReporter);
 const JsonReporterStub = sinon.spy(JSONReporter);
 const MarkdownReporterStub = sinon.spy(MarkdownReporter);
-const ApiaryReporterStub = sinon.spy(ApiaryReporter);
 
 const emitterStub = new EventEmitter();
 
@@ -46,8 +44,7 @@ function resetStubs() {
   NyanCatReporterStub.resetHistory();
   HtmlReporterStub.resetHistory();
   JsonReporterStub.resetHistory();
-  MarkdownReporterStub.resetHistory();
-  return ApiaryReporterStub.resetHistory();
+  return MarkdownReporterStub.resetHistory();
 }
 
 describe('configureReporters()', () => {
@@ -71,9 +68,6 @@ describe('configureReporters()', () => {
         '../../lib/reporters/JSONReporter.ts': { default: JsonReporterStub },
         '../../lib/reporters/MarkdownReporter.ts': {
           default: MarkdownReporterStub,
-        },
-        '../../lib/reporters/ApiaryReporter.ts': {
-          default: ApiaryReporterStub,
         },
       })
     ).default;

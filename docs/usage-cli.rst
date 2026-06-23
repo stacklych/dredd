@@ -52,10 +52,7 @@ See below how sample configuration file could look like. The structure is the sa
 
 .. code-block:: yaml
 
-   reporter: apiary
-   custom:
-     - "apiaryApiKey:yourSecretApiaryAPiKey"
-     - "apiaryApiName:apiName"
+   reporter: html
    dry-run: null
    hookfiles: "dreddhooks.js"
    server: rails server
