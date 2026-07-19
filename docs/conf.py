@@ -127,9 +127,15 @@ html_show_copyright = False
 
 linkcheck_ignore = [
     'https://crates.io/crates/dredd-hooks',  # https://github.com/sphinx-doc/sphinx/pull/5140
-    # Exclude Dredd repository links, because they are checked
-    # by "_extensions/ghlink_check.py".
-    r'https?://github\.com/apiaryio/dredd/.+',
+    # All github.com links (not just this repo's) rather than just
+    # apiaryio/dredd: GitHub rate-limits/anti-bots the linkcheck runner and
+    # intermittently 403s a wave of long-standing, valid github.com URLs at
+    # once (airbnb/javascript, bcoe/c8, semantic-release, etc.), which
+    # nondeterministically turns main red (#113). This repo's own links are
+    # still validated separately by "_extensions/ghlink_check.py", so the
+    # coverage loss from ignoring linkcheck here is limited to third-party
+    # repo links.
+    r'https?://github\.com/.*',
     # DEPRECATED (follow-up): links to the former owner's sites and assets.
     # These point at Apiary-era resources and have no verified Stackly
     # replacement yet. They are tracked in docs/deprecated-links.rst and
