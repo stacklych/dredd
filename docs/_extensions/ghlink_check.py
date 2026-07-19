@@ -7,9 +7,9 @@ from sphinx.util import logging
 
 
 def check_uri(uri):
-    if 'github.com/apiaryio/dredd/blob/master' in uri:
+    if 'github.com/stacklych/dredd/blob/master' in uri:
         path = Path(urlparse(uri).path
-                    .replace('apiaryio/dredd/blob/master', '.').lstrip('/'))
+                    .replace('stacklych/dredd/blob/master', '.').lstrip('/'))
         return path.exists()
     return True
 
@@ -42,19 +42,19 @@ class Tests(unittest.TestCase):
         self.assertTrue(check_uri('https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md'))
 
     def test_relevant_github_repo_but_irrelevant_path(self):
-        self.assertTrue(check_uri('https://github.com/apiaryio/dredd/issues/820'))
+        self.assertTrue(check_uri('https://github.com/stacklych/dredd/issues/820'))
 
     def test_local_github_project_root_without_slash(self):
-        self.assertTrue(check_uri('https://github.com/apiaryio/dredd/blob/master'))
+        self.assertTrue(check_uri('https://github.com/stacklych/dredd/blob/master'))
 
     def test_local_github_project_root_with_slash(self):
-        self.assertTrue(check_uri('https://github.com/apiaryio/dredd/blob/master/'))
+        self.assertTrue(check_uri('https://github.com/stacklych/dredd/blob/master/'))
 
     def test_local_github_existing(self):
-        self.assertTrue(check_uri('https://github.com/apiaryio/dredd/blob/master/README.md'))
+        self.assertTrue(check_uri('https://github.com/stacklych/dredd/blob/master/README.md'))
 
     def test_local_github_missing(self):
-        self.assertFalse(check_uri('https://github.com/apiaryio/dredd/blob/master/foo/bar/doesnt-exist'))
+        self.assertFalse(check_uri('https://github.com/stacklych/dredd/blob/master/foo/bar/doesnt-exist'))
 
 
 if __name__ == '__main__':

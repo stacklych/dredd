@@ -278,7 +278,7 @@ GitHub issues
     Simplifies linking GitHub issues. Usage: ``:ghissue:`drafter#123```
 
 GitHub links checker
-    Fails the docs build if there's an absolute link (``github.com/apiaryio/dredd/blob/master``) to a non-existing local file
+    Fails the docs build if there's an absolute link (``github.com/stacklych/dredd/blob/master``) to a non-existing local file
 
 OpenAPI 3 spec
     Simplifies linking the `OpenAPI 3`_ spec. Usage: ``:openapi3:`parameterobject```
