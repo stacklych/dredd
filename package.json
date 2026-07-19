@@ -34,11 +34,7 @@
     ]
   },
   "resolutions": {
-    "json-schema-faker": "0.5.8",
     "ansi-regex": "5.0.1",
     "lodash": "4.18.1"
-  },
-  "dependencies": {
-    "eslint": "^10"
   }
 }
