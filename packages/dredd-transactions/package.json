@@ -49,7 +49,7 @@
     "chai": "6.2.2",
     "eslint": "^10",
     "esmock": "2.7.6",
-    "globals": "17.6.0",
+    "globals": "17.7.0",
     "mocha": "11.7.6",
     "mocha-lcov-reporter": "1.3.0",
     "rimraf": "6.1.3"
