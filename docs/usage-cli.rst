@@ -23,8 +23,8 @@ Arguments
 
 .. option:: api-description-document
 
-   URL or path to the API description document (OpenAPI 3.0, OpenAPI 3.1).
-   **Sample values:** ``./openapi30.yml``, ``./openapi31.yml``, ``./openapi30.json``, ``http://example.com/openapi31.yml``
+   URL or path to the API description document (OpenAPI 3.0, OpenAPI 3.1, OpenAPI 3.2).
+   **Sample values:** ``./openapi30.yml``, ``./openapi31.yml``, ``./openapi32.yml``, ``./openapi30.json``, ``http://example.com/openapi31.yml``
 
 .. _api-location-string:
 

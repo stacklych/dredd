@@ -27,9 +27,10 @@ before using Dredd.
 
 - [OpenAPI 3][] (3.0)
 - [OpenAPI 3.1][]
+- [OpenAPI 3.2][]
 
-Both versions validate response status, structure, and **data types** against
-the described schemas (including `$ref`, `allOf`, arrays, `nullable`, and string
+All three validate response status, structure, and **data types** against the
+described schemas (including `$ref`, `allOf`, arrays, `nullable`, and string
 formats).
 
 ### Hooks
@@ -45,7 +46,7 @@ for test setup and teardown — in **JavaScript**, available out of the box.
 ## Installation
 
 ```
-$ npm install -g dredd
+$ npm install -g @stacklych/dredd
 ```
 
 ## Quick Start
@@ -68,6 +69,7 @@ $ npm install -g dredd
 
 [openapi 3]: https://spec.openapis.org/oas/v3.0.4.html
 [openapi 3.1]: https://spec.openapis.org/oas/v3.1.2.html
+[openapi 3.2]: https://spec.openapis.org/oas/v3.2.0.html
 [documentation]: https://stacklych.github.io/dredd/
 [changelog]: CHANGELOG.md
 [contributor's guidelines]: MAINTAINERS.md
