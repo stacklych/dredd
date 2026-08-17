@@ -26,5 +26,5 @@ jobs:
           # tokens with read/write are NOT sufficient to edit the description).
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: stacklych/dredd
-          short-description: 'Dredd — HTTP API testing tool for OpenAPI 3.0/3.1'
+          short-description: 'Dredd — HTTP API testing tool for OpenAPI 3.0/3.1/3.2'
           readme-filepath: ./.github/dockerhub-overview.md
