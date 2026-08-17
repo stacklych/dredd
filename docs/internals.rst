@@ -171,9 +171,7 @@ The documentation checks in ``run-docs-test`` — the Sphinx ``linkcheck``, the 
 Changelog
 ~~~~~~~~~
 
-Changelog entries for this maintained fork are tracked in the root ``CHANGELOG.md`` and can also be published as `GitHub Releases <https://github.com/stacklych/dredd/releases>`__.
-
-Automated release note generation can be restored later after the fork's npm publishing scope is decided.
+Changes in this maintained fork are documented as `GitHub Releases <https://github.com/stacklych/dredd/releases>`__, written by hand when a release is cut. There is no changelog file; the root ``CHANGELOG.md`` was removed because it had not been maintained since the 0.1.0 baseline and still described that baseline as unreleased.
 
 
 Coverage

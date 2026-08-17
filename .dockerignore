@@ -8,7 +8,6 @@ docs
 scripts
 appveyor.yml
 commitlint.config.js
-CHANGELOG.md
 CONTRIBUTING.md
 MAINTAINERS.md
 RELEASE.md

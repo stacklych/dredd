@@ -84,8 +84,8 @@ a version number can never be reused.
 ## After publishing
 
 1. Create the GitHub Release against the tag (`gh release create v<version>
-   --verify-tag`). **GitHub Releases are the release notes of record** — see
-   below on `CHANGELOG.md`.
+   --verify-tag`). **GitHub Releases are the release notes of record** — there
+   is no changelog file, so this is the only place a release is described.
 2. Verify, rather than assuming the workflows did what they claim:
    - `npm view @stacklych/dredd version` and the same for
      `@stacklych/dredd-transactions`
@@ -103,8 +103,7 @@ a version number can never be reused.
   updates it, and because the workflow overwrites the live page wholesale, a
   stale source silently reverts any manual edit made on Docker Hub. Update
   those files whenever supported formats or the Node base image change.
-- **`CHANGELOG.md`.** It has not been maintained per-release since the 0.1.0
-  baseline, and its `Unreleased` section still describes that baseline.
-  Releases are documented in GitHub Releases instead. Either revive the file as
-  part of the release steps above or remove it — leaving it in its current
-  state invites someone to trust it.
+- **Release notes.** There is no changelog file. `CHANGELOG.md` was removed
+  after v0.5.0: it had not been maintained since the 0.1.0 baseline and still
+  described that baseline as `Unreleased`, so it misinformed anyone who read
+  it. Write the notes in the GitHub Release instead, as step 1 above.

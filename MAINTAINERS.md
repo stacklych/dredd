@@ -27,7 +27,7 @@ The original upstream repository, `apiaryio/dredd`, was archived on November 8, 
 5. Run `yarn test`.
 6. Run `PATH="$PWD/.venv-docs/bin:$PATH" yarn docs:build`.
 7. Smoke-test the `dredd` CLI against OpenAPI 3.0 and OpenAPI 3.1 fixtures.
-8. Update `CHANGELOG.md`.
+8. Draft the release notes, published as a GitHub Release after tagging (see `RELEASE.md`).
 9. Tag the release.
 10. Publish packages only after the fork package naming plan is complete.
 

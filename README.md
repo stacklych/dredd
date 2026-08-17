@@ -71,5 +71,5 @@ $ npm install -g @stacklych/dredd
 [openapi 3.1]: https://spec.openapis.org/oas/v3.1.2.html
 [openapi 3.2]: https://spec.openapis.org/oas/v3.2.0.html
 [documentation]: https://stacklych.github.io/dredd/
-[changelog]: CHANGELOG.md
+[changelog]: https://github.com/stacklych/dredd/releases
 [contributor's guidelines]: MAINTAINERS.md
