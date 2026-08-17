@@ -1,7 +1,7 @@
 /* eslint no-console: ["error", { allow: ["log"] }] */
 import fs from 'fs';
 import path from 'path';
-import yaml from 'js-yaml';
+import * as yaml from 'js-yaml';
 
 import logger from './logger.js';
 
