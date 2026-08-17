@@ -26,7 +26,7 @@ Dredd supports **OpenAPI 3.0, 3.1, and 3.2 only**. API Blueprint and OpenAPI 2
 
 ## Requirements
 
-- Node.js **>= 20**
+- Node.js **>= 22.22.2**
 
 ## Installation
 

@@ -17,11 +17,11 @@ This project supersedes [Blueprint Transactions][blueprint-transactions] library
 - Warns on undefined placeholders in _URI Templates_ (both query and path).
 - Validates URI parameter types.
 - Selects first _Request_ and first _Response_ if multiple are specified in the API description document.
-- Compiles OpenAPI 3.1 response-testing transactions from paths and operations.
+- Compiles OpenAPI 3.1 and 3.2 response-testing transactions from paths and operations.
 
-### OpenAPI 3.1 Support
+### OpenAPI 3.1 and 3.2 Support
 
-OpenAPI 3.1 documents are compiled through a dedicated compiler path instead of the legacy API Elements OpenAPI 3 parser. The supported subset includes:
+OpenAPI 3.1 and 3.2 documents are compiled through a dedicated compiler path instead of the legacy API Elements OpenAPI 3 parser. Both versions share that path. The supported subset includes:
 
 - path and query parameters using `example`, first `examples` entry, `default`, or first `enum` value
 - path `simple` and query `form` parameter serialization, including arrays, objects, and `explode`
@@ -30,9 +30,16 @@ OpenAPI 3.1 documents are compiled through a dedicated compiler path instead of 
 - simple local `$ref` values
 - response schemas with dialect handling
 
-For response schemas, Dredd Transactions preserves schema-level `$schema`, otherwise uses root `jsonSchemaDialect`, otherwise uses the OpenAPI 3.1 Schema Object dialect URI `https://spec.openapis.org/oas/3.1/dialect/base`.
+OpenAPI 3.2 documents additionally support:
 
-The current OpenAPI 3.1 compiler does not implement every OpenAPI 3.1 feature. External references, callbacks, links, webhooks, header or cookie parameters, matrix, label, space-delimited, pipe-delimited, or deep-object parameter serialization, and multipart encoding objects are not yet covered.
+- the `query` (QUERY) method and the `additionalOperations` map, both of which produce transactions
+- `in: querystring` parameters, where the whole query string comes from the parameter's `content` — an object is form-encoded, or an example `serializedValue` is used verbatim
+
+Streaming and sequential media in OpenAPI 3.2 — a media type carrying `itemSchema`, or Server-Sent Events via `text/event-stream` — is reported with a warning and is not validated as a stream.
+
+For response schemas, Dredd Transactions preserves schema-level `$schema`, otherwise uses root `jsonSchemaDialect`, otherwise uses the OpenAPI 3.1 Schema Object dialect URI `https://spec.openapis.org/oas/3.1/dialect/base`. OpenAPI 3.2 reuses the OpenAPI 3.1 Schema Object dialect.
+
+The compiler does not implement every OpenAPI 3.1 feature. External references, callbacks, links, webhooks, header or cookie parameters, matrix, label, space-delimited, pipe-delimited, or deep-object parameter serialization, and multipart encoding objects are not yet covered.
 
 ### Deprecated Features
 
@@ -44,7 +51,7 @@ The current OpenAPI 3.1 compiler does not implement every OpenAPI 3.1 feature. E
 ## Installation
 
 ```
-npm install dredd-transactions
+npm install @stacklych/dredd-transactions
 ```
 
 ## Development
@@ -55,7 +62,7 @@ Dredd Transactions library is written in JavaScript (ES2015+).
 
 ### `parse`
 
-Parses given OpenAPI 3.0 or OpenAPI 3.1 description document into API Elements
+Parses given OpenAPI 3.0, OpenAPI 3.1, or OpenAPI 3.2 description document into API Elements
 with options specific to Dredd. Documents in an unrecognized format produce an
 [API Elements][api-elements] error annotation. Turns any parser failures,
 including the unexpected ones, into [API Elements][api-elements] annotations.
