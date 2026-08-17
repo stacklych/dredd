@@ -28,4 +28,4 @@ Out of scope:
 
 ## Disclosure
 
-Accepted vulnerabilities should be fixed in a private branch when possible, released, and then documented in `CHANGELOG.md` with a concise impact summary.
+Accepted vulnerabilities should be fixed in a private branch when possible, released, and then documented in the [GitHub Release](https://github.com/stacklych/dredd/releases) notes with a concise impact summary.
