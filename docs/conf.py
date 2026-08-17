@@ -158,6 +158,11 @@ linkcheck_ignore = [
     r'https?://json-schema\.org/understanding-json-schema/.*',
     # npmjs.com returns 403/429 to automated link checks (anti-bot).
     r'https?://(www\.)?npmjs\.com.*',
+    # stackoverflow.com 403s the linkcheck runner from CI IP ranges (anti-bot,
+    # like npmjs above), hard-failing the strict (-W) build on the two answer
+    # links in "installation.rst" even though both resolve fine in a browser.
+    # Same class of failure as the github.com entry above (#113).
+    r'https?://(www\.)?stackoverflow\.com/.*',
     # Chronically slow / automated-check-hostile hosts that intermittently time
     # out (read timeout) and hard-fail the strict (-W) link check even though
     # the pages are valid. They are stable, well-known destinations:
