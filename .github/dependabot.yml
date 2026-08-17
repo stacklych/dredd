@@ -1,9 +1,10 @@
-# No "ignore:" rules by design. The previous set pinned Dependabot to the
-# pre-modernization toolchain (nock > 10.0.6, winston > 2.4.0, eslint 7.x,
-# typescript 4.1, @types/chai, eslint-config-prettier 8.x, sphinx 3.5.x) and
-# silently suppressed real updates long after every one of those was obsolete.
-# Prefer letting a bad update fail in CI over hiding it here; if a rule is ever
-# needed, state the reason inline and the condition for removing it.
+# Every "ignore:" rule must carry, inline, the reason it exists and the
+# condition that retires it -- and must name specific versions, never an
+# open-ended "> x". The set removed in #118 (nock > 10.0.6, winston > 2.4.0,
+# eslint 7.x, typescript 4.1, @types/chai, eslint-config-prettier 8.x, sphinx
+# 3.5.x) had none of that, and the two open-ended entries silently suppressed
+# real updates for years. A rule with no stated exit becomes permanent by
+# accident; re-check the ones below whenever they next come up.
 version: 2
 updates:
 - package-ecosystem: npm
@@ -14,6 +15,25 @@ updates:
   open-pull-requests-limit: 10
   labels:
   - dependencies
+  ignore:
+  # typescript 7 is the Go-native compiler. typescript-eslint pins its peer
+  # range to "typescript >=4.8.4 <6.1.0", and the stable programmatic compiler
+  # API it needs is not expected before TS 7.1, so a 7.x PR cannot merge.
+  # RETIRE WHEN: `npm view typescript-eslint peerDependencies` shows an upper
+  # bound above 6.1 -- then drop this rule and take TS 7.
+  - dependency-name: typescript
+    versions:
+    - ">= 7"
+  # which 7's engines are "^22.22.2 || ^24.15.0 || >=26.0.0" -- a disjoint set,
+  # not a floor. It excludes Node 23.x and 24.0-24.14, so `yarn install` fails
+  # outright on common Node 24 patch releases. Note CI (24.x) resolves to a
+  # satisfying version while local installs break, so a 7.x PR can go green and
+  # still be unusable.
+  # RETIRE WHEN: the repo's supported Node range sits entirely inside which's
+  # engines -- i.e. the engines floor moves to ^24.15.0 or later.
+  - dependency-name: which
+    versions:
+    - ">= 7"
   commit-message:
     prefix: fix
     prefix-development: chore
