@@ -11,13 +11,13 @@ CLI on top of `node:22-alpine`, with `dredd` available on the `PATH`.
 
 ## Supported API description formats
 
-**OpenAPI 3.0 and OpenAPI 3.1 only.** API Blueprint and OpenAPI 2 (Swagger) are
+**OpenAPI 3.0, 3.1, and 3.2 only.** API Blueprint and OpenAPI 2 (Swagger) are
 not supported — convert older descriptions to OpenAPI 3 first.
 
 ## Tags
 
 - `latest` — the most recent release
-- `X.Y.Z` and `X.Y` — specific release versions (e.g. `0.2.1`, `0.2`)
+- `X.Y.Z` and `X.Y` — specific release versions (e.g. `0.5.0`, `0.5`)
 
 Images are published for `linux/amd64` and `linux/arm64`.
 
