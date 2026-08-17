@@ -1,6 +1,6 @@
 import clone from 'clone';
 import fs from 'fs';
-import yaml from 'js-yaml';
+import * as yaml from 'js-yaml';
 
 export function save(argsOrigin: Record<string, any>, path?: string): void {
   if (!path) {
