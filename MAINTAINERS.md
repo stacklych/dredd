@@ -13,8 +13,7 @@ The original upstream repository, `apiaryio/dredd`, was archived on November 8, 
 
 - Keep changes small, tested, and documented.
 - Preserve backward compatibility for the existing `dredd` CLI unless a release is explicitly marked breaking.
-- Keep package names unchanged in source until a scoped npm publishing migration is implemented and tested.
-- Publish forked npm packages only under a distinct scope, such as `@stacklych`, unless ownership of the original package names is explicitly transferred.
+- Publish forked npm packages only under the `@stacklych` scope. The unscoped `dredd` and `dredd-transactions` names on npm belong to the original maintainers and must not be used unless ownership is explicitly transferred.
 - Keep dependency upgrades separate from feature work unless the upgrade is required for the feature.
 - Run lint, targeted tests, and documentation builds before release.
 
@@ -26,11 +25,14 @@ The original upstream repository, `apiaryio/dredd`, was archived on November 8, 
 4. Run `yarn lint`.
 5. Run `yarn test`.
 6. Run `PATH="$PWD/.venv-docs/bin:$PATH" yarn docs:build`.
-7. Smoke-test the `dredd` CLI against OpenAPI 3.0 and OpenAPI 3.1 fixtures.
-8. Draft the release notes, published as a GitHub Release after tagging (see `RELEASE.md`).
-9. Tag the release.
-10. Publish packages only after the fork package naming plan is complete.
+7. Run `yarn test:smoke`, which packs both packages, installs the tarballs into a throwaway project, and checks the `dredd` CLI and the ESM entry point. OpenAPI 3.0, 3.1, and 3.2 coverage comes from the test suites in step 5, not from this step.
+8. Draft the release notes, published as a GitHub Release after tagging.
+9. Tag the release. Pushing the `v<version>` tag publishes both npm packages and the Docker image.
+
+`RELEASE.md` is the authoritative runbook — versioning policy, the pre-tag
+documentation check, what each publish workflow produces, and how to verify a
+release landed. Follow it rather than this summary when cutting a release.
 
 ## Package Publishing Note
 
-The npm packages `dredd` and `dredd-transactions` are still owned by the original maintainers on npm. This fork should use scoped package names for new publishing unless ownership is transferred.
+The unscoped `dredd` and `dredd-transactions` names on npm belong to the original maintainers. This fork publishes as `@stacklych/dredd` and `@stacklych/dredd-transactions`, and must keep doing so unless that ownership is explicitly transferred.

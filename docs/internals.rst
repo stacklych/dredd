@@ -66,7 +66,7 @@ To hack Dredd locally, clone the repository and run ``npm install`` to install J
 Commit message format
 ~~~~~~~~~~~~~~~~~~~~~
 
-This maintained fork uses `Semantic Versioning <https://semver.org/>`__ and keeps the existing Conventional Changelog commit format. Automated npm publishing is not configured for the maintained fork yet. Before publishing, decide and document the package names for the forked distribution.
+This maintained fork uses `Semantic Versioning <https://semver.org/>`__ and keeps the existing Conventional Changelog commit format. Publishing is automated: pushing a ``v<version>`` tag builds, lints, and tests the workspace, then publishes ``@stacklych/dredd`` and ``@stacklych/dredd-transactions`` to npm and a multi-arch image to Docker Hub. See ``RELEASE.md`` for the full process.
 
 .. code-block:: text
 
