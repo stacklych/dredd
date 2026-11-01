@@ -431,7 +431,7 @@ function compileCookieParameters(document, parameters) {
 }
 
 function isJSONMediaType(mediaType) {
-  const type = mediaType.split(';')[0].trim();
+  const type = mediaType.split(';')[0].trim().toLowerCase();
   return type === 'application/json' || type.endsWith('+json');
 }
 
@@ -535,6 +535,7 @@ function compileResponse(document, status, response, content) {
       compiledResponse.body = body;
     }
     if (content.mediaTypeObject.schema
+      && isJSONMediaType(content.mediaType)
       && !isStreamingMediaType(content.mediaType, content.mediaTypeObject)) {
       const schema = cloneWithoutRef(document, content.mediaTypeObject.schema);
       if (schema && typeof schema === 'object' && !schema.$schema) {
