@@ -357,6 +357,24 @@ class TransactionRunner {
         runHookCallback: () => void,
       ) => {
         const hookFn = hooks[hookFnIndex];
+        // Treat assertion failures from hooks (chai or node:assert, both
+        // expose name === 'AssertionError') as a failed transaction rather
+        // than a hook error, whether thrown or rejected.
+        const handleHookError = (caught: any) => {
+          const error = caught as any;
+          if (error && error.name === 'AssertionError') {
+            const transactions = Array.isArray(data) ? data : [data];
+            for (const transaction of transactions) {
+              this.failTransaction(
+                transaction,
+                `Failed assertion in hooks: ${error.message}`,
+              );
+            }
+          } else {
+            logger.debug('Hook errored:', error);
+            this.emitHookError(error, data);
+          }
+        };
         // Guard so the iteration callback fires exactly once. The try/catch
         // below also wraps the inner `runHook` callback, so without this guard
         // an error thrown after the callback (e.g. in `runHookCallback` or
@@ -373,29 +391,12 @@ class TransactionRunner {
         try {
           this.runHook(hookFn, data, (err: any) => {
             if (err) {
-              logger.debug('Hook errored:', err);
-              this.emitHookError(err, data);
+              handleHookError(err);
             }
             advance();
           });
         } catch (caught) {
-          // Treat assertion failures thrown from hooks (chai or node:assert,
-          // both expose name === 'AssertionError') as a failed transaction
-          // rather than a hook error.
-          const error = caught as any;
-          if (error && error.name === 'AssertionError') {
-            const transactions = Array.isArray(data) ? data : [data];
-            for (const transaction of transactions) {
-              this.failTransaction(
-                transaction,
-                `Failed assertion in hooks: ${error.message}`,
-              );
-            }
-          } else {
-            logger.debug('Hook errored:', error);
-            this.emitHookError(error, data);
-          }
-
+          handleHookError(caught);
           advance();
         }
       };
@@ -420,14 +421,45 @@ class TransactionRunner {
     this.emitError(error, test);
   }
 
+  // Runs one hook and calls `callback` exactly once when it is done:
+  // - a hook declaring two parameters `(data, done)` is done when it calls
+  //   `done()`;
+  // - any other hook (no parameters, or just `data`) is done when it returns,
+  //   or, if it returns a promise (an `async` function), when that settles.
+  // A rejected promise or an error thrown asynchronously is passed to
+  // `callback`; an error thrown synchronously propagates to the caller.
   runHook(hook: any, data: any, callback: (error?: any) => void) {
-    if (hook.length === 1) {
-      // Sync api
-      hook(data);
-      callback();
-    } else if (hook.length === 2) {
-      // Async api
-      hook(data, () => callback());
+    let called = false;
+    const finish = (error?: any) => {
+      if (called) {
+        return;
+      }
+      called = true;
+      callback(error);
+    };
+    const handleResult = (result: any, settle: boolean) => {
+      if (result && typeof result.then === 'function') {
+        result.then(
+          () => {
+            if (settle) {
+              finish();
+            }
+          },
+          (error: any) =>
+            finish(error || new Error('Hook returned a rejected promise')),
+        );
+      } else if (settle) {
+        finish();
+      }
+    };
+
+    if (hook.length === 2) {
+      handleResult(
+        hook(data, () => finish()),
+        false,
+      );
+    } else {
+      handleResult(hook(data), true);
     }
   }
 

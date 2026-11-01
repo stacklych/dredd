@@ -109,6 +109,38 @@ function parseArgv(
   return argv;
 }
 
+// The options given on the command line, with the values parsed according to
+// their definitions (types, arrays, aliases) but without any defaults, so
+// they can override a configuration file without resetting what it sets.
+// `rawArgv` is the same command line parsed without option definitions; it
+// only tells which options were given.
+function pickGivenOptions(
+  argv: Record<string, any>,
+  rawArgv: Record<string, any>,
+  options: Record<string, any>,
+) {
+  const aliases = getAliases(options);
+  const canonical: Record<string, string> = {};
+  Object.keys(aliases).forEach((name) => {
+    canonical[aliases[name]] = name;
+  });
+
+  const given: Record<string, any> = { _: argv._, $0: argv.$0 };
+  Object.keys(rawArgv).forEach((key) => {
+    if (key === '_' || key === '$0') {
+      return;
+    }
+    const name = canonical[key] || key;
+    given[name] = Object.prototype.hasOwnProperty.call(argv, name)
+      ? argv[name]
+      : rawArgv[key];
+    if (aliases[name]) {
+      given[aliases[name]] = given[name];
+    }
+  });
+  return given;
+}
+
 function formatHelp(usage: string, options: Record<string, any>): string {
   const optionLines = Object.keys(options).map((optionName) => {
     const option = options[optionName];
@@ -179,6 +211,7 @@ class CLI {
     // both `process.on` and `process.removeListener`, and so `this` refers to
     // the CLI instance when the handler fires.
     this.commandSigInt = this.commandSigInt.bind(this);
+    this.commandSigTerm = this.commandSigTerm.bind(this);
 
     if (!this.custom.cwd || typeof this.custom.cwd !== 'string') {
       this.custom.cwd = process.cwd();
@@ -191,9 +224,8 @@ class CLI {
 
   setParsedArgv() {
     this.argumentParser = createArgumentParser(this.custom.argv);
-    // `argv`/`cliArgv` are dynamic merged arg bags reassigned across methods
-    // (and self-referenced in `argv.path = [argv.path]`); type them `any`.
-    this.cliArgv = this.argumentParser.argv;
+    // Parsed without option definitions: tells which options were given.
+    const rawArgv = this.argumentParser.argv;
 
     this.argumentParser
       .usage(
@@ -212,6 +244,11 @@ Example:
       .wrap();
 
     this.argv = this.argumentParser.argv;
+    // `argv`/`cliArgv` are dynamic merged arg bags reassigned across methods
+    // (and self-referenced in `argv.path = [argv.path]`); type them `any`.
+    // `cliArgv` holds only the given options, parsed like `argv`, so that
+    // `loadDreddFile` can lay them over a configuration file.
+    this.cliArgv = pickGivenOptions(this.argv, rawArgv, dreddOptions);
     applyLoggingOptions(this.argv);
   }
 
@@ -240,7 +277,8 @@ Example:
   // from inside here — lets the type checker see it as definitely assigned.
   setExitOrCallback() {
     if (!this.cb) {
-      if (this.exit && this.exit === process.exit) {
+      // The real CLI (bin/dredd) passes no `exit`, so it uses process.exit.
+      if (!this.exit || this.exit === process.exit) {
         this.sigIntEventAdd = true;
       }
 
@@ -273,6 +311,7 @@ Example:
           this.serverProcess.signalKill();
         }
         process.removeListener('SIGINT', this.commandSigInt);
+        process.removeListener('SIGTERM', this.commandSigTerm);
       }
       this.cb(exitStatus);
       return this;
@@ -464,16 +503,18 @@ ${packageData.name} v${packageData.version} \
     logger.debug('Node.js version:', process.version);
     logger.debug('Node.js environment:', process.versions);
     logger.debug('System version:', os.type(), os.release(), os.arch());
-    try {
-      const npmVersion = (crossSpawn.spawn('npm', ['--version']) as any).stdout
-        .toString()
-        .trim();
+    // Spawning npm costs time and fails where npm is not installed, so only
+    // do it when the debug output is actually printed.
+    if (logger.level === 'debug') {
+      const result = crossSpawn.sync('npm', ['--version'], {
+        encoding: 'utf8',
+      });
+      const npmVersion =
+        !result.error && result.stdout ? String(result.stdout).trim() : '';
       logger.debug(
         'npm version:',
         npmVersion || 'unable to determine npm version',
       );
-    } catch (err) {
-      logger.debug('npm version: unable to determine npm version:', err);
     }
     logger.debug('Configuration:', JSON.stringify(config));
   }
@@ -482,9 +523,9 @@ ${packageData.name} v${packageData.version} \
     try {
       for (const task of [
         this.setParsedArgv,
-        this.parseCustomConfig,
         this.runExitingActions,
         this.loadDreddFile,
+        this.parseCustomConfig,
         this.checkRequiredArgs,
         this.moveBlueprintArgToPath,
       ]) {
@@ -558,6 +599,13 @@ ${packageData.name} v${packageData.version} \
     return new Dredd(configuration);
   }
 
+  // On SIGTERM, stop the backend server (via `_processExit` -> `stopServer`)
+  // and exit with the conventional 128 + 15 status.
+  commandSigTerm() {
+    logger.error('\nShutting down on SIGTERM');
+    this._processExit(143);
+  }
+
   commandSigInt() {
     logger.error('\nShutting down from keyboard interruption (Ctrl+C)');
     // `_processExit` gracefully terminates the backend server process (via
@@ -570,6 +618,7 @@ ${packageData.name} v${packageData.version} \
       // Handle SIGINT from user
       this.sigIntEventAdded = !(this.sigIntEventAdd = false);
       process.on('SIGINT', this.commandSigInt);
+      process.on('SIGTERM', this.commandSigTerm);
     }
 
     logger.debug('Running Dredd instance.');
