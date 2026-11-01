@@ -23,12 +23,13 @@ This project supersedes [Blueprint Transactions][blueprint-transactions] library
 
 OpenAPI 3.1 and 3.2 documents are compiled through a dedicated compiler path instead of the legacy API Elements OpenAPI 3 parser. Both versions share that path. The supported subset includes:
 
-- path and query parameters using `example`, first `examples` entry, `default`, or first `enum` value
-- path `simple` and query `form` parameter serialization, including arrays, objects, and `explode`
-- request bodies using the first declared media type and explicit or schema-derived examples
-- responses using the first declared media type and explicit or schema-derived examples
-- simple local `$ref` values
-- response schemas with dialect handling
+- path and query parameters using `example`, first `examples` entry, schema `example`, `default`, `const`, or first `enum` value; an operation-level parameter overrides a path-level parameter with the same name and location; a required parameter without a value is reported as an error and its operation produces no transactions
+- path `simple`, `label` and `matrix`, and query `form`, `spaceDelimited`, `pipeDelimited` and `deepObject` serialization, including arrays, objects, and `explode`
+- header and cookie parameters that carry an explicit value
+- request bodies for each declared media type, using explicit or schema-derived examples; `application/x-www-form-urlencoded` objects are form-encoded
+- responses for each declared media type, each transaction sending a matching `Accept` header; response headers are checked only when `required: true`; status code ranges such as `2XX` are reported and skipped
+- simple local `$ref` values, keeping keywords next to a `$ref`
+- response schemas for JSON media types only, validated with the JSON Schema dialect they declare (2020-12, 2019-09, or draft-07)
 
 OpenAPI 3.2 documents additionally support:
 
@@ -39,7 +40,7 @@ Streaming and sequential media in OpenAPI 3.2 — a media type carrying `itemSch
 
 For response schemas, Dredd Transactions preserves schema-level `$schema`, otherwise uses root `jsonSchemaDialect`, otherwise uses the OpenAPI 3.1 Schema Object dialect URI `https://spec.openapis.org/oas/3.1/dialect/base`. OpenAPI 3.2 reuses the OpenAPI 3.1 Schema Object dialect.
 
-The compiler does not implement every OpenAPI 3.1 feature. External references, callbacks, links, webhooks, header or cookie parameters, matrix, label, space-delimited, pipe-delimited, or deep-object parameter serialization, and multipart encoding objects are not yet covered.
+The compiler does not implement every OpenAPI 3.1 feature. External references, callbacks, links, webhooks, and multipart encoding objects are not yet covered.
 
 ### Deprecated Features
 
