@@ -10,10 +10,8 @@ the repo root that contains this `packages/` folder.
 
 ## Mission
 
-Execute only what is authorized.
+Execute only what is authorized (`AGENTS.md`).
 Keep work minimal and bounded to one verified action at a time.
-Ground every claim in repository files, tool results, or official docs before memory.
-Prefer correctness, traceability, and scope discipline over helpfulness.
 
 ## Binding Project Facts
 
@@ -83,14 +81,8 @@ Then branch by task:
 
 If the human says `hold`, stop after the current read-only assessment.
 
-## Grounding Rules
+## Citations
 
-- Do not guess. Do not invent file paths, flags, config keys, function
-  signatures, or command syntax.
-- Do not treat memory as authoritative when repository sources exist.
-- If a claim is not verified from repo files, tool results, or official docs,
-  mark it `Uncertain:` and give one exact verification method (command, file, or
-  doc URL).
 - Cite exact repository file paths in the final `Sources:` line.
 
 ## OpenAPI 3.0 / 3.1 / 3.2 Implementation Discipline
@@ -112,6 +104,58 @@ If the human says `hold`, stop after the current read-only assessment.
   `packages/dredd-transactions/test/fixtures/openapi3/` and load them through the
   fixtures helper at `test/fixtures/index.js`. Verify the fixture parses clean
   before asserting on compiled output.
+
+## Known Defect Classes (check before every change and review)
+
+The 2026-11 project review (#126–#163) confirmed 38 defects. Nearly all fall
+into the classes below. Before finishing a change, check each class it touches;
+when reviewing, check them all.
+
+1. **Compile-path parity.** 3.0 (`compile/openapi30Schema.js` + API Elements)
+   and 3.1/3.2 (`compile/openapi31.js`) are independent implementations, and
+   they drifted: Accept headers, transaction names, parameter override,
+   status-code ranges, missing-parameter errors (#131, #132, #134, #135, #137).
+   Any behavior added or fixed in one path must be mirrored in the other or the
+   divergence stated in the PR. Prove it with a test that compiles the same
+   document as `openapi: 3.0.3` and as `openapi: 3.1.0` and compares the output.
+2. **OpenAPI rules that were broken.** Check against the spec, not the existing
+   code:
+   - an operation parameter replaces a path parameter with the same
+     `(name, in)`; it is not appended (#131);
+   - response keys `1XX`–`5XX` are ranges, not literal status codes (#134);
+   - in 3.1/3.2 schemas, keywords next to `$ref` apply too (#136);
+   - response headers are optional unless `required: true` (#148);
+   - `jsonSchemaDialect` and a schema's own `$schema` choose the dialect (#150);
+   - parameter `style` values that are not implemented must warn, not
+     serialize garbage (#149).
+3. **Media-type blindness.** A schema means "parse as JSON" only for
+   `application/json` and `+json` types. Do not attach a JSON schema to, or
+   `JSON.parse`, any other body; do not stringify non-JSON objects (#126, #133).
+4. **Display names as lookup keys.** `origin.resourceName` is the Path Item
+   `summary` when one exists. Never use names, titles or summaries to look up
+   parts of the document; use the path template / href (#127).
+5. **Tests that never run.** `packages/dredd` collects only
+   `test/{unit,integration}/**/*-test.js`; `packages/dredd-transactions` only
+   `test/**/*-test.mjs`. A new test file outside those globs never runs (#129).
+   After adding tests, prove they are collected, e.g.
+   `npx mocha --dry-run "<glob>" | grep "<describe title>"`. A green suite does
+   not prove a new test ran (#142, #160).
+6. **Hardcoded package identity.** The published names are `@stacklych/dredd`
+   and `@stacklych/dredd-transactions`; the unscoped names belong to the
+   archived upstream. Generated output (`dredd init`), READMEs, docs and the
+   Docker Hub overview must use the scoped name, read from `package.json` in
+   code (#128).
+7. **Doc and contract drift.** When a structural fact changes (engines, versions,
+   file layout, test commands, dependencies, release flow), update every
+   surface that states it in the same PR: this skill, `docs/internals.rst`,
+   `SECURITY.md`, both READMEs, `.github/dockerhub-overview.md` (#130, #145,
+   #159).
+8. **Insecure defaults.** Credentials from `--user` and auth headers must be
+   redacted in CLI output, reporters and debug dumps (#157). The Docker runtime
+   image installs production dependencies only and runs as a non-root user
+   (#141). GitHub Actions: third-party actions pinned to a commit SHA, an
+   explicit `permissions:` block, and Dependabot tracking `github-actions`
+   (#158).
 
 ## Build, Lint, Test (exact, verified)
 
@@ -164,9 +208,7 @@ node .claude/skills/run-dredd/driver.mjs
   `feat(dredd-transactions): ...`, `fix(dredd): ...`, `refactor(...): ...`,
   `test(...): ...`, `docs: ...`.
 - Stage specific files by name. Do not `git add -A`/`.`.
-- **Never push.** David pushes commits himself. The agent may stage and commit
-  only when explicitly asked, and never runs `git push`, force-push, or any
-  destructive git command.
+- Commit, push, and pull-request authority is defined in `AGENTS.md`.
 
 ## Scope Handling
 
@@ -199,7 +241,8 @@ durable, triaged backlog rather than scattering fixes or losing the observation.
 
 When asked for review: findings first, ordered by severity (bugs, regressions,
 missing tests, format-scope drift), then assumptions/open questions, then a short
-change summary. If nothing is wrong, say so and note residual risk or test gaps.
+change summary. Check every class in Known Defect Classes; name the classes that
+do not apply rather than skipping them silently. If nothing is wrong, say so and note residual risk or test gaps.
 
 ## Response Contract
 
@@ -230,4 +273,6 @@ Stop and report instead of continuing if any of the following is true:
 - the change depends on `default`-value handling through `openapi3-parser` 0.16.1
 - required authority is missing
 - the task depends on undocumented behavior being invented
-- a destructive or push operation would be required
+- a compile-path change cannot be mirrored to, or tested against, the other
+  OpenAPI compile path (Known Defect Classes, item 1)
+- a destructive operation, or a push `AGENTS.md` does not grant, would be required
