@@ -192,6 +192,21 @@ or all packages from the repo root with ``yarn test:coverage``. Each package wri
     The previous Coveralls integration was removed due to reoccurring service denial. ``c8`` replaces it with a local, service-free report.
 
 
+Change checklist
+~~~~~~~~~~~~~~~~
+
+A 2026 project review (issues `#126 <https://github.com/stacklych/dredd/issues/126>`__ to `#163 <https://github.com/stacklych/dredd/issues/163>`__) found that most defects belong to a few recurring classes. Check the ones your change touches before opening a pull request:
+
+- **Both OpenAPI compile paths.** OpenAPI 3.0 is compiled by ``compile/openapi30Schema.js`` through API Elements; 3.1 and 3.2 by ``compile/openapi31.js``. They are separate implementations. Mirror a behavior change in both, or state the divergence, and test it by compiling the same document as ``openapi: 3.0.3`` and ``openapi: 3.1.0``.
+- **The specification, not the existing code.** Operation parameters replace path parameters with the same ``name`` and ``in``. ``2XX``-style response keys are ranges. In 3.1/3.2, keywords next to ``$ref`` apply. Response headers are optional unless ``required: true``.
+- **JSON only for JSON media types.** Attach JSON schemas and parse bodies as JSON only for ``application/json`` and ``+json`` media types.
+- **Look things up by path.** Never use a path's ``summary``, a title or a transaction name to find something in the API description.
+- **Prove new tests run.** ``packages/dredd`` collects only ``test/unit/**/*-test.js`` and ``test/integration/**/*-test.js``; ``packages/dredd-transactions`` only ``test/**/*-test.mjs``. Check that a new test is collected, for example with ``npx mocha --dry-run``.
+- **Use the published names.** The packages are ``@stacklych/dredd`` and ``@stacklych/dredd-transactions``. The unscoped names belong to the archived upstream project. In code, read the name from ``package.json``.
+- **Update every surface that states a fact.** Supported Node.js versions, package versions, file layout, test commands and the release flow are stated in this page, ``SECURITY.md``, both READMEs, ``.github/dockerhub-overview.md`` and ``.claude/skills/coder-agent-dredd/SKILL.md``. Change them together.
+- **Secure defaults.** Redact credentials in output and reports. Keep development dependencies out of the Docker image and run it as a non-root user. Pin third-party GitHub Actions to a commit SHA and declare ``permissions:``.
+
+
 Contributing to documentation
 -----------------------------
 
