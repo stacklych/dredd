@@ -17,7 +17,7 @@ not supported — convert older descriptions to OpenAPI 3 first.
 ## Tags
 
 - `latest` — the most recent release
-- `X.Y.Z` and `X.Y` — specific release versions (e.g. `0.5.0`, `0.5`)
+- `X.Y.Z` and `X.Y` — specific release versions (e.g. `0.6.0`, `0.6`)
 
 Images are published for `linux/amd64` and `linux/arm64`.
 
@@ -40,6 +40,11 @@ docker run --rm -v "$PWD:/spec" -w /spec \
 
 > On Docker Desktop, `host.docker.internal` resolves to the host machine. On
 > Linux, use the host's address or run with `--network host` and `127.0.0.1`.
+
+The image runs as the unprivileged `node` user (UID 1000) and contains only
+production dependencies. If Dredd needs to write into a mounted directory owned
+by another user (for example `dredd init` or a file-based `--reporter`), add
+`--user "$(id -u):$(id -g)"` to the `docker run` command.
 
 Compile and inspect the transactions without sending any requests:
 
