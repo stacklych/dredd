@@ -19,7 +19,10 @@ describe('init._updateTravisCI()', () => {
     updateTravisCI(createOptions(contents));
 
     assert.equal(contents.before_install[0], 'pipenv install');
-    assert.match(contents.before_install[1], /npm.+i.+dredd/);
+    assert.match(
+      contents.before_install[1],
+      /^npm install @stacklych\/dredd@\d+\.\d+\.\d+.* --global$/,
+    );
     assert.equal(contents.before_install.length, 2);
   });
 

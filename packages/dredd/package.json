@@ -4,6 +4,7 @@
   "description": "HTTP API Testing Framework",
   "type": "module",
   "main": "build/index.js",
+  "types": "build/index.d.ts",
   "bin": {
     "dredd": "bin/dredd"
   },
@@ -58,7 +59,6 @@
     "minimist": "1.2.8",
     "ramda": "0.32.0",
     "spawn-args": "0.2.0",
-    "which": "6.0.1",
     "winston": "3.19.0"
   },
   "devDependencies": {
@@ -69,7 +69,6 @@
     "@types/mocha": "10.0.10",
     "@types/node": "24.13.3",
     "@types/ramda": "0.32.0",
-    "@types/which": "3.0.4",
     "body-parser": "^2",
     "chai": "6.2.2",
     "coffeescript": "2.7.0",

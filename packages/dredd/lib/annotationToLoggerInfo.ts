@@ -1,4 +1,4 @@
-import compileTransactionName from './compileTransactionName.js';
+import compileTransactionName from '@stacklych/dredd-transactions/compileTransactionName';
 
 /**
  * Turns annotation type into a log level

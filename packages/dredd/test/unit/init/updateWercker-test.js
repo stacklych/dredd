@@ -23,7 +23,10 @@ describe('init._updateWercker()', () => {
     updateWercker(createOptions(contents));
 
     assert.equal(contents.build.steps.length, 3);
-    assert.match(contents.build.steps[0].script.code, /npm.+i.+dredd/);
+    assert.match(
+      contents.build.steps[0].script.code,
+      /^npm install @stacklych\/dredd@\d+\.\d+\.\d+.* --global$/,
+    );
     assert.equal(contents.build.steps[1].script.code, 'pipenv install');
     assert.equal(contents.build.steps[2].script.code, 'dredd');
   });
