@@ -224,6 +224,61 @@ function sampleFromParameter(document, parameter) {
   return sampleFromSchema(document, parameter.schema);
 }
 
+// A value the document states for a parameter: its example(s), or the schema's
+// example, default, const or first enum value. Unlike sampleFromParameter this
+// never invents a type-based placeholder ('' or 0), so a parameter without a
+// stated value can be omitted (optional) or reported (required).
+function explicitParameterValue(document, parameter) {
+  if (Object.prototype.hasOwnProperty.call(parameter, 'example')) {
+    return parameter.example;
+  }
+  if (parameter.examples) {
+    const example = findFirstExample(document, parameter.examples);
+    if (typeof example !== 'undefined') {
+      return example;
+    }
+  }
+  const schema = resolveRef(document, parameter.schema);
+  if (!schema || typeof schema !== 'object') {
+    return undefined;
+  }
+  if (Object.prototype.hasOwnProperty.call(schema, 'example')) {
+    return schema.example;
+  }
+  if (Object.prototype.hasOwnProperty.call(schema, 'default')) {
+    return schema.default;
+  }
+  if (Object.prototype.hasOwnProperty.call(schema, 'const')) {
+    return schema.const;
+  }
+  if (Array.isArray(schema.enum) && schema.enum.length) {
+    return schema.enum[0];
+  }
+  return undefined;
+}
+
+// Merges Path Item and Operation parameters. An operation parameter replaces a
+// path-level parameter with the same name and location (OpenAPI 3.x, Path Item
+// Object `parameters`). Order: path-level first, then operation-only ones.
+function mergeParameters(document, pathParameters, operationParameters) {
+  const key = (parameter) => {
+    const resolved = resolveRef(document, parameter) || {};
+    return `${resolved.in}:${resolved.name}`;
+  };
+  const merged = [];
+  const index = new Map();
+  [...(pathParameters || []), ...(operationParameters || [])].forEach((parameter) => {
+    const k = key(parameter);
+    if (index.has(k)) {
+      merged[index.get(k)] = parameter;
+    } else {
+      index.set(k, merged.length);
+      merged.push(parameter);
+    }
+  });
+  return merged;
+}
+
 function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
@@ -284,6 +339,53 @@ function serializeFormParameter(name, value, explode) {
   return [`${serializedName}=${serializePrimitive(value)}`];
 }
 
+// Path styles (RFC 6570 label `.` and matrix `;` expansions).
+function serializeLabelParameter(value, explode) {
+  if (Array.isArray(value)) {
+    return `.${serializeArray(value, explode ? '.' : ',')}`;
+  }
+  if (value && typeof value === 'object') {
+    return `.${explode ? serializeObject(value, '.', '=') : serializeObject(value, ',', ',')}`;
+  }
+  return `.${serializePrimitive(value)}`;
+}
+
+function serializeMatrixParameter(name, value, explode) {
+  const serializedName = encodePart(name);
+  if (Array.isArray(value)) {
+    return explode
+      ? value.map((item) => `;${serializedName}=${encodePart(item)}`).join('')
+      : `;${serializedName}=${serializeArray(value, ',')}`;
+  }
+  if (value && typeof value === 'object') {
+    return explode
+      ? Object.keys(value).map((key) => `;${encodePart(key)}=${encodePart(value[key])}`).join('')
+      : `;${serializedName}=${serializeObject(value, ',', ',')}`;
+  }
+  return `;${serializedName}=${serializePrimitive(value)}`;
+}
+
+// Query styles other than `form`. `spaceDelimited` and `pipeDelimited` join
+// array items (explode: false); `deepObject` renders `name[key]=value`.
+function serializeDelimitedParameter(name, value, explode, delimiter) {
+  const serializedName = encodePart(name);
+  if (Array.isArray(value) && !explode) {
+    return [`${serializedName}=${serializeArray(value, delimiter)}`];
+  }
+  return serializeFormParameter(name, value, explode);
+}
+
+function serializeDeepObjectParameter(name, value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return undefined;
+  }
+  return Object.keys(value)
+    .map((key) => `${encodePart(name)}%5B${encodePart(key)}%5D=${encodePart(value[key])}`);
+}
+
+const PATH_STYLES = ['simple', 'label', 'matrix'];
+const QUERY_STYLES = ['form', 'spaceDelimited', 'pipeDelimited', 'deepObject'];
+
 function getDefaultStyle(location) {
   return location === 'path' ? 'simple' : 'form';
 }
@@ -333,9 +435,15 @@ function serializeQuerystringParameter(document, parameter) {
   return encodePart(value);
 }
 
-function compileParameters(document, pathTemplate, parameters) {
+function compileParameters(document, pathTemplate, parameters, annotations) {
   let uri = pathTemplate;
   const query = [];
+  const warn = (message) => annotations.push({
+    type: 'warning', component: 'parametersValidation', message, location: null,
+  });
+  const fail = (message) => annotations.push({
+    type: 'error', component: 'parametersValidation', message, location: null,
+  });
 
   parameters.forEach((parameter) => {
     const resolvedParameter = resolveRef(document, parameter);
@@ -349,34 +457,68 @@ function compileParameters(document, pathTemplate, parameters) {
       }
       return;
     }
-
-    const value = sampleFromParameter(document, resolvedParameter);
-    if (typeof value === 'undefined') {
+    if (resolvedParameter.in !== 'path' && resolvedParameter.in !== 'query') {
       return;
     }
 
+    const value = explicitParameterValue(document, resolvedParameter);
+    if (typeof value === 'undefined') {
+      if (resolvedParameter.in === 'path' || resolvedParameter.required) {
+        fail(`Required URI parameter '${resolvedParameter.name}' has no example or default value.`);
+      }
+      return;
+    }
+
+    const style = resolvedParameter.style || getDefaultStyle(resolvedParameter.in);
+    const explode = Object.prototype.hasOwnProperty.call(resolvedParameter, 'explode')
+      ? resolvedParameter.explode
+      : getDefaultExplode(style);
+    const unsupported = () => warn(
+      `Parameter '${resolvedParameter.name}' (in: ${resolvedParameter.in}) uses style `
+      + `'${style}', which is not valid for this location; it is serialized as `
+      + `'${getDefaultStyle(resolvedParameter.in)}'.`
+    );
+
     if (resolvedParameter.in === 'path') {
-      const style = resolvedParameter.style || getDefaultStyle(resolvedParameter.in);
-      const explode = Object.prototype.hasOwnProperty.call(resolvedParameter, 'explode')
-        ? resolvedParameter.explode
-        : getDefaultExplode(style);
-      const serializedValue = style === 'simple'
-        ? serializeSimpleParameter(value, explode)
-        : serializePrimitive(value);
+      let serializedValue;
+      if (style === 'label') {
+        serializedValue = serializeLabelParameter(value, explode);
+      } else if (style === 'matrix') {
+        serializedValue = serializeMatrixParameter(resolvedParameter.name, value, explode);
+      } else {
+        if (!PATH_STYLES.includes(style)) { unsupported(); }
+        serializedValue = serializeSimpleParameter(value, explode);
+      }
       uri = uri.replace(
         new RegExp(`{${escapeRegExp(resolvedParameter.name)}}`, 'g'),
         serializedValue
       );
-    } else if (resolvedParameter.in === 'query') {
-      const style = resolvedParameter.style || getDefaultStyle(resolvedParameter.in);
-      const explode = Object.prototype.hasOwnProperty.call(resolvedParameter, 'explode')
-        ? resolvedParameter.explode
-        : getDefaultExplode(style);
-      if (style === 'form') {
-        query.push(...serializeFormParameter(resolvedParameter.name, value, explode));
-      } else {
-        query.push(`${encodePart(resolvedParameter.name)}=${serializePrimitive(value)}`);
+    } else {
+      let pairs;
+      if (style === 'spaceDelimited') {
+        pairs = serializeDelimitedParameter(resolvedParameter.name, value, explode, '%20');
+      } else if (style === 'pipeDelimited') {
+        pairs = serializeDelimitedParameter(resolvedParameter.name, value, explode, '|');
+      } else if (style === 'deepObject') {
+        pairs = serializeDeepObjectParameter(resolvedParameter.name, value);
+        if (!pairs) {
+          warn(`Parameter '${resolvedParameter.name}' uses style 'deepObject', `
+            + 'which applies only to object values; it is serialized as \'form\'.');
+        }
+      } else if (!QUERY_STYLES.includes(style)) {
+        unsupported();
       }
+      query.push(...(pairs || serializeFormParameter(resolvedParameter.name, value, explode)));
+    }
+  });
+
+  // A `{name}` left in the path has no declared parameter (or no value); the
+  // request would go to a literal '{name}' URL, so report it.
+  const leftovers = uri.match(/{[^}]+}/g) || [];
+  leftovers.forEach((placeholder) => {
+    const name = placeholder.slice(1, -1);
+    if (!annotations.some((annotation) => annotation.message.includes(`'${name}'`))) {
+      fail(`Required URI parameter '${name}' has no example or default value.`);
     }
   });
 
@@ -393,7 +535,7 @@ function compileHeaderParameters(document, parameters) {
     if (resolvedParameter.in !== 'header') {
       return headers;
     }
-    const value = sampleFromParameter(document, resolvedParameter);
+    const value = explicitParameterValue(document, resolvedParameter);
     if (typeof value === 'undefined') {
       return headers;
     }
@@ -408,7 +550,7 @@ function compileCookieParameters(document, parameters) {
     if (resolvedParameter.in !== 'cookie') {
       return pairs;
     }
-    const value = sampleFromParameter(document, resolvedParameter);
+    const value = explicitParameterValue(document, resolvedParameter);
     if (typeof value === 'undefined') {
       return pairs;
     }
@@ -599,9 +741,7 @@ function collectStreamingAnnotations(document, method, pathTemplate, operation) 
 }
 
 function compileOperation(document, filename, pathTemplate, pathItem, method, operation) {
-  const parameters = []
-    .concat(pathItem.parameters || [])
-    .concat(operation.parameters || []);
+  const parameters = mergeParameters(document, pathItem.parameters, operation.parameters);
 
   // An unresolvable internal reference makes the operation uncompilable; surface
   // it as an error annotation and emit no transactions for it (matching the
@@ -622,7 +762,13 @@ function compileOperation(document, filename, pathTemplate, pathItem, method, op
     };
   }
 
-  const uri = compileParameters(document, pathTemplate, parameters);
+  const parameterAnnotations = [];
+  const uri = compileParameters(document, pathTemplate, parameters, parameterAnnotations);
+  // Matching the parser-backed path: an operation whose URI cannot be built
+  // (a required parameter without a value) yields no transactions.
+  if (parameterAnnotations.some((annotation) => annotation.type === 'error')) {
+    return { transactions: [], annotations: parameterAnnotations };
+  }
   const headerParameters = compileHeaderParameters(document, parameters);
   const cookieHeaders = compileCookieParameters(document, parameters);
   const requests = compileRequests(
@@ -651,7 +797,8 @@ function compileOperation(document, filename, pathTemplate, pathItem, method, op
 
   return {
     transactions,
-    annotations: collectStreamingAnnotations(document, method, pathTemplate, operation),
+    annotations: parameterAnnotations
+      .concat(collectStreamingAnnotations(document, method, pathTemplate, operation)),
   };
 }
 
