@@ -107,7 +107,7 @@ OpenAPI 3.1
 2. Response ``content`` media type ``example`` or first ``examples`` entry - Dredd uses the sample payload as the expected body.
 3. If no explicit response example is present, Dredd generates a sample body from the schema using the following precedence: ``example``, ``default``, ``const``, first ``enum`` value, first ``oneOf`` schema, first ``anyOf`` schema, then a generated value by type.
 
-OpenAPI 3.1 and 3.2 schemas are emitted with an explicit ``$schema`` before validation (3.2 reuses the OpenAPI 3.1 Schema Object dialect). Dredd preserves a schema-level ``$schema``. If the schema does not define one, Dredd uses the root ``jsonSchemaDialect`` value. If neither is present, Dredd uses the `OpenAPI 3.1 Schema Object dialect`_ URI. The OpenAPI 3.1 Schema Object dialect and ``https://json-schema.org/draft/2020-12/schema`` are validated with Ajv.
+OpenAPI 3.1 and 3.2 schemas are emitted with an explicit ``$schema`` before validation (3.2 reuses the OpenAPI 3.1 Schema Object dialect). Dredd preserves a schema-level ``$schema``. If the schema does not define one, Dredd uses the root ``jsonSchemaDialect`` value. If neither is present, Dredd uses the `OpenAPI 3.1 Schema Object dialect`_ URI. The OpenAPI 3.1 Schema Object dialect and ``https://json-schema.org/draft/2020-12/schema`` are validated with Ajv's JSON Schema 2020-12 validator, and ``https://json-schema.org/draft/2019-09/schema`` with its 2019-09 validator (a trailing ``#`` on these URIs is accepted). ``http://json-schema.org/draft-07/schema#`` uses the default validator. Any other dialect fails the test with a message naming the dialect. Keywords next to a ``$ref`` apply together with the referenced schema, as JSON Schema 2020-12 requires; in OpenAPI 3.0 documents they are ignored, as OpenAPI 3.0 requires.
 
 .. _gavels-expectations:
 
@@ -187,6 +187,8 @@ Security
 --------
 
 Depending on what you test and how, output of Dredd may contain sensitive data.
+
+Dredd replaces the values of credential headers with ``[REDACTED]`` in its CLI output, in all reporters and in the debug configuration dump. This covers ``Authorization`` (including the header :option:`--user` creates), ``Proxy-Authorization``, ``Cookie`` and ``Set-Cookie``, and headers whose name contains ``auth``, ``token``, ``secret``, ``api-key``/``apikey``, ``password`` or ``session`` as a word (e.g. ``X-API-Key``, ``X-Auth-Token``), including headers added with :option:`--header`. The requests Dredd sends keep the real values. Credentials elsewhere, such as in request or response bodies or in URLs, are not redacted.
 
 Mind that if you run Dredd in a CI server provided as a service (such as `CircleCI`_, `Travis CI`_, etc.), you are disclosing the CLI output of Dredd to third parties.
 

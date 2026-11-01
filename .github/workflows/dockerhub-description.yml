@@ -12,6 +12,10 @@ on:
       - '.github/dockerhub-overview.md'
       - '.github/workflows/dockerhub-description.yml'
 
+# Least privilege for GITHUB_TOKEN; jobs that need more declare it.
+permissions:
+  contents: read
+
 jobs:
   update-description:
     runs-on: ubuntu-latest
@@ -19,7 +23,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Update Docker Hub repository overview
-        uses: peter-evans/dockerhub-description@v5
+        uses: peter-evans/dockerhub-description@1b9a80c056b620d92cedb9d9b5a223409c68ddfa # v5.0.0
         with:
           username: stacklych
           # Requires a Docker Hub PAT with read/write/delete scope (push-only

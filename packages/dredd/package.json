@@ -4,6 +4,7 @@
   "description": "HTTP API Testing Framework",
   "type": "module",
   "main": "build/index.js",
+  "types": "build/index.d.ts",
   "bin": {
     "dredd": "bin/dredd"
   },
@@ -14,10 +15,10 @@
     "start": "npm run build -- --watch",
     "build": "tsc --build tsconfig.json",
     "lint": "eslint . bin/dredd",
-    "prettify": "prettier --write lib/**/*.ts test/**/*.js",
-    "prettify:check": "prettier --check lib/**/*.ts test/**/*.js",
+    "prettify": "prettier --write \"lib/**/*.ts\" \"test/**/*.{js,ts}\"",
+    "prettify:check": "prettier --check \"lib/**/*.ts\" \"test/**/*.{js,ts}\"",
     "test": "npm run test:unit && npm run test:integration",
-    "test:unit": "mocha \"./test/unit/**/*-test.js\"",
+    "test:unit": "mocha \"./test/unit/**/*-test.{js,ts}\"",
     "test:integration": "mocha \"./test/integration/**/*-test.js\"",
     "test:coverage": "c8 npm test",
     "test:smoke": "bash ./scripts/smoke.sh",
@@ -58,7 +59,6 @@
     "minimist": "1.2.8",
     "ramda": "0.32.0",
     "spawn-args": "0.2.0",
-    "which": "6.0.1",
     "winston": "3.19.0"
   },
   "devDependencies": {
@@ -69,7 +69,6 @@
     "@types/mocha": "10.0.10",
     "@types/node": "24.13.3",
     "@types/ramda": "0.32.0",
-    "@types/which": "3.0.4",
     "body-parser": "^2",
     "chai": "6.2.2",
     "coffeescript": "2.7.0",
@@ -104,5 +103,5 @@
     }
   ],
   "license": "MIT",
-  "homepage": "https://github.com/stacklych/dredd/tree/master/packages/dredd"
+  "homepage": "https://github.com/stacklych/dredd/tree/main/packages/dredd"
 }

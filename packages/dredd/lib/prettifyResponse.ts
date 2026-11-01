@@ -1,6 +1,7 @@
 import html from 'html';
 
 import logger from './logger.js';
+import { redactHeaders } from './redact.js';
 
 /**
  * Render an HTTP response-like object (real response, expected response, or
@@ -50,9 +51,11 @@ export default function prettifyResponse(
     } else if (key === 'schema') {
       value = `\n${stringify(value)}`;
     } else if (key === 'headers') {
+      // Credentials (Authorization, Cookie, API keys, ...) are not printed.
+      const headers = redactHeaders(value) || {};
       let header = '\n';
-      for (const hkey of Object.keys(value || {})) {
-        const hval = value[hkey];
+      for (const hkey of Object.keys(headers)) {
+        const hval = headers[hkey];
         header += `    ${hkey}: ${hval}\n`;
       }
       value = header;

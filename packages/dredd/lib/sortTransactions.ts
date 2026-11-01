@@ -5,6 +5,7 @@ const sortedMethods: HTTPMethod[] = [
   HTTPMethod.OPTIONS,
   HTTPMethod.POST,
   HTTPMethod.GET,
+  HTTPMethod.QUERY,
   HTTPMethod.HEAD,
   HTTPMethod.PUT,
   HTTPMethod.PATCH,
@@ -22,6 +23,14 @@ const sortedMethods: HTTPMethod[] = [
 //
 // By sorting the transactions by their methods, it is possible to ensure that
 // objects are created before they are read, updated, or deleted.
+//
+// Methods not in the list (e.g. an OpenAPI 3.2 `additionalOperations` key
+// such as LOCK) go last, after TRACE, keeping their original order.
+function methodRank(method: string): number {
+  const index = sortedMethods.indexOf(method as HTTPMethod);
+  return index === -1 ? sortedMethods.length : index;
+}
+
 export default function sortTransactions(
   transactions: Transaction[],
 ): Transaction[] {
@@ -33,12 +42,8 @@ export default function sortTransactions(
 
   tempTransactions.sort(
     ([leftIndex, leftTransaction], [rightIndex, rightTransaction]) => {
-      const methodIndexA = sortedMethods.indexOf(
-        leftTransaction.request.method,
-      );
-      const methodIndexB = sortedMethods.indexOf(
-        rightTransaction.request.method,
-      );
+      const methodIndexA = methodRank(leftTransaction.request.method);
+      const methodIndexB = methodRank(rightTransaction.request.method);
 
       // Sort transactions according to the transaction's request method
       if (methodIndexA < methodIndexB) {

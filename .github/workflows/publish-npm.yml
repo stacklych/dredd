@@ -5,6 +5,10 @@ on:
     tags:
       - 'v*'
 
+# Least privilege for GITHUB_TOKEN; jobs that need more declare it.
+permissions:
+  contents: read
+
 jobs:
   # Gate publishing on a passing build/lint/test so a broken tag can never be
   # published to npm.

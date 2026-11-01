@@ -19,7 +19,10 @@ describe('init._updateAppVeyor()', () => {
     updateAppVeyor(createOptions(contents));
 
     assert.equal(contents.install.length, 4);
-    assert.match(contents.install[3], /npm.+i.+dredd/);
+    assert.match(
+      contents.install[3],
+      /^npm install @stacklych\/dredd@\d+\.\d+\.\d+.* --global$/,
+    );
   });
 
   it('adds a command to run Dredd', () => {

@@ -3,24 +3,26 @@ export enum HTTPMethod {
   OPTIONS = 'OPTIONS',
   POST = 'POST',
   GET = 'GET',
+  // OpenAPI 3.2 QUERY: a safe, idempotent method that may carry a body.
+  QUERY = 'QUERY',
   HEAD = 'HEAD',
   PUT = 'PUT',
   PATCH = 'PATCH',
   LINK = 'LINK',
   UNLINK = 'UNLINK',
   DELETE = 'DELETE',
-  TRACE = 'TRACE'
+  TRACE = 'TRACE',
 }
 
 export enum BodyEncoding {
   'utf-8',
-  'base64',
+  base64,
 }
 
 export enum TransactionTestStatus {
-  'pass',
-  'fail',
-  'skip',
+  pass,
+  fail,
+  skip,
 }
 
 export interface Transaction {

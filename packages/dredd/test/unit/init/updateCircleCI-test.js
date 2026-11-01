@@ -20,7 +20,10 @@ describe('init._updateCircleCI()', () => {
 
     assert.match(contents.jobs.dredd.docker[0].image, /\/node:/);
     assert.equal(contents.jobs.dredd.steps[0], 'checkout');
-    assert.match(contents.jobs.dredd.steps[1].run, /npm.+i.+dredd/);
+    assert.match(
+      contents.jobs.dredd.steps[1].run,
+      /^npm install @stacklych\/dredd@\d+\.\d+\.\d+.* --global$/,
+    );
     assert.equal(contents.jobs.dredd.steps[2].run, 'dredd');
   });
 });

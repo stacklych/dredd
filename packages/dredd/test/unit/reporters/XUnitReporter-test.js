@@ -240,6 +240,18 @@ describe('XUnitReporter', () => {
       emitter.emit('test skip', test);
       assert.isOk(fsStub.appendFileSync.called);
     });
+
+    it('should write time="0" for the skipped test, not NaN', () => {
+      const emitter = new EventEmitter();
+      new XUnitReporter(emitter, {}, 'test.xml');
+      emitter.emit('test start', { ...test, duration: undefined });
+      emitter.emit('test skip', { ...test, duration: undefined });
+      const written = fsStub.appendFileSync.args
+        .map((args) => String(args[1]))
+        .join('');
+      assert.include(written, 'time="0"');
+      assert.notInclude(written, 'NaN');
+    });
   });
 
   describe('when test fails', () => {

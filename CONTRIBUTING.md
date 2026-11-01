@@ -32,7 +32,7 @@ Also, we consider unclear or missing documentation to be a bug, so often your qu
 
 ## 📖 Improving documentation
 
-The documentation is written [as code](http://www.writethedocs.org/guide/docs-as-code/) in the [reStructuredText](http://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html) format and its source files are located in the [docs](https://github.com/stacklych/dredd/tree/master/docs) directory. It is published automatically to [GitHub Pages](https://stacklych.github.io/dredd/) when the `main` branch is updated.
+The documentation is written [as code](http://www.writethedocs.org/guide/docs-as-code/) in the [reStructuredText](http://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html) format and its source files are located in the [docs](https://github.com/stacklych/dredd/tree/main/docs) directory. It is published automatically to [GitHub Pages](https://stacklych.github.io/dredd/) when the `main` branch is updated.
 
 If you want to propose improvements to the documentation, you don't need to install the whole project. Usually it is just fine to use the [GitHub's editing features](https://github.com/stacklych/dredd/edit/master/docs/installation.rst).
 

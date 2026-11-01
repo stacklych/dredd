@@ -2,6 +2,7 @@ import async from 'async';
 import os from 'os';
 import url from 'url';
 import { Ajv2020 } from 'ajv/dist/2020.js';
+import { Ajv2019 } from 'ajv/dist/2019.js';
 import addFormats from 'ajv-formats';
 
 import addHooks from './addHooks.js';
@@ -14,6 +15,9 @@ import performRequest from './performRequest.js';
 
 const OAS_31_DIALECT = 'https://spec.openapis.org/oas/3.1/dialect/base';
 const JSON_SCHEMA_2020_12 = 'https://json-schema.org/draft/2020-12/schema';
+const JSON_SCHEMA_2019_09 = 'https://json-schema.org/draft/2019-09/schema';
+// Validated by the default (gavel-compatible) path in validateBody.
+const JSON_SCHEMA_DRAFT_07 = 'http://json-schema.org/draft-07/schema';
 
 function headersArrayToObject(arr: any): Record<string, any> {
   return Array.from(arr as any[]).reduce(
@@ -59,15 +63,41 @@ function getSchemaDialect(bodySchema: any) {
   return schema && schema.$schema;
 }
 
-function isAjvSchema(bodySchema: any) {
-  return [OAS_31_DIALECT, JSON_SCHEMA_2020_12].includes(
-    getSchemaDialect(bodySchema),
-  );
+// Normalizes a `$schema` URI for comparison: no trailing empty fragment '#'.
+function normalizeDialectURI(uri: string) {
+  return uri.replace(/#$/, '');
 }
 
-function normalizeAjvSchemaDialect(schema: any) {
-  if (schema && schema.$schema === OAS_31_DIALECT) {
-    return { ...schema, $schema: JSON_SCHEMA_2020_12 };
+// Chooses how a body schema is validated, from its `$schema` (set by the
+// compiler from the document's `jsonSchemaDialect` or the OpenAPI default):
+// - '2020-12' / '2019-09': Ajv for that draft (validateBodySchemaWithAjv);
+// - 'default': no `$schema` or draft-07, the default validator;
+// - 'unsupported': any other dialect, reported as a validation error.
+function getSchemaValidator(bodySchema: any) {
+  const dialect = getSchemaDialect(bodySchema);
+  if (!bodySchema || typeof dialect !== 'string') {
+    return 'default';
+  }
+  const uri = normalizeDialectURI(dialect);
+  if (uri === OAS_31_DIALECT || uri === JSON_SCHEMA_2020_12) {
+    return '2020-12';
+  }
+  if (uri === JSON_SCHEMA_2019_09) {
+    return '2019-09';
+  }
+  if (uri === JSON_SCHEMA_DRAFT_07) {
+    return 'default';
+  }
+  return 'unsupported';
+}
+
+function normalizeAjvSchemaDialect(schema: any, validator: string) {
+  if (schema && typeof schema.$schema === 'string') {
+    return {
+      ...schema,
+      $schema:
+        validator === '2019-09' ? JSON_SCHEMA_2019_09 : JSON_SCHEMA_2020_12,
+    };
   }
   return schema;
 }
@@ -130,9 +160,35 @@ function createInvalidJSONValidationResult(error: any, actualBody: any) {
   );
 }
 
-function validateBodySchemaWithAjv(bodySchema: any, actualBody: any) {
-  const schema = normalizeAjvSchemaDialect(getSchemaObject(bodySchema));
-  const ajv = new Ajv2020({ allErrors: true, strict: false, verbose: true });
+function createUnsupportedDialectValidationResult(
+  bodySchema: any,
+  actualBody: any,
+) {
+  return createJSONSchemaValidationResult(
+    [
+      {
+        message:
+          `Can't validate the body: JSON Schema dialect '${getSchemaDialect(bodySchema)}' ` +
+          'is not supported. Supported dialects are JSON Schema 2020-12 (and the ' +
+          'OpenAPI 3.1 base dialect), 2019-09 and draft-07.',
+        location: { pointer: '', property: [] },
+      },
+    ],
+    actualBody,
+  );
+}
+
+function validateBodySchemaWithAjv(
+  bodySchema: any,
+  actualBody: any,
+  validator: string = '2020-12',
+) {
+  const schema = normalizeAjvSchemaDialect(
+    getSchemaObject(bodySchema),
+    validator,
+  );
+  const AjvClass = validator === '2019-09' ? Ajv2019 : Ajv2020;
+  const ajv = new AjvClass({ allErrors: true, strict: false, verbose: true });
   (addFormats.default || addFormats)(ajv);
   const validate = ajv.compile(schema);
 
@@ -357,6 +413,24 @@ class TransactionRunner {
         runHookCallback: () => void,
       ) => {
         const hookFn = hooks[hookFnIndex];
+        // Treat assertion failures from hooks (chai or node:assert, both
+        // expose name === 'AssertionError') as a failed transaction rather
+        // than a hook error, whether thrown or rejected.
+        const handleHookError = (caught: any) => {
+          const error = caught as any;
+          if (error && error.name === 'AssertionError') {
+            const transactions = Array.isArray(data) ? data : [data];
+            for (const transaction of transactions) {
+              this.failTransaction(
+                transaction,
+                `Failed assertion in hooks: ${error.message}`,
+              );
+            }
+          } else {
+            logger.debug('Hook errored:', error);
+            this.emitHookError(error, data);
+          }
+        };
         // Guard so the iteration callback fires exactly once. The try/catch
         // below also wraps the inner `runHook` callback, so without this guard
         // an error thrown after the callback (e.g. in `runHookCallback` or
@@ -373,29 +447,12 @@ class TransactionRunner {
         try {
           this.runHook(hookFn, data, (err: any) => {
             if (err) {
-              logger.debug('Hook errored:', err);
-              this.emitHookError(err, data);
+              handleHookError(err);
             }
             advance();
           });
         } catch (caught) {
-          // Treat assertion failures thrown from hooks (chai or node:assert,
-          // both expose name === 'AssertionError') as a failed transaction
-          // rather than a hook error.
-          const error = caught as any;
-          if (error && error.name === 'AssertionError') {
-            const transactions = Array.isArray(data) ? data : [data];
-            for (const transaction of transactions) {
-              this.failTransaction(
-                transaction,
-                `Failed assertion in hooks: ${error.message}`,
-              );
-            }
-          } else {
-            logger.debug('Hook errored:', error);
-            this.emitHookError(error, data);
-          }
-
+          handleHookError(caught);
           advance();
         }
       };
@@ -420,14 +477,45 @@ class TransactionRunner {
     this.emitError(error, test);
   }
 
+  // Runs one hook and calls `callback` exactly once when it is done:
+  // - a hook declaring two parameters `(data, done)` is done when it calls
+  //   `done()`;
+  // - any other hook (no parameters, or just `data`) is done when it returns,
+  //   or, if it returns a promise (an `async` function), when that settles.
+  // A rejected promise or an error thrown asynchronously is passed to
+  // `callback`; an error thrown synchronously propagates to the caller.
   runHook(hook: any, data: any, callback: (error?: any) => void) {
-    if (hook.length === 1) {
-      // Sync api
-      hook(data);
-      callback();
-    } else if (hook.length === 2) {
-      // Async api
-      hook(data, () => callback());
+    let called = false;
+    const finish = (error?: any) => {
+      if (called) {
+        return;
+      }
+      called = true;
+      callback(error);
+    };
+    const handleResult = (result: any, settle: boolean) => {
+      if (result && typeof result.then === 'function') {
+        result.then(
+          () => {
+            if (settle) {
+              finish();
+            }
+          },
+          (error: any) =>
+            finish(error || new Error('Hook returned a rejected promise')),
+        );
+      } else if (settle) {
+        finish();
+      }
+    };
+
+    if (hook.length === 2) {
+      handleResult(
+        hook(data, () => finish()),
+        false,
+      );
+    } else {
+      handleResult(hook(data), true);
     }
   }
 
@@ -833,16 +921,24 @@ Not performing HTTP request for '${transaction.name}'.\
     let validationResult: any = { fields: {} };
 
     try {
-      if (isAjvSchema(transaction.expected.bodySchema)) {
+      const validator = getSchemaValidator(transaction.expected.bodySchema);
+      if (validator !== 'default') {
         const expectedWithoutBody = { ...transaction.expected };
         delete expectedWithoutBody.body;
         delete expectedWithoutBody.bodySchema;
 
         validationResult = validate(expectedWithoutBody, transaction.real);
-        validationResult.fields.body = validateBodySchemaWithAjv(
-          transaction.expected.bodySchema,
-          transaction.real.body,
-        );
+        validationResult.fields.body =
+          validator === 'unsupported'
+            ? createUnsupportedDialectValidationResult(
+                transaction.expected.bodySchema,
+                transaction.real.body,
+              )
+            : validateBodySchemaWithAjv(
+                transaction.expected.bodySchema,
+                transaction.real.body,
+                validator,
+              );
         validationResult.valid = validateFields(validationResult.fields);
       } else {
         validationResult = validate(transaction.expected, transaction.real);

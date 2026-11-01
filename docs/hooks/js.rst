@@ -16,7 +16,8 @@ API Reference
 
 -  For ``before``, ``after``, ``beforeValidation``, ``beforeEach``, ``afterEach`` and ``beforeEachValidation`` a :ref:`Transaction Object <transaction>` is passed as the first argument to the hook function.
 -  An array of Transaction Objects is passed to ``beforeAll`` and ``afterAll``.
--  The second argument is an optional callback function for async execution.
+-  The second argument is an optional callback function for async execution. A hook that declares it is finished when it calls the callback.
+-  A hook that declares no second argument is finished when it returns. If it returns a promise (for example an ``async`` function), Dredd waits for the promise to settle; a rejected promise is reported as a hook error, or as a failed transaction when it rejects with an ``AssertionError``.
 -  Any modifications on the ``transaction`` object are propagated to the actual HTTP transactions.
 -  You can use ``hooks.log`` function inside the hook function to print yours debug messages and other information.
 
@@ -64,7 +65,15 @@ Sync API
 Async API
 ~~~~~~~~~
 
-When the callback is used in the hook function, callbacks can handle asynchronous function calls.
+When the callback is used in the hook function, callbacks can handle asynchronous function calls. Alternatively, use an ``async`` function (or return a promise) and leave the callback out:
+
+.. code-block:: javascript
+
+   const hooks = require('hooks');
+
+   hooks.before("Machines > Machines collection > Get Machines", async function (transaction) {
+     transaction.request.headers.Authorization = await getToken();
+   });
 
 .. code-block:: javascript
 
@@ -225,13 +234,12 @@ Dependencies:
 
    var before = hooks.before;
 
-   before("Machines > Machines collection > Create Machines", async function (transaction, done) {
+   before("Machines > Machines collection > Create Machines", async function (transaction) {
        const form = new Multipart();
        form.append('title', 'Foo');
        form.append('photo', fs.createReadStream('./bar.jpg'));
        transaction.request.body = await streamToString(form.getStream());
        transaction.request.headers['Content-Type'] = form.getHeaders()['content-type'];
-       done();
    });
 
 Adding or Changing URI Query Parameters to All Requests

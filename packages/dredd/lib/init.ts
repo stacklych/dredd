@@ -7,7 +7,8 @@ import logger from './logger.js';
 
 import packageData from '../package.json' with { type: 'json' };
 
-const INSTALL_DREDD = `npm install dredd@${packageData.version} --global`;
+// Installs this package (@stacklych/dredd), not the unscoped upstream `dredd`.
+const INSTALL_DREDD = `npm install ${packageData.name}@${packageData.version} --global`;
 const RUN_DREDD = 'dredd';
 
 /** Result of scanning the working directory for project signals. */
