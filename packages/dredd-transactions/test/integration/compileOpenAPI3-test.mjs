@@ -75,6 +75,7 @@ describe('compile() · OpenAPI 3', () => {
 
     it('compiles request headers and body from examples', () => {
       assert.deepEqual(compileResult.transactions[0].request.headers, [
+        { name: 'Accept', value: 'application/json' },
         { name: 'Content-Type', value: 'application/json' },
       ]);
       assert.equal(compileResult.transactions[0].request.body, '{"name":"created"}');
@@ -349,6 +350,7 @@ paths:
           description: OK
           headers:
             X-Plural:
+              required: true
               schema:
                 type: string
               examples:
@@ -374,6 +376,7 @@ paths:
           description: OK
           headers:
             X-Default:
+              required: true
               schema:
                 type: string
                 default: three

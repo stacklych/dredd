@@ -3,6 +3,7 @@ import compileTransactionName from './compileTransactionName.js';
 import compileAnnotation from './compileAnnotation.js';
 import compileOpenAPI31 from './openapi31.js';
 import augmentWithOpenAPI30Schemas from './openapi30Schema.js';
+import disambiguateNames from './disambiguateNames.js';
 
 function findRelevantTransactions(apiElements) {
   const relevantTransactions = [];
@@ -147,6 +148,7 @@ function compile(mediaType, apiElements, filename) {
 
   const transactions = [];
   const pathTemplates = new Map();
+  const defaultResponses = new Set();
   let annotations = apiElements.annotations.map(compileAnnotation);
 
   findRelevantTransactions(apiElements)
@@ -155,6 +157,10 @@ function compile(mediaType, apiElements, filename) {
       if (result.transaction) {
         transactions.push(result.transaction);
         pathTemplates.set(result.transaction, compilePathTemplate(httpTransactionElement));
+        // The adapter compiles a `default` response without a status code.
+        if (!httpTransactionElement.response.statusCode) {
+          defaultResponses.add(result.transaction);
+        }
       }
       annotations = annotations.concat(result.annotations);
     });
@@ -164,6 +170,10 @@ function compile(mediaType, apiElements, filename) {
       transactions, apiElements.openapi3Document.document, pathTemplates
     );
   }
+
+  disambiguateNames(transactions.map((transaction) => ({
+    transaction, isDefault: defaultResponses.has(transaction),
+  })));
 
   return { mediaType, transactions, annotations };
 }

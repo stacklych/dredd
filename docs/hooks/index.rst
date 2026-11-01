@@ -94,6 +94,17 @@ As you can see, the document ``./blog.yaml`` contains two transactions, which yo
 - ``/articles > List articles > 200 > application/json; charset=utf-8``
 - ``/articles > Publish an article > 201 > application/json; charset=utf-8``
 
+A name is built from these parts, separated by ``>``:
+
+1. The API title (``info.title``).
+2. The resource: in OpenAPI 3.0 documents, the Path Item ``summary``, or the path template (e.g. ``/articles/{id}``) when there is none. In OpenAPI 3.1 and 3.2 documents, always the path template.
+3. The action: in OpenAPI 3.0 documents, the Operation ``summary``, or the HTTP method (e.g. ``GET``) when there is none. In OpenAPI 3.1 and 3.2 documents, always the HTTP method.
+4. The expected status code (``200`` for a ``default`` response), then the response media type.
+
+Because of the difference in parts 2 and 3, changing a document's ``openapi`` version from 3.0 to 3.1 or 3.2 renames its transactions when the document has summaries. Update hooks keyed by name, or list the new names with :option:`--names`.
+
+When two transactions would get the same name, the first one keeps it and the others get extra parts: ``request <media type>`` when their request ``Content-Type`` differs, ``default`` when they come from a ``default`` response, and ``#2``, ``#3``, … if the name is still not unique. For example, a ``POST`` with ``application/json`` and ``application/xml`` request bodies produces ``API > /articles > POST > 201 > application/json`` and ``API > /articles > POST > 201 > application/json > request application/xml``.
+
 .. note::
    The transaction names and the :option:`--names` workflow mostly do their job, but with `many documented flaws <https://github.com/apiaryio/dredd/labels/Epic%3A%20Transaction%20Names>`__. A successor to transaction names is being designed in :ghissue:`#227`
 
