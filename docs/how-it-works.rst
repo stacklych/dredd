@@ -139,9 +139,13 @@ URI Parameters
 2. Value of ``default``.
 3. First value from ``enum``.
 
-If Dredd isn’t able to infer any value for a required parameter, it will terminate the test run and complain that the parameter is *ambiguous*.
+In OpenAPI 3.1 and 3.2 documents, the schema's ``example`` and ``const`` are also used.
 
-In OpenAPI 3 documents, path parameters are serialized with ``style: simple`` and query parameters are serialized with ``style: form``. Arrays and objects support OpenAPI's default ``explode`` values and explicit ``explode: true`` or ``explode: false``. OpenAPI 3.2 ``in: querystring`` parameters are also supported: the whole query string is taken from the parameter's ``content`` (an object is form-encoded, or an example ``serializedValue`` is used verbatim). Other parameter locations and styles are not covered yet.
+If Dredd isn’t able to infer any value for a required parameter, it will terminate the test run and complain that the parameter is *ambiguous*. Path parameters are always required. Optional query, header and cookie parameters without a value are left out of the request.
+
+An operation-level parameter replaces a path-level parameter with the same ``name`` and ``in``.
+
+In OpenAPI 3 documents, path parameters are serialized with ``style: simple`` and query parameters are serialized with ``style: form`` by default. Arrays and objects support OpenAPI's default ``explode`` values and explicit ``explode: true`` or ``explode: false``. In OpenAPI 3.1 and 3.2 documents, the ``label`` and ``matrix`` path styles and the ``spaceDelimited``, ``pipeDelimited`` and ``deepObject`` query styles are also serialized; a style that is not valid for the parameter's location produces a warning and falls back to the default style. OpenAPI 3.0 documents support only the default styles. OpenAPI 3.2 ``in: querystring`` parameters are also supported: the whole query string is taken from the parameter's ``content`` (an object is form-encoded, or an example ``serializedValue`` is used verbatim).
 
 Request Headers
 ~~~~~~~~~~~~~~~
@@ -175,7 +179,7 @@ Choosing HTTP Transactions
 
 The OpenAPI 3 compiler produces one transaction for each combination of request body media type and response media type of an operation: an operation with two request media types and a response with two media types produces four transactions. A response without content produces one transaction per request media type. Each request carries an ``Accept`` header naming the expected response media type, unless the operation defines an ``Accept`` header parameter. For ``default`` responses, Dredd currently uses HTTP 200 as the compiled expected status. Response status code ranges (``2XX`` and similar) are reported with a warning and produce no transaction.
 
-Current OpenAPI 3 support is focused on response testing. It supports path and query parameter examples, path ``simple`` and query ``form`` parameter serialization, request body examples, response body examples, simple local ``$ref`` values, schema-derived JSON/text samples, and response schema validation for the OpenAPI 3.1 Schema Object dialect and JSON Schema 2020-12. OpenAPI 3.2 documents are compiled through the same path: the ``query`` (QUERY) method and the ``additionalOperations`` map produce transactions, and ``in: querystring`` parameters and example ``serializedValue`` are honoured. Streaming and sequential media (a media type carrying ``itemSchema``, or Server-Sent Events via ``text/event-stream``) is reported with a warning and is not validated as a stream. It does not yet implement all OpenAPI 3.1 features such as external references, callbacks, links, webhooks, header or cookie parameters, matrix, label, space-delimited, pipe-delimited, or deep-object parameter serialization, or multipart encoding objects.
+Current OpenAPI 3 support is focused on response testing. It supports path and query parameter examples, path ``simple`` and query ``form`` parameter serialization, request body examples, response body examples, simple local ``$ref`` values, schema-derived JSON/text samples, and response schema validation for the OpenAPI 3.1 Schema Object dialect and JSON Schema 2020-12. OpenAPI 3.2 documents are compiled through the same path: the ``query`` (QUERY) method and the ``additionalOperations`` map produce transactions, and ``in: querystring`` parameters and example ``serializedValue`` are honoured. Streaming and sequential media (a media type carrying ``itemSchema``, or Server-Sent Events via ``text/event-stream``) is reported with a warning and is not validated as a stream. It does not yet implement all OpenAPI 3.1 features such as external references, callbacks, links, webhooks, matrix, label, space-delimited, pipe-delimited, or deep-object parameter serialization in OpenAPI 3.0 documents, or multipart encoding objects.
 
 .. _security:
 
