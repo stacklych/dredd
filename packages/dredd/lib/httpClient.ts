@@ -118,13 +118,15 @@ function getResponseBody(
   return buffer.toString(encoding || 'utf8');
 }
 
-function createRequestOptions(
+export function createRequestOptions(
   options: HttpClientOptions,
   url: URL,
 ): RequestOptions {
   const requestOptions: RequestOptions = {
     protocol: url.protocol,
-    hostname: url.hostname,
+    // WHATWG URL keeps the brackets of an IPv6 literal ('[::1]'), which
+    // http.request() would resolve as a DNS name; pass the bare address.
+    hostname: url.hostname.replace(/^\[(.*)\]$/, '$1'),
     port: url.port,
     path: `${url.pathname}${url.search}`,
     method: options.method || 'GET',

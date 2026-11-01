@@ -20,6 +20,12 @@ function escapeXML(value: unknown): string {
     .replace(/"/g, '&quot;');
 }
 
+// A skipped test has no duration (it never ran); report 0 rather than NaN.
+function durationInSeconds(test: any): number {
+  const duration = Number(test.duration);
+  return Number.isFinite(duration) ? duration / 1000 : 0;
+}
+
 class XUnitReporter extends EventEmitter {
   type: string;
   stats: ReporterStats;
@@ -160,7 +166,7 @@ class XUnitReporter extends EventEmitter {
     emitter.on('test pass', (test) => {
       const attrs = {
         name: escapeXML(test.title),
-        time: Number(test.duration) / 1000,
+        time: durationInSeconds(test),
       };
 
       if (this.details) {
@@ -189,7 +195,7 @@ ${prettifyResponse(test.actual)}\
     emitter.on('test skip', (test) => {
       const attrs = {
         name: escapeXML(test.title),
-        time: Number(test.duration) / 1000,
+        time: durationInSeconds(test),
       };
       this.appendLine(
         this.path,
@@ -200,7 +206,7 @@ ${prettifyResponse(test.actual)}\
     emitter.on('test fail', (test) => {
       const attrs = {
         name: escapeXML(test.title),
-        time: Number(test.duration) / 1000,
+        time: durationInSeconds(test),
       };
       const diff = `\
 Message:
@@ -226,7 +232,7 @@ ${prettifyResponse(test.actual)}\
     emitter.on('test error', (error, test) => {
       const attrs = {
         name: escapeXML(test.title),
-        time: Number(test.duration) / 1000,
+        time: durationInSeconds(test),
       };
       const errorMessage = `\nError: \n${error}\nStacktrace: \n${error.stack}`;
       this.appendLine(
