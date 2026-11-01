@@ -80,17 +80,17 @@ Dredd automatically generates expectations on HTTP responses based on examples a
 Response Headers Expectations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--  All headers specified in the API description must be present in the response.
+-  All headers the API description marks as required (``required: true``) must be present in the response. Optional headers, which is the OpenAPI default, are not checked.
 -  Names of headers are validated in the case-insensitive way.
 -  Only values of headers significant for content negotiation are validated.
 -  All other headers values can differ.
 
-In OpenAPI 3 documents, Dredd takes the response ``Content-Type`` from the selected response ``content`` media type. Response headers are taken from the response ``headers`` object when an example or schema-derived sample value is available.
+In OpenAPI 3 documents, Dredd takes the response ``Content-Type`` from the selected response ``content`` media type. Expected response headers are taken from the required entries of the response ``headers`` object.
 
 Response Body Expectations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If the HTTP response body is JSON, Dredd validates only its structure. Bodies in any other format are validated as plain text.
+If the HTTP response body is JSON, Dredd validates only its structure. Bodies in any other format are validated as plain text. A response ``schema`` is used only for JSON media types (``application/json`` and ``+json`` types); a schema on any other media type, such as ``text/plain`` or ``application/xml``, is ignored.
 
 To validate the structure Dredd uses `JSON Schema`_ inferred from the API description under test. The effective JSON Schema is taken from following places (the order goes from the highest priority to the lowest):
 
@@ -152,7 +152,7 @@ In OpenAPI 3 documents, Dredd takes the request ``Content-Type`` from the select
 Request Body
 ~~~~~~~~~~~~
 
-The effective request body is inferred from the operation ``requestBody`` content. Dredd selects the first media type entry. If the media type defines ``example`` or ``examples``, Dredd uses the explicit example. If no example is present, Dredd generates a sample value from the schema using the following precedence: ``example``, ``default``, ``const``, first ``enum`` value, first ``oneOf`` schema, first ``anyOf`` schema, then a generated value by type.
+The effective request body is inferred from the operation ``requestBody`` content. Each media type entry produces its own request (see :ref:`choosing-http-transactions`). If the media type defines ``example`` or ``examples``, Dredd uses the explicit example. If no example is present, Dredd generates a sample value from the schema using the following precedence: ``example``, ``default``, ``const``, first ``enum`` value, first ``oneOf`` schema, first ``anyOf`` schema, then a generated value by type. In OpenAPI 3.1 and 3.2 documents, an object value is form-encoded for ``application/x-www-form-urlencoded``; for other non-JSON media types (such as ``multipart/form-data``) an object value produces no body.
 
 .. _empty-response-body:
 
@@ -173,7 +173,7 @@ In case of responses with 204 or 205 status codes Dredd still behaves the same w
 Choosing HTTP Transactions
 --------------------------
 
-The OpenAPI 3 compiler produces one transaction for each response entry on an operation. For each request or response body, Dredd selects the first declared media type. For ``default`` responses, Dredd currently uses HTTP 200 as the compiled expected status.
+The OpenAPI 3 compiler produces one transaction for each combination of request body media type and response media type of an operation: an operation with two request media types and a response with two media types produces four transactions. A response without content produces one transaction per request media type. Each request carries an ``Accept`` header naming the expected response media type, unless the operation defines an ``Accept`` header parameter. For ``default`` responses, Dredd currently uses HTTP 200 as the compiled expected status. Response status code ranges (``2XX`` and similar) are reported with a warning and produce no transaction.
 
 Current OpenAPI 3 support is focused on response testing. It supports path and query parameter examples, path ``simple`` and query ``form`` parameter serialization, request body examples, response body examples, simple local ``$ref`` values, schema-derived JSON/text samples, and response schema validation for the OpenAPI 3.1 Schema Object dialect and JSON Schema 2020-12. OpenAPI 3.2 documents are compiled through the same path: the ``query`` (QUERY) method and the ``additionalOperations`` map produce transactions, and ``in: querystring`` parameters and example ``serializedValue`` are honoured. Streaming and sequential media (a media type carrying ``itemSchema``, or Server-Sent Events via ``text/event-stream``) is reported with a warning and is not validated as a stream. It does not yet implement all OpenAPI 3.1 features such as external references, callbacks, links, webhooks, header or cookie parameters, matrix, label, space-delimited, pipe-delimited, or deep-object parameter serialization, or multipart encoding objects.
 
