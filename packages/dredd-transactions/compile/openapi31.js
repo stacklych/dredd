@@ -1,4 +1,5 @@
 import compileTransactionName from './compileTransactionName.js';
+import disambiguateNames from './disambiguateNames.js';
 
 // `query` is the OpenAPI 3.2 QUERY operation (a safe, idempotent method that
 // may carry a request body). Other non-fixed-field methods arrive via the
@@ -573,7 +574,7 @@ function compileCookieParameters(document, parameters) {
 }
 
 function isJSONMediaType(mediaType) {
-  const type = mediaType.split(';')[0].trim();
+  const type = mediaType.split(';')[0].trim().toLowerCase();
   return type === 'application/json' || type.endsWith('+json');
 }
 
@@ -590,11 +591,38 @@ function isStreamingMediaType(mediaType, mediaTypeObject) {
     && Object.prototype.hasOwnProperty.call(mediaTypeObject, 'itemSchema'));
 }
 
+function isFormMediaType(mediaType) {
+  return mediaType.split(';')[0].trim().toLowerCase() === 'application/x-www-form-urlencoded';
+}
+
+// Serializes a body value for the media type: JSON for JSON types, `key=value&…`
+// for form-urlencoded objects, the value itself for strings and primitives.
+// Any other object (e.g. multipart, XML) has no generic text form, so no body
+// is produced rather than the string '[object Object]'.
+function serializeBody(mediaType, value) {
+  if (typeof value === 'undefined') {
+    return undefined;
+  }
+  if (isJSONMediaType(mediaType)) {
+    return JSON.stringify(value);
+  }
+  if (value && typeof value === 'object') {
+    if (isFormMediaType(mediaType) && !Array.isArray(value)) {
+      return Object.keys(value)
+        .reduce((pairs, key) => pairs.concat(
+          serializeFormParameter(key, value[key], true)
+            .map((pair) => pair.replace(/%20/g, '+'))
+        ), [])
+        .join('&');
+    }
+    return undefined;
+  }
+  return String(value);
+}
+
 function bodyFromMediaType(document, mediaType, mediaTypeObject) {
   if (Object.prototype.hasOwnProperty.call(mediaTypeObject, 'example')) {
-    return isJSONMediaType(mediaType)
-      ? JSON.stringify(mediaTypeObject.example)
-      : String(mediaTypeObject.example);
+    return serializeBody(mediaType, mediaTypeObject.example);
   }
 
   const exampleObject = firstExampleObject(document, mediaTypeObject.examples);
@@ -605,17 +633,11 @@ function bodyFromMediaType(document, mediaType, mediaTypeObject) {
       return String(exampleObject.serializedValue);
     }
     if (typeof exampleObject.value !== 'undefined') {
-      return isJSONMediaType(mediaType)
-        ? JSON.stringify(exampleObject.value)
-        : String(exampleObject.value);
+      return serializeBody(mediaType, exampleObject.value);
     }
   }
 
-  const sample = sampleFromSchema(document, mediaTypeObject.schema);
-  if (typeof sample === 'undefined') {
-    return undefined;
-  }
-  return isJSONMediaType(mediaType) ? JSON.stringify(sample) : String(sample);
+  return serializeBody(mediaType, sampleFromSchema(document, mediaTypeObject.schema));
 }
 
 function getAllContents(content) {
@@ -653,8 +675,13 @@ function compileRequests(document, method, uri, operation, leadingHeaders) {
   });
 }
 
+// Only headers with `required: true` are expected in the response; OpenAPI
+// response headers are optional by default.
 function compileHeaders(document, headers) {
-  return Object.keys(headers || {}).map((name) => {
+  return Object.keys(headers || {}).filter((name) => {
+    const header = resolveRef(document, headers[name]);
+    return header && header.required === true;
+  }).map((name) => {
     const header = resolveRef(document, headers[name]);
     // A Header Object exposes the same value sources as a Parameter Object
     // (example, then examples, then schema).
@@ -677,6 +704,7 @@ function compileResponse(document, status, response, content) {
       compiledResponse.body = body;
     }
     if (content.mediaTypeObject.schema
+      && isJSONMediaType(content.mediaType)
       && !isStreamingMediaType(content.mediaType, content.mediaTypeObject)) {
       const schema = cloneWithoutRef(document, content.mediaTypeObject.schema);
       if (schema && typeof schema === 'object' && !schema.$schema) {
@@ -689,6 +717,9 @@ function compileResponse(document, status, response, content) {
   return compiledResponse;
 }
 
+// OpenAPI 3.1/3.2 names use the path template and the method, never the
+// summaries (unlike the 3.0 path); see docs/hooks/index.rst. Keeping them
+// stable means hooks keyed by name keep matching when a summary is edited.
 function compileOrigin(filename, document, pathTemplate, method, response) {
   return {
     filename: filename || '',
@@ -775,20 +806,45 @@ function compileOperation(document, filename, pathTemplate, pathItem, method, op
     document, method, uri, operation, [...headerParameters, ...cookieHeaders]
   );
 
+  const annotations = [];
+  // Response keys '1XX'–'5XX' are status code ranges, not codes. Like the
+  // 3.0 path, they are reported and produce no transaction.
+  const statuses = Object.keys(operation.responses || {}).filter((status) => {
+    if (/^[1-5]XX$/i.test(status)) {
+      annotations.push({
+        type: 'warning',
+        component: 'apiDescriptionParser',
+        message: `${method} ${pathTemplate}: response status code range '${status}' `
+          + 'is unsupported; no transaction is compiled for it.',
+        location: null,
+      });
+      return false;
+    }
+    return true;
+  });
+  const hasAcceptParameter = request => request.headers
+    .some((header) => header.name.toLowerCase() === 'accept');
+
   // Cartesian product of request representations and response representations
   // (request-major), matching the parser-backed path. Each response content
-  // type yields a transaction; a response without content yields one.
+  // type yields a transaction; a response without content yields one. Each
+  // transaction asks for its response media type with an Accept header.
   const transactions = requests.reduce((collected, request) => {
-    Object.keys(operation.responses || {}).forEach((status) => {
+    statuses.forEach((status) => {
       const response = resolveRef(document, operation.responses[status]);
       getAllContents(response.content).forEach((content) => {
         const compiledResponse = compileResponse(document, status, response, content);
         const origin = compileOrigin(filename, document, pathTemplate, method, compiledResponse);
+        const transactionRequest = { ...request, headers: [...request.headers] };
+        if (content && !hasAcceptParameter(request)) {
+          transactionRequest.headers.unshift({ name: 'Accept', value: content.mediaType });
+        }
         collected.push({
-          request,
+          request: transactionRequest,
           response: compiledResponse,
           name: compileTransactionName(origin),
           origin,
+          isDefault: status === 'default',
         });
       });
     });
@@ -798,6 +854,7 @@ function compileOperation(document, filename, pathTemplate, pathItem, method, op
   return {
     transactions,
     annotations: parameterAnnotations
+      .concat(annotations)
       .concat(collectStreamingAnnotations(document, method, pathTemplate, operation)),
   };
 }
@@ -843,6 +900,14 @@ export default function compileOpenAPI31(apiElements, filename) {
       annotations.push(...compiled.annotations);
     });
   });
+
+  const entries = transactions.map((transaction) => ({
+    transaction, isDefault: transaction.isDefault,
+  }));
+  transactions.forEach((transaction) => {
+    delete transaction.isDefault; // eslint-disable-line no-param-reassign
+  });
+  disambiguateNames(entries);
 
   return {
     mediaType: 'application/vnd.oai.openapi',

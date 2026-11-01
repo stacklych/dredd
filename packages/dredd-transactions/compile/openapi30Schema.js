@@ -115,6 +115,13 @@ function normalizeSchema(schema) {
   return schema;
 }
 
+// A JSON Schema describes a body Dredd parses as JSON, so it applies only to
+// JSON media types; other bodies (text, XML, binary) are compared as text.
+function isJSONMediaType(mediaType) {
+  const type = String(mediaType || '').split(';')[0].trim().toLowerCase();
+  return type === 'application/json' || type.endsWith('+json');
+}
+
 function findContentSchema(responseObject, contentType) {
   const content = responseObject && responseObject.content;
   if (!content || typeof content !== 'object') {
@@ -135,17 +142,42 @@ function findContentSchema(responseObject, contentType) {
     [key] = keys;
   }
 
+  if (!isJSONMediaType(key) || (contentType && !isJSONMediaType(contentType))) {
+    return undefined;
+  }
   return content[key] ? content[key].schema : undefined;
 }
 
-function buildResponseSchema(document, operation, status, contentType) {
+function findResponseObject(document, operation, status) {
   const responses = operation.responses || {};
-  const responseObject = resolveRef(
+  return resolveRef(
     document,
     Object.prototype.hasOwnProperty.call(responses, status)
       ? responses[status]
       : responses.default
   );
+}
+
+// OpenAPI response headers are optional unless `required: true`. The adapter
+// ignores `required` and emits every documented header as expected, so drop
+// the optional ones (Content-Type comes from the media type and stays).
+function removeOptionalHeaders(document, responseObject, transaction) {
+  const documented = (responseObject && responseObject.headers) || {};
+  const optional = Object.keys(documented)
+    .filter((name) => {
+      const header = resolveRef(document, documented[name]);
+      return !header || header.required !== true;
+    })
+    .map((name) => name.toLowerCase())
+    .filter((name) => name !== 'content-type');
+  if (!optional.length || !transaction.response.headers) {
+    return;
+  }
+  transaction.response.headers = transaction.response.headers
+    .filter((header) => !optional.includes(header.name.toLowerCase()));
+}
+
+function buildResponseSchema(document, responseObject, contentType) {
   if (!responseObject) {
     return undefined;
   }
@@ -169,15 +201,21 @@ function contentTypeOf(headers) {
 }
 
 // Mutates the given transactions, attaching response.schema where the
-// OpenAPI 3.0 document defines a response body schema and none is present yet.
-function augmentWithOpenAPI30Schemas(transactions, document) {
+// OpenAPI 3.0 document defines a response body schema and none is present yet,
+// and removing expected response headers the document marks as optional.
+//
+// `pathTemplates` maps each transaction to the Path Item template it was
+// compiled from. `origin.resourceName` is only a fallback: it is the Path Item
+// `summary` when one exists, so it cannot be used to look up the path.
+function augmentWithOpenAPI30Schemas(transactions, document, pathTemplates) {
   const paths = (document && document.paths) || {};
 
   transactions.forEach((transaction) => {
-    if (!transaction || !transaction.response || transaction.response.schema) {
+    if (!transaction || !transaction.response) {
       return;
     }
-    const pathTemplate = transaction.origin && transaction.origin.resourceName;
+    const pathTemplate = (pathTemplates && pathTemplates.get(transaction))
+      || (transaction.origin && transaction.origin.resourceName);
     const method = transaction.request && transaction.request.method
       ? transaction.request.method.toLowerCase()
       : undefined;
@@ -191,11 +229,16 @@ function augmentWithOpenAPI30Schemas(transactions, document) {
       return;
     }
 
+    const responseObject = findResponseObject(
+      document, operation, String(transaction.response.status)
+    );
+    removeOptionalHeaders(document, responseObject, transaction);
+
+    if (transaction.response.schema) {
+      return;
+    }
     const schema = buildResponseSchema(
-      document,
-      operation,
-      String(transaction.response.status),
-      contentTypeOf(transaction.response.headers)
+      document, responseObject, contentTypeOf(transaction.response.headers)
     );
     if (schema) {
       transaction.response.schema = schema;
