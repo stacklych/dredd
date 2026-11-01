@@ -163,7 +163,7 @@ The linter is optional for local development to make easy prototyping and workin
 Continuous integration
 ~~~~~~~~~~~~~~~~~~~~~~
 
-`GitHub Actions <https://github.com/stacklych/dredd/actions>`__ runs the checks on every push: ``run-test`` (build, lint, formatting check, and the test suite), ``run-e2e-tests`` and ``run-smoke-tests`` (end-to-end and smoke runs), and ``commitlint`` (validates the commit message against the Conventional Changelog format).
+`GitHub Actions <https://github.com/stacklych/dredd/actions>`__ runs the checks on every push, and on pull requests from forks (which get no push event in this repository): ``run-test`` (build, lint, formatting check, and the test suite), ``run-e2e-tests`` and ``run-smoke-tests`` (end-to-end and smoke runs), and ``commitlint`` (validates the commit message against the Conventional Changelog format).
 
 The documentation checks in ``run-docs-test`` — the Sphinx ``linkcheck``, the ``docs/_extensions`` unit tests, and the HTML build — are path-filtered. They run only when files under ``docs/``, the root ``package.json`` (which holds the ``docs:*`` scripts), or the workflow itself change. This keeps Sphinx and its external-network link check off code-only pushes, while documentation breakage is still caught on the pull request that introduces it.
 

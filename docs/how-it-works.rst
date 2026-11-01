@@ -184,6 +184,8 @@ Security
 
 Depending on what you test and how, output of Dredd may contain sensitive data.
 
+Dredd replaces the values of credential headers with ``[REDACTED]`` in its CLI output, in all reporters and in the debug configuration dump. This covers ``Authorization`` (including the header :option:`--user` creates), ``Proxy-Authorization``, ``Cookie`` and ``Set-Cookie``, and headers whose name contains ``auth``, ``token``, ``secret``, ``api-key``/``apikey``, ``password`` or ``session`` as a word (e.g. ``X-API-Key``, ``X-Auth-Token``), including headers added with :option:`--header`. The requests Dredd sends keep the real values. Credentials elsewhere, such as in request or response bodies or in URLs, are not redacted.
+
 Mind that if you run Dredd in a CI server provided as a service (such as `CircleCI`_, `Travis CI`_, etc.), you are disclosing the CLI output of Dredd to third parties.
 
 If you save test reports with a file-based reporter (e.g. :option:`--reporter` ``html`` or ``json``), those reports can contain details of all requests made to the server under test and their responses. You can :ref:`sanitize them before they get written <removing-sensitive-data-from-test-reports>`.

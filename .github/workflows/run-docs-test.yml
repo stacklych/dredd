@@ -14,10 +14,23 @@ on:
       - 'docs/**'
       - 'package.json' # the docs:* scripts live in the root manifest
       - '.github/workflows/run-docs-test.yml'
+  # Pull requests from forks get no push event in this repository.
+  pull_request:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'package.json'
+      - '.github/workflows/run-docs-test.yml'
+
+# Least privilege for GITHUB_TOKEN; jobs that need more declare it.
+permissions:
+  contents: read
 
 jobs:
 
   quality-checks:
+    # Same-repo branches are tested on push; pull_request runs only for forks.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
 
     runs-on: ${{ matrix.os }}
 
@@ -48,6 +61,8 @@ jobs:
     - run: yarn docs:test-extensions
 
   docs-dry-run:
+    # Same-repo branches are tested on push; pull_request runs only for forks.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
 
     runs-on: ${{ matrix.os }}
 

@@ -4,6 +4,7 @@ import pathmodule from 'path';
 
 import expandTilde from '../expandTilde.js';
 import logger from '../logger.js';
+import { redactMessage } from '../redact.js';
 import reporterOutputLogger from './reporterOutputLogger.js';
 import type { ReporterStats } from '../types/reporters.js';
 
@@ -87,9 +88,10 @@ class JSONReporter extends EventEmitter {
       transaction.message = test.message;
     }
     if (includeDetail) {
-      if (test.request) transaction.request = test.request;
-      if (test.expected) transaction.expected = test.expected;
-      if (test.actual) transaction.actual = test.actual;
+      // Credentials in headers are not written to the report.
+      if (test.request) transaction.request = redactMessage(test.request);
+      if (test.expected) transaction.expected = redactMessage(test.expected);
+      if (test.actual) transaction.actual = redactMessage(test.actual);
       if (test.results) transaction.results = test.results;
     }
 

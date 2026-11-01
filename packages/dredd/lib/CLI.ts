@@ -11,6 +11,7 @@ import Dredd from './Dredd.js';
 import ignorePipeErrors from './ignorePipeErrors.js';
 import interactiveConfig from './init.js';
 import logger from './logger.js';
+import { redactConfiguration } from './redact.js';
 import { applyLoggingOptions } from './configuration/index.js';
 import { spawn } from './childProcess.js';
 
@@ -475,7 +476,7 @@ ${packageData.name} v${packageData.version} \
     } catch (err) {
       logger.debug('npm version: unable to determine npm version:', err);
     }
-    logger.debug('Configuration:', JSON.stringify(config));
+    logger.debug('Configuration:', JSON.stringify(redactConfiguration(config)));
   }
 
   run() {

@@ -3,10 +3,20 @@ name: commitlint
 # Commit-message linting must run on every push, regardless of which files
 # changed. It lives in its own workflow so that `run-docs-test` can be
 # path-filtered to documentation changes without dropping this check.
-on: push
+on:
+  push:
+  # Pull requests from forks get no push event in this repository.
+  pull_request:
+    branches: [main]
+
+# Least privilege for GITHUB_TOKEN; jobs that need more declare it.
+permissions:
+  contents: read
 
 jobs:
   commitlint:
+    # Same-repo branches are tested on push; pull_request runs only for forks.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -21,4 +31,8 @@ jobs:
         with:
           node-version: 22.x
       - run: yarn install
-      - run: npx commitlint --last --verbose
+      # A pull_request checkout is a merge commit, so lint the PR's own commits.
+      - if: github.event_name == 'pull_request'
+        run: npx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
+      - if: github.event_name != 'pull_request'
+        run: npx commitlint --last --verbose

@@ -16,6 +16,7 @@ Docker
 If you are familiar with `Docker <https://docs.docker.com>`__, you can get started with Dredd quickly by using the ready-made `stacklych/dredd <https://hub.docker.com/r/stacklych/dredd/>`__ image. Specifics of running Dredd inside Docker are:
 
 - you won't be able to use the :option:`--server` option (see :ref:`docker-compose`)
+- Dredd runs as the unprivileged ``node`` user (UID 1000). If it needs to write into a mounted directory owned by another user (for example ``dredd init`` or a file-based :option:`--reporter`), add ``--user "$(id -u):$(id -g)"`` to the ``docker run`` command
 
 .. tabs::
 
