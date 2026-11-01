@@ -209,3 +209,41 @@ describe('OpenAPI 3.0 schema augmentation', () => {
     });
   });
 });
+
+describe('$ref sibling keywords in response schemas', () => {
+  const source = (version) => [
+    `openapi: "${version}"`,
+    'info: {title: API, version: "1"}',
+    'components:',
+    '  schemas:',
+    '    Pet: {type: object, properties: {name: {type: string}}}',
+    'paths:',
+    '  /pet:',
+    '    get:',
+    '      responses:',
+    '        "200":',
+    '          description: ok',
+    '          content:',
+    '            application/json:',
+    '              schema: {$ref: "#/components/schemas/Pet", required: [name]}',
+  ].join('\n');
+
+  const compileSchema = (version) => new Promise((resolve, reject) => {
+    compileSource(source(version), (err, result) => {
+      if (err) { reject(err); return; }
+      resolve(JSON.parse(result.transactions[0].response.schema));
+    });
+  });
+
+  it('keeps keywords next to $ref in OpenAPI 3.1 (JSON Schema 2020-12)', async () => {
+    const schema = await compileSchema('3.1.0');
+    assert.deepEqual(schema.required, ['name']);
+    assert.deepEqual(schema.allOf, [{ type: 'object', properties: { name: { type: 'string' } } }]);
+  });
+
+  it('ignores keywords next to $ref in OpenAPI 3.0, as the 3.0 spec requires', async () => {
+    const schema = await compileSchema('3.0.3');
+    assert.notProperty(schema, 'required');
+    assert.propertyVal(schema, 'type', 'object');
+  });
+});
