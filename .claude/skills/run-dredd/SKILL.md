@@ -6,11 +6,11 @@ description: Build, run, and smoke-test the Dredd HTTP API testing CLI. Use when
 # Run Dredd
 
 Dredd is a language-agnostic command-line tool that validates an API description
-document (OpenAPI 3.0 or OpenAPI 3.1) against a backend
+document (OpenAPI 3.0, 3.1 or 3.2) against a backend
 implementation. It is a **CLI tool**, not a server — you drive it by invoking
 the binary with `<description> <server-url> [options]`.
 
-This repo is a Yarn-workspaces + Lerna monorepo with two packages:
+This repo is a Yarn-workspaces monorepo with two packages:
 `packages/dredd` (the CLI) and `packages/dredd-transactions` (its parser/compiler
 library, plain JS — no build step). The CLI binary is
 `packages/dredd/bin/dredd`, which requires the TypeScript-compiled
@@ -18,15 +18,15 @@ library, plain JS — no build step). The CLI binary is
 
 The agent path is the driver at
 [.claude/skills/run-dredd/driver.mjs](.claude/skills/run-dredd/driver.mjs): it
-boots the binary, dry-run-compiles all three description formats from bundled
-fixtures, and runs a live pass/fail validation against a throwaway Node backend.
+boots the binary, dry-run-compiles the OpenAPI 3.0 and 3.1 fixtures it bundles, and runs a live pass/fail validation against a throwaway Node backend.
 
 **All paths below are relative to the repo root** (the directory containing this
 `packages/` folder).
 
 ## Prerequisites
 
-- Node.js **>= 20** (`packages/dredd` `engines.node`). Verified on Node 24.
+- Node.js **>= 22.22.2** (`engines.node` in both packages). CI tests 22.x and
+  24.x.
 - Yarn 1.x (classic). The repo uses Yarn workspaces; npm will not link the
   workspaces correctly. If `yarn` isn't installed, `corepack yarn ...` works.
 
@@ -37,10 +37,10 @@ yarn install
 yarn build
 ```
 
-`yarn build` runs `lerna exec` → `tsc --build` for `packages/dredd`
+`yarn build` runs `scripts/run-workspaces.mjs build`, which runs each
+workspace's `build` script: `tsc --build` for `packages/dredd`
 (dredd-transactions' build is a no-op; it ships as plain JS). Output lands in
-`packages/dredd/build/`. The optional `protagonist` native dependency fails to
-compile and is **safely ignored** — Dredd deliberately avoids it.
+`packages/dredd/build/`.
 
 ## Run (agent path) — the driver
 
@@ -90,25 +90,24 @@ Exit code is `0` when all transactions pass (or all are skipped in `--dry-run`),
 
 ```bash
 cd packages/dredd
-node_modules/.bin/mocha "test/unit/**/*-test.js"   # unit suite
+npm run test:unit          # unit suite
+npm run test:integration   # integration suite; run it after the unit suite,
+                           # not in parallel (both bind the same ports)
+npm run e2e                # Cucumber end-to-end tests
+cd ../dredd-transactions
+npm test                   # parser/compiler suite
 ```
 
-707 unit tests pass. The 19 failures in a restricted sandbox are all the
-hooks-worker tests, which spawn a hooks handler over a local socket (blocked
-when `listen()` is denied — see Gotchas). `yarn test` (mocha) and `yarn e2e`
-(cucumber) at the package level also exercise integration tests that bind
-servers and need an unrestricted environment.
+The integration and e2e suites bind local servers and need an environment
+that permits `listen()` (see Gotchas).
 
 ## Gotchas
 
 - **TCP `listen()` may be blocked.** In a sandboxed shell, binding any server
   socket fails with `EPERM` (`listen EPERM 127.0.0.1:...`). This blocks the
-  live `e2e` driver check, the 19 hooks-worker unit tests, and all
-  package-level integration/e2e tests — none of which is a code defect. The
-  driver's `formats`/`version`/`dry-run` paths need no listener and always run.
-- **`protagonist` build failure is expected.** The C++ API Blueprint binding
-  fails `node-gyp` and is an *optional* dependency. Dredd uses a pure-JS parser;
-  the smoke test even asserts `protagonist` is absent.
+  live `e2e` driver check and all package-level integration/e2e tests — none
+  of which is a code defect. The driver's `formats`/`version`/`dry-run` paths
+  need no listener and always run.
 - **Proxy env warning.** If `HTTP_PROXY`/`HTTPS_PROXY` are set, Dredd prints a
   proxy warning on every run. Harmless for `127.0.0.1` targets as long as
   `NO_PROXY` covers localhost. The driver filters this line from its output.

@@ -4,7 +4,7 @@
 Internals
 =========
 
-Dredd itself is a `command-line <https://en.wikipedia.org/wiki/Command-line_interface>`__ `Node.js <https://nodejs.org/>`__ application written in modern JavaScript. Contents:
+Dredd itself is a `command-line <https://en.wikipedia.org/wiki/Command-line_interface>`__ `Node.js <https://nodejs.org/>`__ application written in TypeScript. Contents:
 
 .. contents::
    :local:
@@ -51,7 +51,15 @@ To contribute to this maintained fork, open issues and pull requests in `stackly
 Installing Dredd for development
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To hack Dredd locally, clone the repository and run ``npm install`` to install JavaScript dependencies. Then run ``npm test`` to verify everything works as expected. If you want to run Dredd during development, you can do so using ``./bin/dredd``.
+The repository is a `Yarn 1 <https://classic.yarnpkg.com/>`__ workspaces monorepo with two packages: ``packages/dredd`` (the CLI, TypeScript) and ``packages/dredd-transactions`` (the OpenAPI parser and compiler, plain JavaScript). npm does not link the workspaces, so use Yarn. To hack Dredd locally, clone the repository, then from its root run:
+
+.. code-block:: text
+
+    $ yarn install --frozen-lockfile
+    $ yarn build
+    $ yarn test
+
+``yarn build`` compiles ``packages/dredd`` from ``lib/`` to ``build/`` (``dredd-transactions`` needs no build). If you want to run Dredd during development, use ``node packages/dredd/bin/dredd``. See ``CONTRIBUTING.md`` for details.
 
 .. note::
 
@@ -72,10 +80,10 @@ This maintained fork uses `Semantic Versioning <https://semver.org/>`__ and keep
 
     <type>: <message>
 
-Where ``<type>`` is a prefix, which tells Semantic Release what kind of changes you made in the commit:
+Where ``<type>`` is a prefix, which tells what kind of changes you made in the commit (``commitlint`` checks it in CI):
 
--  ``feat`` - New functionality added (results in _minor_ version bump)
--  ``fix`` - Broken functionality fixed (results in _patch_ version bump)
+-  ``feat`` - New functionality added (calls for a *minor* version bump)
+-  ``fix`` - Broken functionality fixed (calls for a *patch* version bump)
 -  ``refactor`` - Changes in code, but no changes in behavior
 -  ``perf`` - Performance improved
 -  ``style`` - Changes in code formatting
@@ -83,7 +91,7 @@ Where ``<type>`` is a prefix, which tells Semantic Release what kind of changes 
 -  ``docs`` - Changes in documentation
 -  ``chore`` - Changes in package or repository configuration
 
-In the rare cases when your changes break backwards compatibility, the message must include ``BREAKING CHANGE:``, followed by an explanation. That will result in bumping the major version.
+In the rare cases when your changes break backwards compatibility, the message must include ``BREAKING CHANGE:``, followed by an explanation. That calls for bumping the major version.
 
 .. code-block:: text
 
@@ -97,9 +105,9 @@ In the rare cases when your changes break backwards compatibility, the message m
     out of the box anymore. Instead manually install the coffeescript
     module and add --require=coffeescript/register to your command.
 
--   See `existing commits <https://github.com/stacklych/dredd/commits/master>`__ as a reference
+-   See `existing commits <https://github.com/stacklych/dredd/commits/main>`__ as a reference
 -   `Commitizen CLI <https://github.com/commitizen/cz-cli>`__ can help you to create correct commit messages
--   Run ``npm run lint`` to validate format of your messages
+-   Run ``yarn commit:lint`` to validate format of your messages
 -   Use ``refactor`` together with ``BREAKING CHANGE:`` for changes in code which only remove features (there doesn't seem to be a better category for that use case) -- see `real-world example <https://github.com/apiaryio/dredd/commit/a5fe81b>`__
 
 
@@ -116,14 +124,12 @@ GitHub labels
 Programming language
 ~~~~~~~~~~~~~~~~~~~~
 
-Dredd is written in modern JavaScript, ran by `Node.js <https://nodejs.org/>`__, and distributed by `npm <https://www.npmjs.com/>`__.
-
-Previously Dredd was written in `CoffeeScript <https://coffeescript.org>`__, and it was only recently converted to modern JavaScript. That's why sometimes the code does not feel very nice. Any efforts to refactor the code to something more human-friendly are greatly appreciated.
+Dredd is written in `TypeScript <https://www.typescriptlang.org/>`__, compiled with ``tsc`` from ``packages/dredd/lib/`` to ``packages/dredd/build/``, ran by `Node.js <https://nodejs.org/>`__, and distributed by `npm <https://www.npmjs.com/>`__. `Dredd Transactions`_ (``packages/dredd-transactions``) is plain JavaScript (ES modules) and runs from source.
 
 Supported Node.js versions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Given the `table with LTS schedule <https://github.com/nodejs/Release>`__, only versions marked as **Current**, **Maintenance**, or **Active** are supported, until their **Maintenance End**. The testing matrix of Dredd’s CI builds must contain all currently supported versions and must not contain any unsupported versions. The same applies for the underlying libraries, such as `Dredd Transactions`_. In ``appveyor.yml`` the latest supported Node.js version should be used. When dropping support for Node.js versions, remember to update the :ref:`installation guide <install-npm>`.
+Given the `table with LTS schedule <https://github.com/nodejs/Release>`__, only versions marked as **Current**, **Maintenance**, or **Active** are supported, until their **Maintenance End**. The testing matrix of Dredd’s CI builds must contain all currently supported versions and must not contain any unsupported versions. The same applies for the underlying libraries, such as `Dredd Transactions`_. When dropping support for Node.js versions, remember to update the :ref:`installation guide <install-npm>`.
 
 When dropping support for a certain Node.js version, it should be removed from the testing matrix, and it **must** be delivered as a breaking change, which increments Dredd's major version number.
 
@@ -133,7 +139,7 @@ Dependencies
 
 New versions of dependencies are monitored by `Dependabot <https://dependabot.com/>`__. Vulnerabilities are monitored by `Snyk <https://snyk.io/test/npm/dredd>`__.
 
-Dependencies should not be specified in a loose way - only exact versions are allowed. This is ensured by ``.npmrc`` and the lock file. Any changes to dependencies (version upgrades included) are a subject to internal policies and must be first checked and approved by the maintainers before merged to ``master``. This is because we are trying to be good Open Source citizens and to do our best to comply with licenses of all our dependencies.
+Dependencies should not be specified in a loose way - only exact versions are allowed. This is ensured by ``.npmrc`` and the lock file. Any changes to dependencies (version upgrades included) are a subject to internal policies and must be first checked and approved by the maintainers before merged to ``main``. This is because we are trying to be good Open Source citizens and to do our best to comply with licenses of all our dependencies.
 
 As a contributor, before adding a new dependency or upgrading an existing one, please try to `make sure <https://github.com/davglass/license-checker>`__ the project and all its transitive dependencies feature standard permissive licenses, including correct copyright holders and license texts.
 
@@ -141,21 +147,19 @@ As a contributor, before adding a new dependency or upgrading an existing one, p
 Versioning
 ~~~~~~~~~~
 
-Dredd follows `Semantic Versioning <https://semver.org/>`__. The releasing process is fully automated by `Semantic Release <https://github.com/semantic-release/semantic-release>`__.
-
-There are two release tags: ``latest`` and ``stable``. Currently they both point to the latest version. The ``stable`` tag exists only for backward compatibility with how Dredd used to be distributed in the past. It might get removed in the future.
+Dredd follows `Semantic Versioning <https://semver.org/>`__. Releases are cut by hand: a maintainer bumps both packages to the same version and pushes a ``v<version>`` tag, and the ``publish-npm`` and ``publish-docker`` workflows publish ``@stacklych/dredd``, ``@stacklych/dredd-transactions`` and the ``stacklych/dredd`` Docker image. See ``RELEASE.md`` for the full process.
 
 
 Testing
 ~~~~~~~
 
-Use ``npm test`` to run all tests. Dredd uses `Mocha <https://mochajs.org/>`__ as a test framework. Its default options are in the ``test/mocha.opts`` file.
+Use ``yarn test`` at the repository root to run the tests of both packages. Dredd uses `Mocha <https://mochajs.org/>`__ as a test framework; each package keeps its options in ``.mocharc.json``. In ``packages/dredd``, ``yarn test:unit`` and ``yarn test:integration`` run the two suites separately (run them one after the other, as they use the same ports), and ``yarn e2e`` runs the Cucumber end-to-end tests. In ``packages/dredd-transactions``, the tests are ``test/**/*-test.mjs``.
 
 
 Linting
 ~~~~~~~
 
-Dredd uses `eslint <https://eslint.org/>`__ to test the quality of the JavaScript codebase. We are adhering to the `Airbnb’s styleguide <https://github.com/airbnb/javascript>`__. Several rules are disabled to allow us to temporarily have dirty code after we migrated from CoffeeScript to JavaScript. The long-term intention is to remove all these exceptions.
+Dredd uses `eslint <https://eslint.org/>`__ to test the quality of the codebase, with the flat configuration in each package's ``eslint.config.mjs``: the ``@eslint/js`` recommended rules, ``typescript-eslint`` recommended rules for TypeScript, and ``eslint-config-prettier``. Formatting is checked by `Prettier <https://prettier.io/>`__ (``yarn prettify:check``). Run ``yarn lint`` at the repository root to lint both packages.
 
 The linter is optional for local development to make easy prototyping and working with unpolished code, but it’s enforced on the CI level. It is recommended you integrate `eslint <https://eslint.org/>`__ with your favorite editor so you see violations immediately during coding.
 
@@ -210,7 +214,7 @@ A 2026 project review (issues `#126 <https://github.com/stacklych/dredd/issues/1
 Contributing to documentation
 -----------------------------
 
-The documentation is written `as code <http://www.writethedocs.org/guide/docs-as-code/>`__ in the `reStructuredText <http://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html>`__ format and its source files are located in the `docs <https://github.com/stacklych/dredd/tree/master/docs>`__ directory.
+The documentation is written `as code <http://www.writethedocs.org/guide/docs-as-code/>`__ in the `reStructuredText <http://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html>`__ format and its source files are located in the `docs <https://github.com/stacklych/dredd/tree/main/docs>`__ directory.
 
 This fork's documentation is published at https://stacklych.github.io/dredd/.
 
