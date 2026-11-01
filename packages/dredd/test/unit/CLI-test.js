@@ -378,4 +378,91 @@ describe('CLI class', () => {
     it('should run child process', () =>
       assert.isTrue(childProcessSpawnStub.called));
   });
+
+  describe('option parsing', () => {
+    function configurationFor(argv) {
+      const dc = new CLIStub({ exit() {}, custom: { argv } });
+      sinon.stub(dc, 'initDredd').callsFake((configuration) => {
+        const dredd = new Dredd(configuration);
+        sinon.stub(dredd, 'run');
+        return dredd;
+      });
+      dc.run();
+      return dc.initDredd.firstCall.args[0];
+    }
+
+    it('parses the long --custom form into key/value pairs', () => {
+      const { custom } = configurationFor([
+        './test/fixtures/single-get.yaml',
+        'http://127.0.0.1:3000',
+        '--custom',
+        'apiKey:secret',
+      ]);
+      assert.propertyVal(custom, 'apiKey', 'secret');
+      assert.notProperty(custom, '0');
+    });
+
+    it('parses the short -j form into key/value pairs', () => {
+      const { custom } = configurationFor([
+        './test/fixtures/single-get.yaml',
+        'http://127.0.0.1:3000',
+        '-j',
+        'apiKey:secret',
+      ]);
+      assert.propertyVal(custom, 'apiKey', 'secret');
+    });
+
+    it('does not take a positional argument as the --dry-run value', () => {
+      const configuration = configurationFor([
+        '--dry-run',
+        './test/fixtures/single-get.yaml',
+        'http://127.0.0.1:3000',
+      ]);
+      assert.isTrue(configuration['dry-run']);
+      assert.equal(configuration.server, 'http://127.0.0.1:3000');
+      assert.include(configuration.path, './test/fixtures/single-get.yaml');
+    });
+  });
+
+  describe('logDebuggingInfo() when npm is not on PATH', () => {
+    let originalPath;
+    let originalLevel;
+    let calls;
+
+    before(() => {
+      originalPath = process.env.PATH;
+      originalLevel = loggerStub.level;
+      process.env.PATH = '/nonexistent';
+      loggerStub.level = 'debug';
+      calls = loggerStub.debug.getCalls().length;
+      new CLIStub({ exit() {}, custom: { argv: [] } }).logDebuggingInfo({});
+    });
+
+    after(() => {
+      process.env.PATH = originalPath;
+      loggerStub.level = originalLevel;
+    });
+
+    it('logs that the npm version is unknown instead of crashing', () => {
+      const npmCall = loggerStub.debug
+        .getCalls()
+        .slice(calls)
+        .find((call) => call.args[0] === 'npm version:');
+      assert.equal(npmCall.args[1], 'unable to determine npm version');
+    });
+  });
+
+  describe('when constructed like bin/dredd (no exit, no callback)', () => {
+    it('installs the SIGINT/SIGTERM handlers that stop the backend server', () => {
+      const dc = new CLIStub({ custom: { argv: [] } });
+      assert.isTrue(dc.sigIntEventAdd);
+    });
+  });
+
+  describe('when constructed with a callback', () => {
+    it('leaves signal handling to the caller', () => {
+      const dc = new CLIStub({ custom: { argv: [] } }, () => {});
+      assert.notOk(dc.sigIntEventAdd);
+    });
+  });
 });

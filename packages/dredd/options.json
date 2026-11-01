@@ -2,6 +2,7 @@
   "dry-run": {
     "alias": "y",
     "description": "Do not run any real HTTP transaction, only parse API description document and compile transactions.",
+    "boolean": true,
     "default": null
   },
   "hookfiles": {

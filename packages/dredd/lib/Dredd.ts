@@ -139,7 +139,7 @@ function compileTransactions(apiDescriptions: any[]): any[] {
         throw prefixError(
           compileError,
           'Unable to compile HTTP transactions from ' +
-            `API description document '${location}': ${compileError.message}`,
+            `API description document '${location}'`,
         );
       }
     })
