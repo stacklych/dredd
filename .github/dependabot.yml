@@ -24,16 +24,6 @@ updates:
   - dependency-name: typescript
     versions:
     - ">= 7"
-  # which 7's engines are "^22.22.2 || ^24.15.0 || >=26.0.0" -- a disjoint set,
-  # not a floor. It excludes Node 23.x and 24.0-24.14, so `yarn install` fails
-  # outright on common Node 24 patch releases. Note CI (24.x) resolves to a
-  # satisfying version while local installs break, so a 7.x PR can go green and
-  # still be unusable.
-  # RETIRE WHEN: the repo's supported Node range sits entirely inside which's
-  # engines -- i.e. the engines floor moves to ^24.15.0 or later.
-  - dependency-name: which
-    versions:
-    - ">= 7"
   commit-message:
     prefix: fix
     prefix-development: chore
