@@ -1,0 +1,37 @@
+openapi: 3.2.0
+info:
+  title: OpenAPI 3.2 features
+  version: '1.0'
+paths:
+  /items:
+    query:
+      requestBody:
+        content:
+          application/json:
+            example:
+              color: red
+      responses:
+        '200':
+          description: Matching items
+          content:
+            application/json:
+              example:
+                - name: apple
+    additionalOperations:
+      LOCK:
+        responses:
+          '204':
+            description: Locked
+  /search:
+    get:
+      parameters:
+        - name: filter
+          in: querystring
+          content:
+            application/x-www-form-urlencoded:
+              examples:
+                serialized:
+                  serializedValue: 'color=red&size=L'
+      responses:
+        '204':
+          description: Searched

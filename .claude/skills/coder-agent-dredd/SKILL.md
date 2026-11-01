@@ -135,7 +135,8 @@ when reviewing, check them all.
    `summary` when one exists. Never use names, titles or summaries to look up
    parts of the document; use the path template / href (#127).
 5. **Tests that never run.** `packages/dredd` collects only
-   `test/{unit,integration}/**/*-test.js`; `packages/dredd-transactions` only
+   `test/unit/**/*-test.{js,ts}` and `test/integration/**/*-test.js`;
+   `packages/dredd-transactions` only
    `test/**/*-test.mjs`. A new test file outside those globs never runs (#129).
    After adding tests, prove they are collected, e.g.
    `npx mocha --dry-run "<glob>" | grep "<describe title>"`. A green suite does

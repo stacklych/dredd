@@ -138,15 +138,25 @@ export const createServer = (options = {}) => {
   // Monkey-patching the app.listen() function. The 'port' argument
   // is made optional, defaulting to the 'DEFAULT_SERVER_PORT' value.
   // The callback is provided not only with error object, but also with
-  // runtime info about the server (what requests it got etc.).
+  // runtime info about the server (what requests it got etc.). A listen
+  // failure such as EADDRINUSE is an 'error' event on the server. Express 5
+  // forwards it to the listening callback, but a plain https.Server (the
+  // 'https' protocol option) does not, so the 'error' event is handled here.
   const originalListen = app.listen;
   app.listen = function listen(port, callback) {
     if (typeof port === 'function') {
       [callback, port] = Array.from([port, DEFAULT_SERVER_PORT]);
     }
-    return originalListen.call(this, port, (err) =>
-      callback(err, serverRuntimeInfo),
-    );
+    let called = false;
+    const done = (err) => {
+      if (!called) {
+        called = true;
+        callback(err, serverRuntimeInfo);
+      }
+    };
+    const server = originalListen.call(this, port, (err) => done(err || null));
+    server.once('error', (err) => done(err));
+    return server;
   };
   return app;
 };
@@ -229,7 +239,9 @@ function runCommand(command, args, spawnOptions = {}, callback) {
     output += data;
   });
 
-  cli.on('exit', (exitStatus) =>
+  // 'close' fires after the child's stdio streams are closed, so all output
+  // has been collected; 'exit' may fire before that.
+  cli.on('close', (exitStatus) =>
     callback(null, {
       stdout,
       stderr,
