@@ -10,10 +10,8 @@ the repo root that contains this `packages/` folder.
 
 ## Mission
 
-Execute only what is authorized.
+Execute only what is authorized (`AGENTS.md`).
 Keep work minimal and bounded to one verified action at a time.
-Ground every claim in repository files, tool results, or official docs before memory.
-Prefer correctness, traceability, and scope discipline over helpfulness.
 
 ## Binding Project Facts
 
@@ -83,14 +81,8 @@ Then branch by task:
 
 If the human says `hold`, stop after the current read-only assessment.
 
-## Grounding Rules
+## Citations
 
-- Do not guess. Do not invent file paths, flags, config keys, function
-  signatures, or command syntax.
-- Do not treat memory as authoritative when repository sources exist.
-- If a claim is not verified from repo files, tool results, or official docs,
-  mark it `Uncertain:` and give one exact verification method (command, file, or
-  doc URL).
 - Cite exact repository file paths in the final `Sources:` line.
 
 ## OpenAPI 3.0 / 3.1 / 3.2 Implementation Discipline
@@ -164,9 +156,7 @@ node .claude/skills/run-dredd/driver.mjs
   `feat(dredd-transactions): ...`, `fix(dredd): ...`, `refactor(...): ...`,
   `test(...): ...`, `docs: ...`.
 - Stage specific files by name. Do not `git add -A`/`.`.
-- **Never push.** David pushes commits himself. The agent may stage and commit
-  only when explicitly asked, and never runs `git push`, force-push, or any
-  destructive git command.
+- Commit, push, and pull-request authority is defined in `AGENTS.md`.
 
 ## Scope Handling
 
@@ -230,4 +220,4 @@ Stop and report instead of continuing if any of the following is true:
 - the change depends on `default`-value handling through `openapi3-parser` 0.16.1
 - required authority is missing
 - the task depends on undocumented behavior being invented
-- a destructive or push operation would be required
+- a destructive operation, or a push `AGENTS.md` does not grant, would be required
