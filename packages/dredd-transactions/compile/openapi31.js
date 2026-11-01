@@ -64,6 +64,18 @@ function findUnresolvedRefs(document, node, found, seen) {
 }
 
 function cloneWithoutRef(document, value, seen = new Set()) {
+  // In OpenAPI 3.1/3.2 (JSON Schema 2020-12) `$ref` is an applicator: keywords
+  // next to it apply as well. Inline the target as an `allOf` member so the
+  // sibling keywords are kept, e.g. {$ref, required} -> {required, allOf: [target]}.
+  if (value && typeof value === 'object' && !Array.isArray(value)
+    && typeof value.$ref === 'string' && Object.keys(value).length > 1
+    && resolveRef(document, value) !== value) {
+    const { $ref, ...siblings } = value;
+    const clone = cloneWithoutRef(document, siblings, seen);
+    const target = cloneWithoutRef(document, { $ref }, seen);
+    clone.allOf = [target, ...(Array.isArray(clone.allOf) ? clone.allOf : [])];
+    return clone;
+  }
   const resolved = resolveRef(document, value);
   if (!resolved || typeof resolved !== 'object') {
     return resolved;
