@@ -40,3 +40,24 @@ updates:
     prefix: chore
     prefix-development: chore
     include: scope
+# Keeps the commit-SHA pins of GitHub Actions and the Docker base image current.
+- package-ecosystem: github-actions
+  directory: "/"
+  schedule:
+    interval: weekly
+    time: "13:00"
+  labels:
+  - dependencies
+  commit-message:
+    prefix: chore
+    include: scope
+- package-ecosystem: docker
+  directory: "/"
+  schedule:
+    interval: weekly
+    time: "13:00"
+  labels:
+  - dependencies
+  commit-message:
+    prefix: chore
+    include: scope
