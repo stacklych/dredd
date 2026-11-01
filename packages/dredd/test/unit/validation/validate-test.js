@@ -19,13 +19,19 @@ const J = { 'content-type': 'application/json' };
 describe('in-house validator', () => {
   describe('statusCode', () => {
     it('passes on equal codes (numeric vs string)', () => {
-      const result = validateStatusCode({ statusCode: '200' }, { statusCode: 200 });
+      const result = validateStatusCode(
+        { statusCode: '200' },
+        { statusCode: 200 },
+      );
       assert.isTrue(result.valid);
       assert.deepEqual(messages(result), []);
     });
 
     it('fails with gavel-style message on mismatch', () => {
-      const result = validateStatusCode({ statusCode: '200' }, { statusCode: 400 });
+      const result = validateStatusCode(
+        { statusCode: '200' },
+        { statusCode: 400 },
+      );
       assert.isFalse(result.valid);
       assert.deepEqual(messages(result), [
         "Expected status code '200', but got '400'.",
@@ -71,14 +77,19 @@ describe('in-house validator', () => {
     });
 
     it('reports a missing expected header', () => {
-      const result = run({ 'content-type': 'application/json', 'x-need': 'v' }, J);
+      const result = run(
+        { 'content-type': 'application/json', 'x-need': 'v' },
+        J,
+      );
       assert.deepEqual(messages(result), [
         "At '/x-need' Missing required property: x-need",
       ]);
     });
 
     it('allows extra (superset) real headers', () => {
-      assert.isTrue(run(J, { 'content-type': 'application/json', 'x-extra': '1' }).valid);
+      assert.isTrue(
+        run(J, { 'content-type': 'application/json', 'x-extra': '1' }).valid,
+      );
     });
   });
 
@@ -87,7 +98,9 @@ describe('in-house validator', () => {
       validateBody({ headers: eh, body: eb }, { headers: rh, body: rb });
 
     it('omits the body field entirely when there is no expected body', () => {
-      assert.isUndefined(validateBody({ headers: J }, { headers: J, body: '{"a":1}' }));
+      assert.isUndefined(
+        validateBody({ headers: J }, { headers: J, body: '{"a":1}' }),
+      );
     });
 
     it('enforces key presence but not scalar values or types', () => {
@@ -161,13 +174,18 @@ describe('in-house validator', () => {
       assert.deepEqual(messages(run(draft7, '[{"type":"bulldozer"}]')), [
         "At '/0/name' Missing required property: name",
       ]);
-      assert.deepEqual(messages(run(draft7, '[{"type":"bulldozer","name":5}]')), [
-        "At '/0/name' Invalid type: number (expected string)",
-      ]);
+      assert.deepEqual(
+        messages(run(draft7, '[{"type":"bulldozer","name":5}]')),
+        ["At '/0/name' Invalid type: number (expected string)"],
+      );
       assert.deepEqual(
         messages(
           run(
-            { $schema: D, type: 'object', properties: { x: { enum: ['a', 'b'] } } },
+            {
+              $schema: D,
+              type: 'object',
+              properties: { x: { enum: ['a', 'b'] } },
+            },
             '{"x":"z"}',
           ),
         ),
@@ -176,14 +194,17 @@ describe('in-house validator', () => {
     });
 
     it('uses the data-prefixed fallback format for other keywords', () => {
-      assert.deepEqual(messages(run(draft7, '[{"type":"unknown","name":"willy"}]')), [
-        'data/0/type should be equal to constant',
-      ]);
+      assert.deepEqual(
+        messages(run(draft7, '[{"type":"unknown","name":"willy"}]')),
+        ['data/0/type should be equal to constant'],
+      );
     });
 
     it('accepts a schema passed as a JSON string', () => {
       assert.deepEqual(
-        messages(run(JSON.stringify(draft7), '[{"type":"unknown","name":"willy"}]')),
+        messages(
+          run(JSON.stringify(draft7), '[{"type":"unknown","name":"willy"}]'),
+        ),
         ['data/0/type should be equal to constant'],
       );
     });

@@ -12,21 +12,18 @@ const createTransaction = (transaction: Partial<Transaction>) => {
 
 const transactions = Object.keys(HTTPMethod).reduce<
   Record<HTTPMethod, Transaction>
->(
-  (acc, method: HTTPMethod) => {
-    return R.assoc(
-      method,
-      createTransaction({
-        request: {
-          url: '/endpoint',
-          method,
-        },
-      }),
-      acc,
-    );
-  },
-  {} as any,
-);
+>((acc, method: HTTPMethod) => {
+  return R.assoc(
+    method,
+    createTransaction({
+      request: {
+        url: '/endpoint',
+        method,
+      },
+    }),
+    acc,
+  );
+}, {} as any);
 
 describe('sortTransactions', () => {
   describe('given transactions list in arbitrary order', () => {
@@ -42,6 +39,7 @@ describe('sortTransactions', () => {
       transactions.PUT,
       transactions.UNLINK,
       transactions.CONNECT,
+      transactions.QUERY,
     ]);
 
     it('should return transactions list sorted', () => {
@@ -50,6 +48,7 @@ describe('sortTransactions', () => {
         transactions.OPTIONS,
         transactions.POST,
         transactions.GET,
+        transactions.QUERY,
         transactions.HEAD,
         transactions.PUT,
         transactions.PATCH,
@@ -57,6 +56,30 @@ describe('sortTransactions', () => {
         transactions.UNLINK,
         transactions.DELETE,
         transactions.TRACE,
+      ]);
+    });
+  });
+
+  describe('given an OpenAPI 3.2 QUERY and a custom method', () => {
+    const lock = createTransaction({
+      id: 'lock',
+      request: { method: 'LOCK' as HTTPMethod, url: '/endpoint' },
+    });
+    const sorted = sortTransactions([
+      lock as any,
+      transactions.QUERY,
+      transactions.GET,
+      transactions.POST,
+      transactions.TRACE,
+    ]);
+
+    it('runs QUERY after POST and GET, and unknown methods after TRACE', () => {
+      expect(sorted).to.deep.equal([
+        transactions.POST,
+        transactions.GET,
+        transactions.QUERY,
+        transactions.TRACE,
+        lock,
       ]);
     });
   });
