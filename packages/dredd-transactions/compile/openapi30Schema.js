@@ -115,6 +115,13 @@ function normalizeSchema(schema) {
   return schema;
 }
 
+// A JSON Schema describes a body Dredd parses as JSON, so it applies only to
+// JSON media types; other bodies (text, XML, binary) are compared as text.
+function isJSONMediaType(mediaType) {
+  const type = String(mediaType || '').split(';')[0].trim().toLowerCase();
+  return type === 'application/json' || type.endsWith('+json');
+}
+
 function findContentSchema(responseObject, contentType) {
   const content = responseObject && responseObject.content;
   if (!content || typeof content !== 'object') {
@@ -135,6 +142,9 @@ function findContentSchema(responseObject, contentType) {
     [key] = keys;
   }
 
+  if (!isJSONMediaType(key) || (contentType && !isJSONMediaType(contentType))) {
+    return undefined;
+  }
   return content[key] ? content[key].schema : undefined;
 }
 
@@ -170,14 +180,19 @@ function contentTypeOf(headers) {
 
 // Mutates the given transactions, attaching response.schema where the
 // OpenAPI 3.0 document defines a response body schema and none is present yet.
-function augmentWithOpenAPI30Schemas(transactions, document) {
+//
+// `pathTemplates` maps each transaction to the Path Item template it was
+// compiled from. `origin.resourceName` is only a fallback: it is the Path Item
+// `summary` when one exists, so it cannot be used to look up the path.
+function augmentWithOpenAPI30Schemas(transactions, document, pathTemplates) {
   const paths = (document && document.paths) || {};
 
   transactions.forEach((transaction) => {
     if (!transaction || !transaction.response || transaction.response.schema) {
       return;
     }
-    const pathTemplate = transaction.origin && transaction.origin.resourceName;
+    const pathTemplate = (pathTemplates && pathTemplates.get(transaction))
+      || (transaction.origin && transaction.origin.resourceName);
     const method = transaction.request && transaction.request.method
       ? transaction.request.method.toLowerCase()
       : undefined;

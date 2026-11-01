@@ -140,4 +140,72 @@ describe('OpenAPI 3.0 schema augmentation', () => {
       });
     });
   });
+
+  // Same document compiled through both compile paths (3.0 adapter and the
+  // in-house 3.1/3.2 compiler) must attach the same response schemas.
+  ['3.0.3', '3.1.0'].forEach((version) => {
+    describe(`compile() response schemas, OpenAPI ${version}`, () => {
+      const source = [
+        `openapi: "${version}"`,
+        'info: {title: API, version: "1"}',
+        'paths:',
+        '  /things/{id}:',
+        '    summary: Things',
+        '    parameters:',
+        '      - {name: id, in: path, required: true, example: "1", schema: {type: string}}',
+        '    get:',
+        '      parameters:',
+        '        - {name: q, in: query, example: a, schema: {type: string}}',
+        '      responses:',
+        '        "200":',
+        '          description: ok',
+        '          content:',
+        '            application/json:',
+        '              schema: {type: object, required: [id]}',
+        '              example: {id: 1}',
+        '            application/problem+json:',
+        '              schema: {type: object}',
+        '              example: {}',
+        '            text/plain:',
+        '              schema: {type: string}',
+        '              example: hello',
+        '            application/xml:',
+        '              schema: {type: object}',
+        '              example: "<a/>"',
+      ].join('\n');
+
+      let schemas;
+      before((done) => {
+        compileSource(source, (err, result) => {
+          if (err) {
+            done(err);
+            return;
+          }
+          schemas = {};
+          result.transactions.forEach((transaction) => {
+            const contentType = transaction.response.headers
+              .find((header) => header.name.toLowerCase() === 'content-type').value;
+            schemas[contentType] = transaction.response.schema;
+          });
+          done();
+        });
+      });
+
+      it('attaches the schema when the Path Item has a summary', () => {
+        assert.deepInclude(JSON.parse(schemas['application/json']), { required: ['id'] });
+      });
+
+      it('attaches the schema to a +json media type', () => {
+        assert.isString(schemas['application/problem+json']);
+      });
+
+      it('does not attach a schema to text/plain', () => {
+        assert.isUndefined(schemas['text/plain']);
+      });
+
+      it('does not attach a schema to application/xml', () => {
+        assert.isUndefined(schemas['application/xml']);
+      });
+    });
+  });
 });

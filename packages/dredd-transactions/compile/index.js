@@ -106,6 +106,14 @@ function compileResponse(httpResponseElement) {
   return response;
 }
 
+// The Path Item template (e.g. '/things/{id}') the transaction came from. The
+// resource href carries the query part as a '{?...}' expression; drop it.
+function compilePathTemplate(httpTransactionElement) {
+  const resourceElement = httpTransactionElement.parents.find('resource');
+  const href = resourceElement ? resourceElement.attributes.getValue('href') : undefined;
+  return typeof href === 'string' ? href.replace(/\{[?&][^}]*\}/g, '') : undefined;
+}
+
 function compileTransaction(filename, httpTransactionElement) {
   const origin = compileOrigin(filename, httpTransactionElement);
   const name = compileTransactionName(origin);
@@ -138,17 +146,23 @@ function compile(mediaType, apiElements, filename) {
   apiElements.freeze();
 
   const transactions = [];
+  const pathTemplates = new Map();
   let annotations = apiElements.annotations.map(compileAnnotation);
 
   findRelevantTransactions(apiElements)
     .forEach(({ httpTransactionElement }) => {
       const result = compileTransaction(filename, httpTransactionElement);
-      if (result.transaction) { transactions.push(result.transaction); }
+      if (result.transaction) {
+        transactions.push(result.transaction);
+        pathTemplates.set(result.transaction, compilePathTemplate(httpTransactionElement));
+      }
       annotations = annotations.concat(result.annotations);
     });
 
   if (apiElements.openapi3Document) {
-    augmentWithOpenAPI30Schemas(transactions, apiElements.openapi3Document.document);
+    augmentWithOpenAPI30Schemas(
+      transactions, apiElements.openapi3Document.document, pathTemplates
+    );
   }
 
   return { mediaType, transactions, annotations };
