@@ -2,7 +2,18 @@
 
 ## Supported Versions
 
-This maintained fork does not yet publish independent npm releases. Security fixes are applied on the `master` branch until a forked release channel is established.
+This fork publishes:
+
+- [`@stacklych/dredd`](https://www.npmjs.com/package/@stacklych/dredd) and
+  [`@stacklych/dredd-transactions`](https://www.npmjs.com/package/@stacklych/dredd-transactions)
+  on npm (released together, with the same version), and
+- the [`stacklych/dredd`](https://hub.docker.com/r/stacklych/dredd) Docker image.
+
+Security fixes land on the `main` branch and ship in the next release. Only the
+latest released minor version (currently 0.5.x) receives security fixes; older
+versions are not patched, so upgrade to the latest release. The unscoped
+`dredd` and `dredd-transactions` npm packages belong to the archived upstream
+project and are not maintained here.
 
 ## Reporting a Vulnerability
 

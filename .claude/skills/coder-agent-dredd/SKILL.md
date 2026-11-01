@@ -25,13 +25,16 @@ Treat the following as binding unless a cited repository source supersedes them:
   (e.g. `packages/dredd-transactions/test/fixtures/apib/` and `.../openapi2/`,
   any apib/oas2 branches still in the existing `run-dredd` skill or its driver)
   as removable dead code; flag them rather than building on them.
-- Monorepo: Yarn 1.x (classic) workspaces + Lerna. Node `>=20` (declared in both
-  package `engines`); verified on Node 24.
-- `packages/dredd` (v14.x): the CLI. TypeScript-compiled to `build/`. Source in
-  `lib/` (mixed `.js` and `.ts`). Binary `bin/dredd` requires `build/`.
-- `packages/dredd-transactions` (v10.x): the parser/compiler library. Plain JS,
-  **no build step** (`build` is `exit 0`, `main` is `index.js`). Source in
-  `parse/` and `compile/`.
+- Monorepo: Yarn 1.x (classic) workspaces; `scripts/run-workspaces.mjs` runs a
+  script in each workspace (there is no Lerna). Node `>=22.22.2` (declared in
+  both package `engines`); CI tests Node 22.x and 24.x.
+- `packages/dredd` (`@stacklych/dredd`, 0.5.x): the CLI. TypeScript compiled by
+  `tsc` to `build/`. Source in `lib/` (all `.ts`). Binary `bin/dredd` requires
+  `build/`.
+- `packages/dredd-transactions` (`@stacklych/dredd-transactions`, 0.5.x): the
+  parser/compiler library. Plain JS (ES modules), **no build step** (`build`
+  is `exit 0`, `main` is `index.js`). Source in `parse/` and `compile/`.
+- Both packages share one version and are released together (`RELEASE.md`).
 
 ## Authority Order
 
@@ -39,10 +42,10 @@ When sources or instructions conflict, use this order:
 
 1. Current human instruction (David)
 2. Repository source code under `packages/*`
-3. Package manifests (`package.json`, `lerna.json`) and lockfile (`yarn.lock`)
+3. Package manifests (`package.json`) and lockfile (`yarn.lock`)
 4. `README.md`, `CONTRIBUTING.md`, `MAINTAINERS.md`
 5. Docs under `docs/` (reStructuredText; published as dredd.org)
-6. The existing `run-dredd` skill (treat its three-format claims as stale)
+6. The existing `run-dredd` skill
 7. Memory of prior turns
 
 ## Override Rule
@@ -59,8 +62,7 @@ Read the smallest authoritative set the task needs, in this order:
 1. `README.md`
 2. `CONTRIBUTING.md`
 3. Target package `package.json` (`packages/dredd` or `packages/dredd-transactions`)
-4. `.claude/skills/run-dredd/SKILL.md` (build/run/smoke mechanics; ignore its
-   apib/oas2 format claims)
+4. `.claude/skills/run-dredd/SKILL.md` (build/run/smoke mechanics)
 
 Then branch by task:
 
@@ -69,7 +71,7 @@ Then branch by task:
   `packages/dredd-transactions/compile/` (`index.js`, `openapi31.js`,
   `openapi30Schema.js`, `compileAnnotation.js`, `compileURI/`)
 - CLI / runner / reporters:
-  `packages/dredd/lib/` (`Dredd.js`, `TransactionRunner.js`, `CLI.js`,
+  `packages/dredd/lib/` (`Dredd.ts`, `TransactionRunner.ts`, `CLI.ts`,
   `configuration/`, `reporters/`)
 - Docs work: the relevant `docs/*.rst` file (see Documentation Routing)
 
@@ -97,8 +99,8 @@ If the human says `hold`, stop after the current read-only assessment.
   values. Do not write code or fixtures that depend on `default` being honored
   through this parser; if a behavior needs `default`, state that it cannot be
   tested through this path.
-- Other pinned transactions deps: `@apielements/core`, `uri-template 1.0.1`,
-  `yaml-js`, `z-schema 4.2.4`. Confirm presence in
+- Other transactions deps: `@apielements/core` (`^0.2.1`), `uri-template`
+  (`2.0.0`), `yaml-js` (`0.3.1`). Confirm presence and versions in
   `packages/dredd-transactions/package.json` before relying on any of them.
 - When adding parser/compiler tests, place fixtures under
   `packages/dredd-transactions/test/fixtures/openapi3/` and load them through the
@@ -172,8 +174,9 @@ cd packages/dredd && npm run lint
 cd packages/dredd-transactions && npm run lint
 
 # Test (per package)
-cd packages/dredd && npm test                 # mocha ./test/**/*-test.js
-cd packages/dredd-transactions && npm test    # runs scripts/pretest.js then mocha ./test
+cd packages/dredd && npm run test:unit        # unit suite (glob in package.json)
+cd packages/dredd && npm run test:integration # run after test:unit, not in parallel (shared ports)
+cd packages/dredd-transactions && npm test    # runs scripts/pretest.js then mocha "test/**/*-test.mjs"
 
 # Smoke / driver (no build artifact needed for transactions)
 node .claude/skills/run-dredd/driver.mjs
@@ -187,11 +190,9 @@ node .claude/skills/run-dredd/driver.mjs
 ### Environment caveats (not code defects)
 
 - TCP `listen()` may be blocked in the sandbox (`EPERM`). This breaks the live
-  `e2e` driver check, the hooks-worker unit tests, and package-level
-  integration/e2e tests that bind sockets. Report as environment-limited, not a
-  bug. The driver's `version`/`formats`/`dry-run` paths need no listener.
-- The optional native `protagonist` dependency fails `node-gyp` and is
-  deliberately ignored. Its absence is expected.
+  `e2e` driver check and package-level integration/e2e tests that bind
+  sockets. Report as environment-limited, not a bug. The driver's
+  `version`/`formats`/`dry-run` paths need no listener.
 
 ## Documentation Routing
 
